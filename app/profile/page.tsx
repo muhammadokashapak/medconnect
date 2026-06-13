@@ -127,12 +127,12 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Doctor Profile</h1>
-          <div>
+        <div className="flex justify-between items-start sm:items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Doctor Profile</h1>
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => router.push("/feed")}
-              className="mr-4 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium"
+              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium"
             >
               Back to Home
             </button>
@@ -142,7 +142,7 @@ export default function ProfilePage() {
                 setSuccess("");
                 setError("");
               }}
-              className="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 transition"
+              className="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 transition w-full sm:w-auto text-center"
             >
               {isEditing ? "Cancel Edit" : "Edit Profile"}
             </button>
