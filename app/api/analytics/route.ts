@@ -67,7 +67,7 @@ export async function GET(req: Request) {
 
     const totalConsultations = consultations.length;
     const avgConsultationDuration = totalConsultations > 0 
-      ? Math.round(consultations.reduce((acc, c) => acc + (c.duration || 0), 0) / totalConsultations)
+      ? Math.round(consultations.reduce((acc: number, c: any) => acc + (c.duration || 0), 0) / totalConsultations)
       : 0;
 
     const totalCmeCredits = cmeCreditsObj.reduce((acc: number, cert: any) => acc + cert.course.credits, 0);
