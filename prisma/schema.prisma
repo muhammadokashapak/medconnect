@@ -31,6 +31,8 @@ model Doctor {
   // Verification & Admin Fields
   role               String    @default("DOCTOR")
   verificationStatus String    @default("PENDING")
+  otpCode            String?
+  otpExpiry          DateTime?
   licenseImage       String?
   cnicImage          String?
   selfieImage        String?
