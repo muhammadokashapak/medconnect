@@ -33,6 +33,8 @@ model Doctor {
   verificationStatus String    @default("PENDING")
   otpCode            String?
   otpExpiry          DateTime?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
   licenseImage       String?
   cnicImage          String?
   selfieImage        String?

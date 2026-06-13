@@ -31,6 +31,23 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to permanently delete Dr. ${name}? This action cannot be undone.`)) return;
+    
+    try {
+      const res = await fetch(`/api/admin/doctors/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete doctor");
+      
+      // Remove from UI
+      setDoctors(doctors.filter(d => d.id !== id));
+      alert("Doctor deleted successfully.");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -118,13 +135,21 @@ export default function AdminDashboardPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(doc.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         <button
                           onClick={() => router.push(`/admin/doctor/${doc.id}`)}
                           className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded"
                         >
-                          Review Documents
+                          Review
                         </button>
+                        {(statusFilter === "PENDING" || statusFilter === "REJECTED") && (
+                          <button
+                            onClick={() => handleDelete(doc.id, doc.fullName)}
+                            className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

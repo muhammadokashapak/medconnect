@@ -70,12 +70,18 @@ export default function LoginPage() {
         />
 
         <input
-          className="w-full border p-2 mb-3 rounded"
+          className="w-full border p-2 mb-2 rounded"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
+        <div className="flex justify-end mb-4">
+          <Link href="/forgot-password" className="text-sm text-blue-500 hover:text-blue-700 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
 
         <button
           onClick={handleLogin}

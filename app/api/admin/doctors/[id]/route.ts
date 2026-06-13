@@ -56,3 +56,39 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  try {
+    const params = await props.params;
+    const adminId = await getAdminId(req);
+    
+    if (!adminId) {
+      return NextResponse.json({ message: "Forbidden. Admin access required." }, { status: 403 });
+    }
+
+    const doctorToDelete = await prisma.doctor.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!doctorToDelete) {
+      return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
+    }
+
+    // Optional: add a check to prevent deleting verified admins
+    if (doctorToDelete.role === "ADMIN") {
+      return NextResponse.json({ message: "Cannot delete an Admin account" }, { status: 400 });
+    }
+
+    // Delete the doctor
+    await prisma.doctor.delete({
+      where: { id: params.id }
+    });
+
+    return NextResponse.json({ message: "Doctor deleted successfully" }, { status: 200 });
+
+  } catch (error: any) {
+    console.error("Delete Error:", error);
+    return NextResponse.json({ message: "Server Error during deletion" }, { status: 500 });
+  }
+}
+
