@@ -1,0 +1,99 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!";
+
+function getUserIdFromToken(req: Request): string | null {
+  const tokenCookie = req.headers.get("cookie")?.split("; ").find(c => c.startsWith("medconnect_token="));
+  if (!tokenCookie) return null;
+  const token = tokenCookie.split("=")[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    return decoded.id;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const doctorId = getUserIdFromToken(req);
+    if (!doctorId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const doctor = await prisma.doctor.findUnique({ where: { id: doctorId } });
+    if (!doctor || doctor.verificationStatus !== "VERIFIED") {
+      return NextResponse.json({ message: "You must be fully verified by PMDC to post a case" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { title, specialty, description, imageUrl, isAnonymous } = body;
+
+    if (!title || !specialty || !description) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    }
+
+    const newCase = await prisma.casePost.create({
+      data: {
+        title,
+        specialty,
+        description,
+        imageUrl,
+        isAnonymous: Boolean(isAnonymous),
+        doctorId,
+      },
+    });
+
+    return NextResponse.json({ message: "Case created successfully", casePost: newCase }, { status: 201 });
+  } catch (error) {
+    console.error("Create Case Error:", error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const doctorId = getUserIdFromToken(req);
+    if (!doctorId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const cases = await prisma.casePost.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        doctor: {
+          select: {
+            fullName: true,
+            profileImage: true,
+            isVerified: true,
+          }
+        },
+        _count: {
+          select: { comments: true }
+        }
+      }
+    });
+
+    // Sanitize anonymous posts
+    const sanitizedCases = cases.map(c => {
+      if (c.isAnonymous) {
+        return {
+          ...c,
+          doctor: {
+            fullName: "Anonymous Doctor",
+            profileImage: null,
+            isVerified: c.doctor.isVerified,
+          }
+        };
+      }
+      return c;
+    });
+
+    return NextResponse.json(sanitizedCases, { status: 200 });
+  } catch (error) {
+    console.error("Get Cases Error:", error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+  }
+}
