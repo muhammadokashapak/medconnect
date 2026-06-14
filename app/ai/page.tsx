@@ -20,9 +20,7 @@ export default function AIDashboardPage() {
           <button
             onClick={() => router.push("/feed")}
             className="text-indigo-600 hover:underline font-medium"
-          >
-            Back to Dashboard
-          </button>
+          >Back to Homepage</button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

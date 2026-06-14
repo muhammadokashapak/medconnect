@@ -48,9 +48,7 @@ export default function AnalyzeCasePage() {
           onClick={() => router.push("/ai")}
           className="mb-6 flex items-center text-blue-600 hover:text-blue-800 transition font-medium"
         >
-          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          Back to AI Assistant
-        </button>
+          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage</button>
 
         <div className="bg-white rounded-xl shadow p-6 md:p-8 mb-8 border-t-4 border-blue-500">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">AI Case Analysis</h1>

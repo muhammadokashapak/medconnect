@@ -11,9 +11,7 @@ export default function ERPLab() {
              <svg className="w-8 h-8 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
              Laboratory Management
           </h1>
-          <Link href="/erp" className="text-sm font-medium text-gray-600 hover:text-gray-800">
-            Back to ERP
-          </Link>
+          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
         </div>
 
         <div className="bg-white rounded-xl shadow border border-gray-100 p-6">

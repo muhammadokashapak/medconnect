@@ -133,9 +133,7 @@ export default function ProfilePage() {
             <button
               onClick={() => router.push("/feed")}
               className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium"
-            >
-              Back to Home
-            </button>
+            >Back to Homepage</button>
             <button
               onClick={() => {
                 setIsEditing(!isEditing);

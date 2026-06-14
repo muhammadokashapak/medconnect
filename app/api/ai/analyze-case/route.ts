@@ -24,8 +24,8 @@ export async function POST(req: Request) {
     }
 
     const doctor = await prisma.doctor.findUnique({ where: { id: userId } });
-    if (!doctor || doctor.verificationStatus !== "VERIFIED") {
-      return NextResponse.json({ message: "You must be fully verified to use AI tools" }, { status: 403 });
+    if (!doctor) {
+      return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
     }
 
     const { symptoms, history, age, gender, labResults } = await req.json();

@@ -50,9 +50,7 @@ export default function NotificationsPage() {
                 Mark all as read
               </button>
             )}
-            <button onClick={() => router.push("/feed")} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium w-full sm:w-auto text-center">
-              Back to Dashboard
-            </button>
+            <button onClick={() => router.push("/feed")} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium w-full sm:w-auto text-center">Back to Homepage</button>
           </div>
         </div>
 

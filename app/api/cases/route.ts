@@ -71,7 +71,11 @@ export async function GET(req: Request) {
           }
         },
         _count: {
-          select: { comments: true }
+          select: { 
+            comments: true,
+            views: true,
+            reactions: true
+          }
         }
       }
     });

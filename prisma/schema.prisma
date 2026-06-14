@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Doctor {
@@ -55,6 +56,9 @@ model Doctor {
   following       Follow[]       @relation("Following")
   savedCases      SavedCase[]
   activities      Activity[]
+  caseViews       CaseView[]
+  caseReactions   CaseReaction[]
+  videoPosts      VideoPost[]
 
   appointments           Appointment[] @relation("DoctorAppointments")
   consultantAppointments Appointment[] @relation("ConsultantAppointments")
@@ -94,6 +98,48 @@ model CasePost {
   
   comments    Comment[]
   savedBy     SavedCase[]
+  views       CaseView[]
+  reactions   CaseReaction[]
+}
+
+model CaseView {
+  id         String   @id @default(cuid())
+  viewedAt   DateTime @default(now())
+
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+
+  casePostId String
+  casePost   CasePost @relation(fields: [casePostId], references: [id])
+
+  @@unique([doctorId, casePostId])
+}
+
+model CaseReaction {
+  id         String   @id @default(cuid())
+  type       String   @default("LIKE") // LIKE, HELPFUL, INSIGHTFUL
+  createdAt  DateTime @default(now())
+
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+
+  casePostId String
+  casePost   CasePost @relation(fields: [casePostId], references: [id])
+
+  @@unique([doctorId, casePostId])
+}
+
+model VideoPost {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  videoUrl    String   @db.Text
+  thumbnailUrl String? @db.Text
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id])
 }
 
 model Comment {

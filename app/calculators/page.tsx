@@ -18,9 +18,7 @@ export default function CalculatorsPage() {
             <svg className="w-8 h-8 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
             Clinical Calculators
           </h1>
-          <Link href="/knowledge" className="text-sm font-medium text-gray-600 hover:text-gray-800">
-            Back to Knowledge Hub
-          </Link>
+          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
         </div>
 
         <div className="flex flex-col md:flex-row gap-8">

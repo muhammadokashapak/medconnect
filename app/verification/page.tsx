@@ -120,9 +120,7 @@ export default function VerificationPage() {
           <button
             onClick={() => router.push("/feed")}
             className="text-indigo-600 hover:underline font-medium"
-          >
-            Back to Dashboard
-          </button>
+          >Back to Homepage</button>
         </div>
 
         {status === "VERIFIED" && (

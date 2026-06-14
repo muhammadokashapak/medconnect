@@ -43,9 +43,7 @@ export default function AIDiagnosis() {
              <svg className="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
              AI Diagnostic Assistant
           </h1>
-          <Link href="/ai" className="text-sm font-medium text-gray-600 hover:text-gray-800">
-            Back to AI Hub
-          </Link>
+          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

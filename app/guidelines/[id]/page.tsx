@@ -45,10 +45,8 @@ export default function GuidelineDetailPage() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <Link href="/guidelines" className="text-blue-600 font-bold hover:underline flex items-center text-sm">
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Guidelines
-          </Link>
+          <Link href="/feed" className="text-blue-600 font-bold hover:underline flex items-center text-sm">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage</Link>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow border border-gray-100">

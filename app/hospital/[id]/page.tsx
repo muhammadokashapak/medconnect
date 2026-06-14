@@ -48,10 +48,8 @@ export default function HospitalProfilePage() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <Link href="/hospitals" className="text-blue-600 font-bold hover:underline flex items-center text-sm">
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Directory
-          </Link>
+          <Link href="/feed" className="text-blue-600 font-bold hover:underline flex items-center text-sm">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage</Link>
         </div>
 
         {/* Header Profile */}

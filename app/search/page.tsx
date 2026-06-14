@@ -43,10 +43,24 @@ function SearchContent() {
 
         {loading ? (
           <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div></div>
+        ) : !query ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 md:p-12 text-center">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">Find Doctors</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const q = formData.get("q")?.toString() || "";
+              if (q.trim()) router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+            }} className="max-w-md mx-auto flex gap-2">
+              <input name="q" type="text" placeholder="Search by name, specialty..." className="flex-1 border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" autoFocus />
+              <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">Search</button>
+            </form>
+          </div>
         ) : results.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 md:p-12 text-center">
             <h2 className="text-xl font-medium text-gray-900 mb-2">No doctors found</h2>
-            <p className="text-gray-500">We couldn't find anyone matching "{query}". Try searching by name, specialty, or hospital.</p>
+            <p className="text-gray-500 mb-6">We couldn't find anyone matching "{query}". Try searching by name, specialty, or hospital.</p>
+            <button onClick={() => router.push('/search')} className="text-blue-600 font-medium hover:underline">Clear Search</button>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
