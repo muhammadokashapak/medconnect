@@ -9,6 +9,7 @@ export default function KnowledgeHubPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [aiSearchQuery, setAiSearchQuery] = useState("");
 
   const specialties = [
     "Cardiology", "Neurology", "Pulmonology", "Gastroenterology",
@@ -82,8 +83,28 @@ export default function KnowledgeHubPage() {
             </div>
             <div className="p-6 flex-1 flex flex-col justify-center">
               <div className="relative">
-                <input type="text" placeholder="e.g., What are the latest guidelines for treating Stage 2 Hypertension?" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-                <button onClick={() => router.push("/ai")} className="absolute right-3 top-3 bottom-3 bg-blue-600 text-white rounded-lg px-4 hover:bg-blue-700 transition flex items-center justify-center">
+                <input 
+                  type="text" 
+                  value={aiSearchQuery}
+                  onChange={(e) => setAiSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && aiSearchQuery.trim()) {
+                      router.push(`/knowledge/search?q=${encodeURIComponent(aiSearchQuery.trim())}`);
+                    }
+                  }}
+                  placeholder="e.g., What are the latest guidelines for treating Stage 2 Hypertension?" 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" 
+                />
+                <button 
+                  onClick={() => {
+                    if (aiSearchQuery.trim()) {
+                      router.push(`/knowledge/search?q=${encodeURIComponent(aiSearchQuery.trim())}`);
+                    } else {
+                      router.push("/ai");
+                    }
+                  }} 
+                  className="absolute right-3 top-3 bottom-3 bg-blue-600 text-white rounded-lg px-4 hover:bg-blue-700 transition flex items-center justify-center"
+                >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
               </div>

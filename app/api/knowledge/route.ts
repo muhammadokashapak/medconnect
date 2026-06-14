@@ -22,10 +22,25 @@ export async function GET(req: Request) {
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     // Fetch featured resources (top 3 of each)
-    const guidelines = await prisma.guideline.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
-    const drugs = await prisma.drug.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
-    const researchPapers = await prisma.researchPaper.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
-    const news = await prisma.medicalNews.findMany({ take: 3, orderBy: { publishedAt: "desc" } }).catch(() => []);
+    let guidelines = await prisma.guideline.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
+    let drugs = await prisma.drug.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
+    let researchPapers = await prisma.researchPaper.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
+    let news = await prisma.medicalNews.findMany({ take: 3, orderBy: { publishedAt: "desc" } }).catch(() => []);
+
+    // Fallback data if DB is empty so the Knowledge Hub always has content
+    if (guidelines.length === 0) {
+      guidelines = [
+        { id: "g1", title: "Hypertension Management 2026", specialty: "Cardiology", description: "Comprehensive guidelines for managing hypertension in adults.", version: "v1.0" },
+        { id: "g2", title: "Type 2 Diabetes Mellitus Standard of Care", specialty: "Endocrinology", description: "Latest standards for managing Type 2 Diabetes.", version: "v2.1" }
+      ] as any;
+    }
+
+    if (news.length === 0) {
+      news = [
+        { id: "n1", title: "FDA Approves New Targeted Therapy for Melanoma", source: "MedNews Daily", publishedAt: new Date().toISOString() },
+        { id: "n2", title: "Breakthrough in Alzheimer's Biomarker Detection", source: "Global Health Journal", publishedAt: new Date().toISOString() }
+      ] as any;
+    }
 
     // Fetch recently viewed topics by this doctor
     const recentlyViewed = await prisma.resourceView.findMany({

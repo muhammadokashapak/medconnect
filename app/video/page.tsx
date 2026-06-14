@@ -12,6 +12,7 @@ export default function VideoFeed() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchVideos();
@@ -32,20 +33,35 @@ export default function VideoFeed() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !videoUrl) return;
+    if (!title || (!videoUrl && !file)) return;
 
     setUploading(true);
     try {
+      let finalVideoUrl = videoUrl;
+
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) throw new Error("File upload failed");
+        const uploadData = await uploadRes.json();
+        finalVideoUrl = uploadData.url;
+      }
+
       const res = await fetch("/api/videos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, videoUrl })
+        body: JSON.stringify({ title, description, videoUrl: finalVideoUrl })
       });
       if (res.ok) {
         setShowUploadModal(false);
         setTitle("");
         setDescription("");
         setVideoUrl("");
+        setFile(null);
         fetchVideos();
       } else {
         const errorData = await res.json();
@@ -55,6 +71,12 @@ export default function VideoFeed() {
       alert("Error uploading video");
     }
     setUploading(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Loading Videos...</div>;
@@ -134,11 +156,15 @@ export default function VideoFeed() {
                   <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Brief details about the video..."></textarea>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Video URL *</label>
-                  <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} required className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="YouTube, Vimeo, or direct .mp4 link" />
-                  <p className="text-xs text-gray-400 mt-2">Note: To save database storage, please provide an external video link (e.g., YouTube URL).</p>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Video URL or Upload File *</label>
+                  <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} disabled={!!file} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none mb-3" placeholder="YouTube, Vimeo, or direct .mp4 link" />
+                  <div className="flex items-center space-x-3">
+                    <span className="text-gray-400">OR</span>
+                    <input type="file" accept="video/*" onChange={handleFileChange} disabled={!!videoUrl} className="text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition" />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Note: To save database storage, you can provide an external video link (e.g., YouTube URL) or upload a short clip.</p>
                 </div>
-                <button type="submit" disabled={uploading || !title || !videoUrl} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition mt-4">
+                <button type="submit" disabled={uploading || !title || (!videoUrl && !file)} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition mt-4">
                   {uploading ? "Uploading..." : "Publish Video"}
                 </button>
               </form>

@@ -42,6 +42,7 @@ img, svg, video, canvas, iframe {
 
 button, input, textarea, select {
   font: inherit;
+  color: #000 !important;
 }
 
 .no-scrollbar::-webkit-scrollbar {
