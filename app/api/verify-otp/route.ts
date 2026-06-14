@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, otp } = body;
+    let { email, otp } = body;
+    if (email) email = email.trim().toLowerCase();
 
     if (!email || !otp) {
       return NextResponse.json({ message: "Email and OTP are required" }, { status: 400 });

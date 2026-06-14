@@ -8,13 +8,18 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("STEP 2: Body:", body);
 
-    const {
+    let {
       fullName,
       email,
       phoneNumber,
       pmdcNumber,
       password,
     } = body;
+
+    // Normalize email
+    if (email) {
+      email = email.trim().toLowerCase();
+    }
 
     console.log("STEP 3: Checking existing doctor");
 

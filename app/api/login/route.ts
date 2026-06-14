@@ -7,7 +7,12 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { email, password } = body;
+    let { email, password } = body;
+    
+    // Normalize email
+    if (email) {
+      email = email.trim().toLowerCase();
+    }
 
     const doctor = await prisma.doctor.findUnique({
       where: {
@@ -32,6 +37,7 @@ export async function POST(req: Request) {
     );
 
     if (!isPasswordValid) {
+      console.log(`Login failed for ${email}. Provided password length: ${password?.length}. Hash length: ${doctor.password?.length}`);
       return NextResponse.json(
         {
           message: "Invalid password",
