@@ -10,10 +10,63 @@ export default function FeedPage() {
   const [savedCaseIds, setSavedCaseIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [followingSet, setFollowingSet] = useState<Set<string>>(new Set());
+
+  // FollowButton component local to feed
+  function FollowButton({ doctorId }: { doctorId: string }) {
+    const [isFollowing, setIsFollowing] = useState(false);
+
+    useEffect(() => {
+      // check from local set if available
+      setIsFollowing(followingSet.has(doctorId));
+    }, [doctorId, followingSet]);
+
+    const toggleFollow = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      try {
+        const res = await fetch("/api/follow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ followingId: doctorId })
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.following) {
+          setFollowingSet(prev => new Set(prev).add(doctorId));
+          setIsFollowing(true);
+        } else {
+          setFollowingSet(prev => {
+            const next = new Set(prev);
+            next.delete(doctorId);
+            return next;
+          });
+          setIsFollowing(false);
+        }
+      } catch (err) {}
+    };
+
+    return (
+      <button onClick={toggleFollow} className={`ml-3 px-3 py-1 rounded-full text-sm ${isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-indigo-600 text-white'}`}>
+        {isFollowing ? 'Following' : 'Follow'}
+      </button>
+    );
+  }
 
   useEffect(() => {
     fetchData();
+    fetchFollowings();
   }, []);
+
+  const fetchFollowings = async () => {
+    try {
+      const res = await fetch('/api/follow');
+      if (!res.ok) return;
+      const data = await res.json();
+      const s = new Set<string>();
+      data.forEach((f: any) => s.add(f.followingId));
+      setFollowingSet(s);
+    } catch (err) {}
+  };
 
   const fetchData = async () => {
     try {
@@ -85,6 +138,9 @@ export default function FeedPage() {
               <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                 <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               </div>
+                <button onClick={(e) => { e.stopPropagation(); router.push('/profile'); }} className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                  <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                </button>
               <button onClick={() => router.push("/create-case")} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-500 text-left px-4 py-2.5 rounded-full transition font-medium">
                 Discuss a clinical case, doctor...
               </button>
@@ -127,11 +183,14 @@ export default function FeedPage() {
                       )}
                     </div>
                     <div className="ml-4 flex-1">
-                      <h3 className="text-base font-semibold text-gray-900 flex items-center">
-                        Dr. {c.doctor.fullName}
-                        {c.doctor.isVerified && <svg className="w-4 h-4 text-blue-500 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
-                      </h3>
-                      <p className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()} • {c.specialty}</p>
+                      <div className="flex items-center">
+                        <h3 className="text-base font-semibold text-gray-900 truncate">
+                          Dr. {c.doctor.fullName}
+                        </h3>
+                        {c.doctor.isVerified && <svg className="w-4 h-4 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
+                        <FollowButton doctorId={c.doctor.id} />
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">{new Date(c.createdAt).toLocaleDateString()} • {c.specialty}</p>
                     </div>
                   </div>
                   

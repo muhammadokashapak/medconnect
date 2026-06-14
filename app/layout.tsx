@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 import Navbar from "@/components/Navbar";
 import ProfileBanner from "@/components/ProfileBanner";
+import BottomNav from "@/components/BottomNav";
 
 export default function RootLayout({
   children,
@@ -35,6 +36,7 @@ export default function RootLayout({
         <Navbar />
         <ProfileBanner />
         {children}
+        <BottomNav />
       </body>
     </html>
   );

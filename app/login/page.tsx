@@ -62,7 +62,7 @@ export default function LoginPage() {
         )}
 
         <input
-          className="w-full border p-2 mb-3 rounded"
+          className="w-full border p-2 mb-3 rounded text-black placeholder-black"
           type="email"
           placeholder="Email"
           value={email}
@@ -70,7 +70,7 @@ export default function LoginPage() {
         />
 
         <input
-          className="w-full border p-2 mb-2 rounded"
+          className="w-full border p-2 mb-2 rounded text-black placeholder-black"
           type="password"
           placeholder="Password"
           value={password}
