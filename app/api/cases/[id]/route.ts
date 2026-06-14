@@ -84,7 +84,9 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
 
     const isFriend = Boolean(isFollowing && authorFollowsMe);
 
-    // (Profile privacy check removed as it's not supported in MVP)
+    if (casePost.privacy === "FRIENDS" && casePost.doctorId !== currentUser && !isFriend) {
+      return NextResponse.json({ message: "This post is private" }, { status: 403 });
+    }
 
     if (casePost.isAnonymous) {
       casePost.doctor = {
@@ -121,7 +123,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     }
 
     const body = await req.json();
-    const { title, specialty, description, imageUrl, isAnonymous } = body;
+    const { title, specialty, description, imageUrl, isAnonymous, privacy } = body;
 
     const updatedPost = await prisma.casePost.update({
       where: { id },
@@ -131,6 +133,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
         description: description ?? casePost.description,
         imageUrl: imageUrl ?? casePost.imageUrl,
         isAnonymous: isAnonymous ?? casePost.isAnonymous,
+        privacy: privacy ?? casePost.privacy,
       },
     });
 

@@ -17,6 +17,7 @@ export default function CreateCasePage() {
     description: "",
     imageUrl: "",
     isAnonymous: false,
+    privacy: "PUBLIC",
   });
 
   useEffect(() => {
@@ -165,6 +166,19 @@ export default function CreateCasePage() {
                 <option value="Pediatrics">Pediatrics</option>
                 <option value="Surgery">Surgery</option>
                 <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Privacy *</label>
+              <select 
+                name="privacy" 
+                value={formData.privacy} 
+                onChange={handleInputChange} 
+                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
+              >
+                <option value="PUBLIC">Public (Everyone can see)</option>
+                <option value="FRIENDS">Friends Only</option>
               </select>
             </div>
 

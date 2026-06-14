@@ -72,7 +72,17 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
 
     const posts = canViewPosts
       ? await prisma.casePost.findMany({
-          where: { doctorId: params.id },
+          where: {
+            doctorId: params.id,
+            ...(userId !== params.id
+              ? {
+                  OR: [
+                    { privacy: "PUBLIC" },
+                    ...(isFriend ? [{ privacy: "FRIENDS" }] : []),
+                  ],
+                }
+              : {}),
+          },
           orderBy: { createdAt: "desc" },
           include: {
             _count: {

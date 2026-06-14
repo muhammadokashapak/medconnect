@@ -91,6 +91,7 @@ model CasePost {
   description String
   imageUrl    String?
   isAnonymous Boolean   @default(false)
+  privacy     String    @default("PUBLIC") // PUBLIC, FRIENDS, CUSTOM
   createdAt   DateTime  @default(now())
   
   doctorId    String

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, specialty, description, imageUrl, isAnonymous } = body;
+    const { title, specialty, description, imageUrl, isAnonymous, privacy } = body;
 
     if (!title || !specialty || !description) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
         description,
         imageUrl,
         isAnonymous: Boolean(isAnonymous),
+        privacy: privacy || "PUBLIC",
         doctorId,
       },
     });
@@ -60,7 +61,21 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    // Find friends (bi-directional follows)
+    const myFollowers = await prisma.follow.findMany({ where: { followingId: doctorId }, select: { followerId: true } });
+    const myFollowing = await prisma.follow.findMany({ where: { followerId: doctorId }, select: { followingId: true } });
+    
+    const followerIds = new Set(myFollowers.map(f => f.followerId));
+    const friendsIds = myFollowing.filter(f => followerIds.has(f.followingId)).map(f => f.followingId);
+
     const cases = await prisma.casePost.findMany({
+      where: {
+        OR: [
+          { doctorId: doctorId },
+          { privacy: "PUBLIC" },
+          { privacy: "FRIENDS", doctorId: { in: friendsIds } }
+        ]
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         doctor: {
