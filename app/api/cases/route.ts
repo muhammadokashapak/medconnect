@@ -61,22 +61,6 @@ export async function GET(req: Request) {
     }
 
     const cases = await prisma.casePost.findMany({
-      where: {
-        OR: [
-          { doctorId },
-          {
-            doctor: {
-              isProfilePrivate: false,
-            }
-          },
-          {
-            doctor: {
-                  followers: { some: { followingId: doctorId } },
-                  following: { some: { followerId: doctorId } },
-            }
-          }
-        ]
-      },
       orderBy: { createdAt: 'desc' },
       include: {
         doctor: {

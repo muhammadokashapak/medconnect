@@ -36,7 +36,6 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
             specialization: true,
             profileImage: true,
             isVerified: true,
-            isProfilePrivate: true,
           }
         },
         comments: {
@@ -85,9 +84,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
 
     const isFriend = Boolean(isFollowing && authorFollowsMe);
 
-    if (casePost.doctor.isProfilePrivate && casePost.doctorId !== currentUser && !isFriend) {
-      return NextResponse.json({ message: "This post is private" }, { status: 403 });
-    }
+    // (Profile privacy check removed as it's not supported in MVP)
 
     if (casePost.isAnonymous) {
       casePost.doctor = {

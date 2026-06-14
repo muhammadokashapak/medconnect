@@ -249,7 +249,7 @@ function RegisterContent() {
                 onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
                 placeholder="123456"
                 required
-                className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-500"
               />
             </div>
 
