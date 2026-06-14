@@ -50,6 +50,12 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
               }
             }
           }
+        },
+        _count: {
+          select: {
+            views: true,
+            reactions: true
+          }
         }
       }
     });
