@@ -34,20 +34,13 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = `${uniqueSuffix}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    
-    // Ensure public/uploads exists
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    // Vercel Serverless Functions are read-only. 
+    // We'll convert the image to a base64 Data URL so it can be saved directly in the database.
+    const mimeType = file.type || "image/jpeg";
+    const base64String = buffer.toString("base64");
+    const dataUrl = `data:${mimeType};base64,${base64String}`;
 
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    const publicUrl = `/uploads/${filename}`;
-
-    return NextResponse.json({ message: "Upload successful", url: publicUrl }, { status: 200 });
+    return NextResponse.json({ message: "Upload successful", url: dataUrl }, { status: 200 });
   } catch (error) {
     console.error("Upload Error:", error);
     return NextResponse.json({ message: "Server Error during upload" }, { status: 500 });

@@ -115,10 +115,10 @@ export default function VerificationPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Identity Verification</h1>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/feed")}
             className="text-indigo-600 hover:underline font-medium"
           >
             Back to Dashboard

@@ -9,7 +9,7 @@ export default function AIDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
               <svg className="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -18,7 +18,7 @@ export default function AIDashboardPage() {
             <p className="text-gray-600 mt-2">Leverage artificial intelligence to enhance your clinical workflow.</p>
           </div>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/feed")}
             className="text-indigo-600 hover:underline font-medium"
           >
             Back to Dashboard
