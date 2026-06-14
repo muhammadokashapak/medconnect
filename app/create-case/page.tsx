@@ -145,7 +145,7 @@ export default function CreateCasePage() {
                 value={formData.title} 
                 onChange={handleInputChange} 
                 placeholder="E.g., 45yo Male presenting with persistent right lower quadrant pain"
-                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" 
+                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-black placeholder-gray-500 bg-white" 
               />
             </div>
 
@@ -155,7 +155,7 @@ export default function CreateCasePage() {
                 name="specialty" 
                 value={formData.specialty} 
                 onChange={handleInputChange} 
-                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
+                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white text-black"
               >
                 <option value="">Select Specialty</option>
                 <option value="Cardiology">Cardiology</option>
@@ -175,7 +175,7 @@ export default function CreateCasePage() {
                 name="privacy" 
                 value={formData.privacy} 
                 onChange={handleInputChange} 
-                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
+                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white text-black"
               >
                 <option value="PUBLIC">Public (Everyone can see)</option>
                 <option value="FRIENDS">Friends Only</option>
@@ -190,7 +190,7 @@ export default function CreateCasePage() {
                 onChange={handleInputChange} 
                 rows={6}
                 placeholder="Include patient history, symptoms, investigations, and your question..."
-                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-black placeholder-gray-500 bg-white"
               ></textarea>
             </div>
 
