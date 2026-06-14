@@ -61,10 +61,27 @@ export async function GET(req: Request) {
     }
 
     const cases = await prisma.casePost.findMany({
+      where: {
+        OR: [
+          { doctorId },
+          {
+            doctor: {
+              isProfilePrivate: false,
+            }
+          },
+          {
+            doctor: {
+                  followers: { some: { followingId: doctorId } },
+                  following: { some: { followerId: doctorId } },
+            }
+          }
+        ]
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         doctor: {
           select: {
+            id: true,
             fullName: true,
             profileImage: true,
             isVerified: true,
@@ -80,12 +97,12 @@ export async function GET(req: Request) {
       }
     });
 
-    // Sanitize anonymous posts
     const sanitizedCases = cases.map(c => {
       if (c.isAnonymous) {
         return {
           ...c,
           doctor: {
+            id: c.doctor.id,
             fullName: "Anonymous Doctor",
             profileImage: null,
             isVerified: c.doctor.isVerified,

@@ -27,6 +27,7 @@ model Doctor {
   medicalCollege  String?
   linkedinUrl     String?
   websiteUrl      String?
+  isProfilePrivate Boolean   @default(false)
 
   // Verification & Admin Fields
   role               String    @default("DOCTOR")

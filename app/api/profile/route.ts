@@ -92,6 +92,7 @@ export async function PUT(req: Request) {
         medicalCollege,
         linkedinUrl,
         websiteUrl,
+        isProfilePrivate: body.isProfilePrivate ?? false,
       },
     });
 

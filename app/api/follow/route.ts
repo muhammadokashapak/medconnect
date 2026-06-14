@@ -33,6 +33,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ followers, following }, { status: 200 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
@@ -53,8 +54,6 @@ export async function POST(req: Request) {
     }
 
     await prisma.follow.create({ data: { followerId: userId, followingId } });
-
-    // notify
     await prisma.notification.create({ data: { doctorId: followingId, title: "New Follower", message: `Dr. started following you.`, type: "FOLLOW" } });
 
     return NextResponse.json({ following: true }, { status: 201 });

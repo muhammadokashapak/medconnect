@@ -1,7 +1,28 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type DoctorProfileData = {
+  id: string;
+  fullName: string;
+  specialization?: string;
+  hospital?: string;
+  city?: string;
+  qualification?: string;
+  medicalCollege?: string;
+  experienceYears?: number | null;
+  bio?: string;
+  linkedinUrl?: string;
+  websiteUrl?: string;
+  profileImage?: string;
+  isProfilePrivate?: boolean;
+  email?: string;
+  phoneNumber?: string;
+  pmdcNumber?: string;
+  isVerified?: boolean;
+};
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -12,7 +33,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
-  const [doctor, setDoctor] = useState<any>(null);
+  const [doctor, setDoctor] = useState<DoctorProfileData | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     specialization: "",
@@ -25,46 +46,52 @@ export default function ProfilePage() {
     linkedinUrl: "",
     websiteUrl: "",
     profileImage: "",
+    isProfilePrivate: false,
   });
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch("/api/profile");
-      if (!res.ok) {
-        if (res.status === 401) router.push("/login");
-        throw new Error("Failed to load profile");
+    const loadProfile = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok) {
+          if (res.status === 401) {
+            router.push("/login");
+            return;
+          }
+          throw new Error("Failed to load profile");
+        }
+        const data = await res.json();
+        setDoctor(data);
+        setFormData({
+          fullName: data.fullName || "",
+          specialization: data.specialization || "",
+          hospital: data.hospital || "",
+          city: data.city || "",
+          qualification: data.qualification || "",
+          medicalCollege: data.medicalCollege || "",
+          experienceYears: data.experienceYears ? data.experienceYears.toString() : "",
+          bio: data.bio || "",
+          linkedinUrl: data.linkedinUrl || "",
+          websiteUrl: data.websiteUrl || "",
+          profileImage: data.profileImage || "",
+          isProfilePrivate: data.isProfilePrivate || false,
+        });
+        setLoading(false);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
+        setLoading(false);
       }
-      const data = await res.json();
-      setDoctor(data);
-      setFormData({
-        fullName: data.fullName || "",
-        specialization: data.specialization || "",
-        hospital: data.hospital || "",
-        city: data.city || "",
-        qualification: data.qualification || "",
-        medicalCollege: data.medicalCollege || "",
-        experienceYears: data.experienceYears ? data.experienceYears.toString() : "",
-        bio: data.bio || "",
-        linkedinUrl: data.linkedinUrl || "",
-        websiteUrl: data.websiteUrl || "",
-        profileImage: data.profileImage || "",
-      });
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    loadProfile();
+  }, [router]);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -84,14 +111,15 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error(result.message);
 
       setFormData({ ...formData, profileImage: result.url });
-    } catch (err: any) {
-      setError(err.message || "Failed to upload image");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message || "Failed to upload image");
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setError("");
@@ -104,7 +132,7 @@ export default function ProfilePage() {
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as { doctor: DoctorProfileData; message?: string };
 
       if (!res.ok) {
         throw new Error(data.message || "Failed to update profile");
@@ -113,8 +141,9 @@ export default function ProfilePage() {
       setDoctor(data.doctor);
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -255,6 +284,17 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
                   <input type="url" name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
+                </div>
+                <div className="md:col-span-2 flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="isProfilePrivate"
+                    name="isProfilePrivate"
+                    checked={formData.isProfilePrivate}
+                    onChange={(e) => setFormData({ ...formData, isProfilePrivate: e.target.checked })}
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isProfilePrivate" className="text-sm text-gray-900 font-medium">Keep my profile posts private unless mutually friended</label>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Bio (max 500 chars)</label>

@@ -1,12 +1,40 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function FeedPage() {
   const router = useRouter();
-  const [cases, setCases] = useState<any[]>([]);
-  const [trending, setTrending] = useState<any[]>([]);
+  type DoctorPreview = {
+    id: string;
+    fullName: string;
+    profileImage?: string;
+    isVerified?: boolean;
+  };
+
+  type CasePost = {
+    id: string;
+    title: string;
+    description: string;
+    createdAt: string;
+    specialty: string;
+    imageUrl?: string;
+    doctor: DoctorPreview;
+    _count?: { reactions?: number; comments?: number; views?: number };
+  };
+
+  type TrendingCase = {
+    id: string;
+    title: string;
+    doctor: DoctorPreview;
+    _count?: { comments?: number };
+  };
+
+  type SavedCase = { casePostId: string };
+
+  const [cases, setCases] = useState<CasePost[]>([]);
+  const [trending, setTrending] = useState<TrendingCase[]>([]);
   const [savedCaseIds, setSavedCaseIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -14,14 +42,9 @@ export default function FeedPage() {
 
   // FollowButton component local to feed
   function FollowButton({ doctorId }: { doctorId: string }) {
-    const [isFollowing, setIsFollowing] = useState(false);
+    const isFollowing = followingSet.has(doctorId);
 
-    useEffect(() => {
-      // check from local set if available
-      setIsFollowing(followingSet.has(doctorId));
-    }, [doctorId, followingSet]);
-
-    const toggleFollow = async (e: React.MouseEvent) => {
+    const toggleFollow = async (e: MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       try {
         const res = await fetch("/api/follow", {
@@ -33,16 +56,15 @@ export default function FeedPage() {
         const data = await res.json();
         if (data.following) {
           setFollowingSet(prev => new Set(prev).add(doctorId));
-          setIsFollowing(true);
         } else {
           setFollowingSet(prev => {
             const next = new Set(prev);
             next.delete(doctorId);
             return next;
           });
-          setIsFollowing(false);
         }
-      } catch (err) {}
+      } catch {
+      }
     };
 
     return (
@@ -52,20 +74,18 @@ export default function FeedPage() {
     );
   }
 
-  useEffect(() => {
-    fetchData();
-    fetchFollowings();
-  }, []);
-
   const fetchFollowings = async () => {
     try {
       const res = await fetch('/api/follow');
       if (!res.ok) return;
       const data = await res.json();
       const s = new Set<string>();
-      data.forEach((f: any) => s.add(f.followingId));
+      if (Array.isArray(data.following)) {
+        data.following.forEach((f: { followingId: string }) => s.add(f.followingId));
+      }
       setFollowingSet(s);
-    } catch (err) {}
+    } catch {
+    }
   };
 
   const fetchData = async () => {
@@ -73,35 +93,41 @@ export default function FeedPage() {
       const [casesRes, trendingRes, savedRes] = await Promise.all([
         fetch("/api/cases"),
         fetch("/api/trending"),
-        fetch("/api/save-case")
+        fetch("/api/save-case"),
       ]);
 
-      if (!casesRes.ok) {
-        if (casesRes.status === 401) router.push("/login");
-        throw new Error("Failed to fetch cases");
-      }
-
-      const casesData = await casesRes.json();
-      const trendingData = await trendingRes.json();
-      const savedData = await savedRes.json();
+      const casesData = (await casesRes.json()) as CasePost[];
+      const trendingData = (await trendingRes.json()) as TrendingCase[];
+      const savedData = (await savedRes.json()) as SavedCase[];
 
       setCases(casesData);
       setTrending(trendingData);
       
       const savedIds = new Set<string>();
       if (Array.isArray(savedData)) {
-        savedData.forEach((s: any) => savedIds.add(s.casePostId));
+        savedData.forEach((s) => savedIds.add(s.casePostId));
       }
       setSavedCaseIds(savedIds);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleSave = async (e: React.MouseEvent, caseId: string) => {
+  useEffect(() => {
+    async function initFeed() {
+      await fetchData();
+      await fetchFollowings();
+    }
+
+    void initFeed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleSave = async (e: MouseEvent<HTMLButtonElement>, caseId: string) => {
     e.stopPropagation();
     const isSaved = savedCaseIds.has(caseId);
     
@@ -121,7 +147,9 @@ export default function FeedPage() {
         });
         setSavedCaseIds(prev => new Set(prev).add(caseId));
       }
-    } catch (error) {}
+    } catch {
+      // ignore save errors
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading discussion feed...</div>;
@@ -201,7 +229,7 @@ export default function FeedPage() {
                   )}
                   
                   <div className="flex items-center text-gray-500 border-t pt-4 gap-6">
-                    <button onClick={async (e) => {
+                    <button onClick={async (e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       try {
                         await fetch("/api/cases/react", {
@@ -210,7 +238,8 @@ export default function FeedPage() {
                           body: JSON.stringify({ casePostId: c.id, type: "LIKE" })
                         });
                         fetchData(); // Simplest way to refresh counts for now
-                      } catch (error) {}
+                      } catch {
+                      }
                     }} className="flex items-center hover:text-blue-600 transition">
                       <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
                       <span>{c._count?.reactions || 0}</span>

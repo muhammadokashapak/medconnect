@@ -161,22 +161,23 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/messages")}
-            className="mr-4 text-gray-500 hover:text-indigo-600 transition"
+            className="text-gray-500 hover:text-indigo-600 transition"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           </button>
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-1">
             <h2 className="text-lg font-bold text-gray-900">Clinical Consultation</h2>
+            <p className="text-sm text-gray-500">Secure chat with your medical colleagues.</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-6">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">No messages yet. Send a message to start the consultation.</div>
         ) : (
@@ -185,7 +186,7 @@ export default function ChatPage() {
             const showAvatar = !isMine && (index === messages.length - 1 || messages[index + 1]?.senderId === currentUser?.id);
 
             return (
-              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-4`}>
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-4`}>\
                 {!isMine && (
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 mr-2 flex-shrink-0 mt-auto">
                     {showAvatar && (
@@ -197,20 +198,20 @@ export default function ChatPage() {
                     )}
                   </div>
                 )}
-                
-                <div className={`max-w-[75%] md:max-w-[60%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+
+                <div className={`max-w-[85%] md:max-w-[65%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                   {!isMine && showAvatar && <span className="text-xs text-gray-500 mb-1 ml-1">Dr. {msg.sender?.fullName}</span>}
                   <div 
-                    className={`px-4 py-2 rounded-2xl ${
+                    className={`px-4 py-3 rounded-3xl ${
                       isMine 
                         ? 'bg-indigo-600 text-white rounded-br-none' 
                         : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-sm'
-                    }`}
+                    } break-words whitespace-pre-wrap max-w-full`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <p>{msg.content}</p>
                   </div>
-                  <div className="flex items-center mt-1 mx-1 space-x-1">
-                    <span className="text-[10px] text-gray-400">
+                  <div className="flex items-center mt-1 mx-1 space-x-1 text-xs text-gray-400">
+                    <span>
                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     {isMine && msg.isRead && (
@@ -222,10 +223,10 @@ export default function ChatPage() {
             );
           })
         )}
-        
+
         {isTyping && (
           <div className="flex justify-start mb-4 animate-fade-in">
-            <div className="px-4 py-3 rounded-2xl bg-gray-100 text-gray-500 rounded-bl-none shadow-sm flex items-center space-x-1">
+            <div className="px-4 py-3 rounded-3xl bg-gray-100 text-gray-500 rounded-bl-none shadow-sm flex items-center space-x-1">
                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
@@ -236,26 +237,26 @@ export default function ChatPage() {
       </div>
 
       <div className="bg-white border-t p-4 flex-shrink-0">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto w-full">
           {currentUser && currentUser.verificationStatus !== "VERIFIED" ? (
             <div className="bg-amber-50 p-3 rounded text-center text-sm text-amber-800">
               You must complete PMDC verification to send messages. <button onClick={() => router.push("/verification")} className="font-bold hover:underline">Verify</button>
             </div>
           ) : (
-            <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+            <form onSubmit={handleSendMessage} className="flex flex-col sm:flex-row items-center gap-3">
               <input
                 type="text"
                 value={newMessage}
                 onChange={handleTyping}
                 placeholder="Type a message..."
-                className="flex-1 border p-3 rounded-full focus:ring-2 focus:ring-indigo-500 outline-none transition bg-gray-50"
+                className="w-full border p-3 rounded-full focus:ring-2 focus:ring-indigo-500 outline-none transition bg-gray-50"
               />
               <button
                 type="submit"
                 disabled={sending || !newMessage.trim()}
                 className="bg-indigo-600 text-white p-3 rounded-full shadow hover:bg-indigo-700 disabled:bg-indigo-300 transition flex items-center justify-center flex-shrink-0"
               >
-                <svg className="w-6 h-6 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
               </button>
             </form>
           )}

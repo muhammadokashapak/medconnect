@@ -40,6 +40,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         linkedinUrl: true,
         websiteUrl: true,
         verificationStatus: true,
+        isProfilePrivate: true,
       }
     });
 
@@ -47,7 +48,50 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       return NextResponse.json({ message: "Doctor not found or not verified" }, { status: 404 });
     }
 
-    return NextResponse.json(doctor, { status: 200 });
+    const isFollowing = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: params.id,
+        },
+      },
+    });
+
+    const targetFollowsMe = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: params.id,
+          followingId: userId,
+        },
+      },
+    });
+
+    const isFriend = Boolean(isFollowing && targetFollowsMe);
+
+    const canViewPosts = !doctor.isProfilePrivate || isFriend || userId === params.id;
+
+    const posts = canViewPosts
+      ? await prisma.casePost.findMany({
+          where: { doctorId: params.id },
+          orderBy: { createdAt: "desc" },
+          include: {
+            _count: {
+              select: {
+                comments: true,
+                reactions: true,
+                views: true,
+              },
+            },
+          },
+        })
+      : [];
+
+    return NextResponse.json({
+      ...doctor,
+      isFollowing: Boolean(isFollowing),
+      isFriend,
+      posts,
+    }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }

@@ -10,8 +10,13 @@ export default function ProfileBanner() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only fetch if not on auth/admin pages
-    if (pathname === "/login" || pathname === "/register" || pathname.startsWith("/admin")) {
+    // Only fetch if not on auth, admin, or messages pages
+    if (
+      pathname === "/login" ||
+      pathname === "/register" ||
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/messages")
+    ) {
       setLoading(false);
       return;
     }
