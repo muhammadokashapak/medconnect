@@ -23,10 +23,13 @@ export default function DoctorsDirectoryPage() {
     try {
       const queryParams = new URLSearchParams(searchParams);
       const res = await fetch(`/api/doctors?${queryParams}`);
-      if (!res.ok) throw new Error("Failed to load doctors");
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) router.push("/login");
+        throw new Error("Failed to load doctors");
+      }
       const data = await res.json();
       setDoctors(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -47,10 +50,10 @@ export default function DoctorsDirectoryPage() {
             <p className="text-gray-600 mt-2">Find and consult with verified medical professionals.</p>
           </div>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/feed")}
             className="text-indigo-600 hover:underline font-medium"
           >
-            Dashboard
+            Back to Homepage
           </button>
         </div>
 

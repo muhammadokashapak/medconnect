@@ -19,7 +19,7 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(`/api/admin/doctors?status=${statusFilter}`);
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) router.push("/dashboard");
+        if (res.status === 401 || res.status === 403) router.push("/login");
         throw new Error("Failed to fetch doctors");
       }
       const data = await res.json();

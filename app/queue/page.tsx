@@ -12,10 +12,13 @@ export default function QueuePage() {
   const fetchQueue = async () => {
     try {
       const res = await fetch("/api/queue");
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) router.push("/login");
+        throw new Error("Unauthorized");
+      }
       setQueue(await res.json());
     } catch (err) {
-      router.push("/dashboard");
+      console.error(err);
     } finally {
       setLoading(false);
     }

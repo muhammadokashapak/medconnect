@@ -18,10 +18,13 @@ export default function PatientsPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/patients?query=${encodeURIComponent(searchQuery)}`);
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) router.push("/login");
+        throw new Error("Unauthorized");
+      }
       setPatients(await res.json());
     } catch (err) {
-      router.push("/dashboard");
+      console.error(err);
     } finally {
       setLoading(false);
     }

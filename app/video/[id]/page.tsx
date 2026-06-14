@@ -158,7 +158,7 @@ export default function VideoCallRoom() {
         endedAt: new Date()
       })
     });
-    router.push("/dashboard");
+    router.push("/login");
   };
 
   const leaveCall = () => {

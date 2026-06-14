@@ -213,7 +213,7 @@ export default function ConferenceRoom() {
           >
             Join Conference
           </button>
-          <button onClick={() => router.push("/dashboard")} className="mt-4 text-sm text-gray-500 hover:text-gray-800">
+          <button onClick={() => router.push("/feed")} className="mt-4 text-sm text-gray-500 hover:text-gray-800">
             Cancel
           </button>
         </div>

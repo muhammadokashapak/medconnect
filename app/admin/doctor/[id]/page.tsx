@@ -21,7 +21,7 @@ export default function AdminDoctorReviewPage() {
     try {
       const res = await fetch(`/api/admin/doctors/${params?.id}`);
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) router.push("/dashboard");
+        if (res.status === 401 || res.status === 403) router.push("/login");
         throw new Error("Failed to load doctor details");
       }
       const data = await res.json();
