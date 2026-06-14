@@ -22,19 +22,17 @@ export async function GET(req: Request) {
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     // Fetch featured resources (top 3 of each)
-    const [guidelines, drugs, researchPapers, news] = await Promise.all([
-      prisma.guideline.findMany({ take: 3, orderBy: { createdAt: "desc" } }),
-      prisma.drug.findMany({ take: 3, orderBy: { createdAt: "desc" } }),
-      prisma.researchPaper.findMany({ take: 3, orderBy: { createdAt: "desc" } }),
-      prisma.medicalNews.findMany({ take: 3, orderBy: { publishedAt: "desc" } }),
-    ]);
+    const guidelines = await prisma.guideline.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
+    const drugs = await prisma.drug.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
+    const researchPapers = await prisma.researchPaper.findMany({ take: 3, orderBy: { createdAt: "desc" } }).catch(() => []);
+    const news = await prisma.medicalNews.findMany({ take: 3, orderBy: { publishedAt: "desc" } }).catch(() => []);
 
     // Fetch recently viewed topics by this doctor
     const recentlyViewed = await prisma.resourceView.findMany({
       where: { doctorId: userId },
       orderBy: { viewedAt: "desc" },
       take: 5,
-    });
+    }).catch(() => []);
 
     return NextResponse.json({
       featured: {
