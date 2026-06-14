@@ -135,9 +135,6 @@ export default function FeedPage() {
           {/* Create Post Input Box */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              </div>
                 <button onClick={(e) => { e.stopPropagation(); router.push('/profile'); }} className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                   <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 </button>
