@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function GuidelinesPage() {
   const router = useRouter();
   const [guidelines, setGuidelines] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [specialty, setSpecialty] = useState("");
 

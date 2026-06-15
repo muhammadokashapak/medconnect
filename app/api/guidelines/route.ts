@@ -48,3 +48,5 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
+  }
+}
