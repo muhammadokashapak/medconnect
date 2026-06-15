@@ -48,36 +48,3 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const userId = getUserIdFromToken(req);
-    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-    const doctor = await prisma.doctor.findUnique({ where: { id: userId } });
-    if (!doctor) return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
-
-    const { title, specialty, description, version, content } = await req.json();
-    if (!title || !specialty || !description || !content || !version) {
-      return NextResponse.json({ message: "All fields are required" }, { status: 400 });
-    }
-
-    const newGuideline = await prisma.guideline.create({
-      data: {
-        title,
-        specialty,
-        description,
-        version,
-        content,
-        doctorId: userId,
-      }
-    });
-
-    return NextResponse.json(newGuideline, { status: 201 });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: "Server Error" }, { status: 500 });
-  }
-}

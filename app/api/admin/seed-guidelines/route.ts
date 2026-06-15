@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const existing = await prisma.guideline.count();
     if (existing > 0) {
-      return NextResponse.json({ message: "Guidelines already seeded." });
+      await prisma.guideline.deleteMany(); // Clear existing to allow full re-seed
     }
 
     const defaultGuidelines = [
@@ -14,57 +14,98 @@ export async function GET() {
         specialty: "Cardiology",
         description: "Latest comprehensive guidelines for the prevention, detection, evaluation, and management of high blood pressure in adults.",
         version: "2024.1",
-        content: `### 1. Classification of Blood Pressure
-- **Normal:** <120/<80 mm Hg
-- **Elevated:** 120-129/<80 mm Hg
-- **Stage 1 Hypertension:** 130-139/80-89 mm Hg
-- **Stage 2 Hypertension:** ≥140/≥90 mm Hg
-
-### 2. Diagnosis
-- Ensure accurate measurement using validated devices.
-- Confirm diagnosis using Out-of-Office BP monitoring (ABPM or HBPM).
-
-### 3. Treatment Strategies
-- **Nonpharmacologic Interventions:** Weight loss, healthy diet (DASH), sodium reduction, potassium supplementation, increased physical activity, and moderation of alcohol.
-- **Pharmacologic Treatment:** Recommended for Stage 1 if ASCVD risk is ≥10%, and for all Stage 2 patients. First-line agents include Thiazide diuretics, CCBs, and ACE inhibitors or ARBs.`
+        content: `### 1. Classification of Blood Pressure\n- **Normal:** <120/<80 mm Hg\n- **Elevated:** 120-129/<80 mm Hg\n- **Stage 1 Hypertension:** 130-139/80-89 mm Hg\n- **Stage 2 Hypertension:** >=140/>=90 mm Hg\n\n### 2. Treatment Strategies\n- **Nonpharmacologic Interventions:** Weight loss, healthy diet (DASH), sodium reduction, potassium supplementation, increased physical activity.\n- **Pharmacologic Treatment:** First-line agents include Thiazide diuretics, CCBs, and ACE inhibitors or ARBs.`
+      },
+      {
+        title: "ESC Heart Failure Guidelines",
+        specialty: "Cardiology",
+        description: "European Society of Cardiology guidelines for diagnosis and treatment of acute and chronic heart failure.",
+        version: "2023.0",
+        content: `### Core Therapies for HFrEF\n- ACE-I/ARNI\n- Beta-blockers\n- MRA\n- SGLT2 inhibitors\n\nAll four pillars should be initiated as soon as safely possible.`
       },
       {
         title: "ADA Standards of Medical Care in Diabetes",
         specialty: "Endocrinology",
         description: "Current clinical practice recommendations for the management of diabetes.",
         version: "2024.2",
-        content: `### 1. Diagnosis
-- **FPG:** ≥126 mg/dL (7.0 mmol/L)
-- **2-h PG:** ≥200 mg/dL (11.1 mmol/L) during OGTT
-- **A1C:** ≥6.5% (48 mmol/mol)
-- **Classic symptoms + Random PG:** ≥200 mg/dL
-
-### 2. Glycemic Targets
-- Nonpregnant adults: A1C <7.0% (53 mmol/mol)
-- Preprandial capillary plasma glucose: 80-130 mg/dL
-- Peak postprandial capillary plasma glucose: <180 mg/dL
-
-### 3. Pharmacologic Therapy for Type 2 Diabetes
-- Metformin remains the preferred initial pharmacologic agent.
-- Consider GLP-1 RA or SGLT2i in patients with established ASCVD, heart failure, or CKD independently of A1C.`
+        content: `### 1. Diagnosis\n- **FPG:** >=126 mg/dL (7.0 mmol/L)\n- **A1C:** >=6.5% (48 mmol/mol)\n\n### 2. Pharmacologic Therapy for Type 2 Diabetes\n- Metformin remains the preferred initial pharmacologic agent.\n- Consider GLP-1 RA or SGLT2i in patients with established ASCVD, heart failure, or CKD.`
+      },
+      {
+        title: "AACE Thyroid Nodule Guidelines",
+        specialty: "Endocrinology",
+        description: "Clinical practice guidelines for the diagnosis and management of thyroid nodules.",
+        version: "2022.0",
+        content: `### Ultrasound Evaluation\n- High-suspicion nodules >= 1cm require FNA.\n- Intermediate suspicion >= 1.5cm require FNA.\n- Low suspicion >= 2cm require FNA.`
       },
       {
         title: "GINA Asthma Management Strategy",
         specialty: "Pulmonology",
         description: "Global Strategy for Asthma Management and Prevention.",
         version: "2024.0",
-        content: `### 1. Diagnosis
-- History of variable respiratory symptoms (wheeze, shortness of breath, chest tightness, cough).
-- Evidence of variable expiratory airflow limitation.
-
-### 2. Assessment
-- Assess symptom control using Asthma Control Test (ACT).
-- Assess future risk of exacerbations, fixed airflow limitation, and medication side-effects.
-
-### 3. Treatment
-- **Track 1 (Preferred):** Low dose ICS-formoterol as reliever.
-- **Track 2:** SABA as reliever, with regular ICS controller.
-- **Step up/down therapy:** Adjust based on symptom control and exacerbations. Don't use SABA alone without ICS.`
+        content: `### Treatment\n- **Track 1 (Preferred):** Low dose ICS-formoterol as reliever.\n- **Track 2:** SABA as reliever, with regular ICS controller. Don't use SABA alone without ICS.`
+      },
+      {
+        title: "GOLD COPD Guidelines",
+        specialty: "Pulmonology",
+        description: "Global Initiative for Chronic Obstructive Lung Disease.",
+        version: "2024.1",
+        content: `### Initial Pharmacological Treatment\n- Group A: A bronchodilator\n- Group B: LABA + LAMA\n- Group E: LABA + LAMA (consider ICS if eos >= 300)`
+      },
+      {
+        title: "AAN Migraine Prevention Guidelines",
+        specialty: "Neurology",
+        description: "Evidence-based guideline update: Pharmacologic treatment for episodic migraine prevention in adults.",
+        version: "2022.3",
+        content: `### First-Line Preventative Medications\n- Divalproex sodium, sodium valproate, topiramate.\n- Metoprolol, propranolol, timolol.\n- CGRP monoclonal antibodies (e.g., Erenumab).`
+      },
+      {
+        title: "ACG GERD Guidelines",
+        specialty: "Gastroenterology",
+        description: "American College of Gastroenterology clinical guideline for the diagnosis and management of gastroesophageal reflux disease.",
+        version: "2022.1",
+        content: `### Management\n- An 8-week trial of empiric PPIs for typical GERD symptoms.\n- Maintenance PPI should be administered to GERD patients who continue to have symptoms after PPI is discontinued.`
+      },
+      {
+        title: "AAD Acne Vulgaris Guidelines",
+        specialty: "Dermatology",
+        description: "Guidelines of care for the management of acne vulgaris.",
+        version: "2023.0",
+        content: `### First-Line Treatments\n- **Mild:** Topical retinoid or topical retinoid + topical antimicrobial.\n- **Moderate:** Topical retinoid + oral antibiotic + topical benzoyl peroxide.\n- **Severe:** Oral isotretinoin or combination of oral antibiotics, topical retinoid, and BPO.`
+      },
+      {
+        title: "AAOS Osteoarthritis of the Knee",
+        specialty: "Orthopedics",
+        description: "Treatment of Osteoarthritis of the Knee (Non-Arthroplasty).",
+        version: "2021.2",
+        content: `### Strong Recommendations\n- Supervised exercise, unstructured physical activity, and/or weight loss.\n- Oral NSAIDs, topical NSAIDs.\n- Intra-articular corticosteroids (short-term relief).`
+      },
+      {
+        title: "AAP Otitis Media Guidelines",
+        specialty: "Pediatrics",
+        description: "Diagnosis and Management of Acute Otitis Media.",
+        version: "2022.0",
+        content: `### Antibiotic Therapy\n- High-dose Amoxicillin (80-90 mg/kg/day) is the treatment of choice for most children.\n- Consider observation with close follow-up for children >= 2 years with non-severe illness.`
+      },
+      {
+        title: "ACOG Postpartum Hemorrhage",
+        specialty: "Gynecology",
+        description: "Practice Bulletin regarding Postpartum Hemorrhage.",
+        version: "2020.1",
+        content: `### Management\n- First-line: Uterine massage and bimanual compression.\n- Medical: Oxytocin, Methylergonovine, 15-methyl PGF2a, Misoprostol.\n- Surgical: Uterine balloon tamponade, B-Lynch suture, hysterectomy as last resort.`
+      },
+      {
+        title: "APA Major Depressive Disorder",
+        specialty: "Psychiatry",
+        description: "Practice Guideline for the Treatment of Patients With Major Depressive Disorder.",
+        version: "2021.0",
+        content: `### Initial Treatment\n- SSRIs, SNRIs, Mirtazapine, or Bupropion are recommended as optimal first-line medications.\n- Cognitive Behavioral Therapy (CBT) or Interpersonal Therapy (IPT) are recommended as initial psychotherapy.`
+      },
+      {
+        title: "ACEP Sepsis Guidelines",
+        specialty: "Emergency Medicine",
+        description: "Clinical Policy: Critical Issues in the Early Evaluation and Management of Adult Patients Presenting to the Emergency Department with Suspected Sepsis.",
+        version: "2023.1",
+        content: `### Early Resuscitation\n- Administer broad-spectrum IV antimicrobials within 1 hour of recognition.\n- Measure lactate and repeat if initial is > 2 mmol/L.\n- Administer 30 mL/kg IV crystalloid fluid for hypotension or lactate >= 4 mmol/L.`
       }
     ];
 
@@ -72,7 +113,7 @@ export async function GET() {
       data: defaultGuidelines
     });
 
-    return NextResponse.json({ message: "Successfully seeded default guidelines." });
+    return NextResponse.json({ message: "Successfully seeded " + defaultGuidelines.length + " default guidelines across all specialties." });
   } catch (error) {
     console.error("Seed error:", error);
     return NextResponse.json({ error: "Failed to seed guidelines" }, { status: 500 });
