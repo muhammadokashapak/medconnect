@@ -208,6 +208,39 @@ export default function FeedPage() {
             </div>
           </div>
 
+          {/* AI Quick Query Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row mb-6">
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 md:w-1/3 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center">
+                <span className="text-xl mr-2">🤖</span> Ask AI Doctor
+              </h3>
+              <p className="text-xs text-gray-600">Get instant clinical answers in flashcards.</p>
+            </div>
+            <div className="p-4 flex-1 flex flex-col justify-center relative">
+              <input 
+                type="text" 
+                placeholder="Search diseases, symptoms, guidelines..." 
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white text-black transition text-sm" 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    router.push(`/knowledge/search?q=${encodeURIComponent(e.currentTarget.value.trim())}`);
+                  }
+                }}
+              />
+              <button 
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-800"
+                onClick={(e) => {
+                  const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                  if (input.value.trim()) {
+                    router.push(`/knowledge/search?q=${encodeURIComponent(input.value.trim())}`);
+                  }
+                }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </button>
+            </div>
+          </div>
+
           {error && <div className="bg-red-50 text-red-700 p-4 rounded mb-6 border border-red-200">{error}</div>}
 
           {cases.length === 0 && !error ? (
