@@ -95,7 +95,7 @@ export async function POST(req: Request) {
 
     // Create JWT Token
     const token = jwt.sign(
-      { id: doctor.id, email: doctor.email, role: doctor.role },
+      { id: doctor.id, email: doctor.email, role: doctor.role, verificationStatus: doctor.verificationStatus },
       process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!",
       { expiresIn: "7d" }
     );

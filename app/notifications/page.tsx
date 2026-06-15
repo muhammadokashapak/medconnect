@@ -83,7 +83,7 @@ export default function NotificationsPage() {
             <ul className="divide-y divide-gray-100">
               {friendRequests.map((req) => (
                 <li key={req.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                  <div className="flex items-center">
+                  <Link href={`/doctor/${req.senderId}`} className="flex items-center flex-1">
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
                       {req.sender.profileImage ? (
                         <img src={req.sender.profileImage} alt="Profile" className="w-full h-full object-cover" />
@@ -92,10 +92,10 @@ export default function NotificationsPage() {
                       )}
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">Dr. {req.sender.fullName}</p>
+                      <p className="font-bold text-gray-900 hover:text-indigo-600 transition">Dr. {req.sender.fullName}</p>
                       <p className="text-sm text-gray-500">{req.sender.specialization || "Doctor"}</p>
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex gap-2">
                     <button onClick={() => handleFriendRequest(req.id, 'accept')} className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-indigo-700 transition">Accept</button>
                     <button onClick={() => handleFriendRequest(req.id, 'decline')} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-300 transition">Decline</button>
@@ -130,17 +130,16 @@ export default function NotificationsPage() {
                 );
 
                 return (
-                  <li key={n.id} className={`hover:bg-gray-50 transition cursor-pointer ${!n.isRead ? 'bg-indigo-50/50' : ''}`} onClick={() => {
-                    if (!n.isRead) {
-                      // Optional: optimistically mark read here by hitting an API /api/notifications/[id]/read
-                    }
-                    if (n.actionUrl) {
-                      router.push(n.actionUrl);
-                    }
-                  }}>
-                    <div className="p-4 block w-full h-full">
-                      {NotificationContent}
-                    </div>
+                  <li key={n.id} className={`hover:bg-gray-50 transition ${!n.isRead ? 'bg-indigo-50/50' : ''}`}>
+                    {n.actionUrl ? (
+                      <Link href={n.actionUrl} className="p-4 block w-full h-full">
+                        {NotificationContent}
+                      </Link>
+                    ) : (
+                      <div className="p-4 block w-full h-full">
+                        {NotificationContent}
+                      </div>
+                    )}
                   </li>
                 );
               })}

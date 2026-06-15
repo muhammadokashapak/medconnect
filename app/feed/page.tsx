@@ -116,17 +116,25 @@ export default function FeedPage() {
     }
   };
 
+  const [currentUser, setCurrentUser] = useState<{ id: string; profileImage?: string; } | null>(null);
+
   const fetchData = async () => {
     try {
-      const [casesRes, trendingRes, savedRes] = await Promise.all([
+      const [casesRes, trendingRes, savedRes, profileRes] = await Promise.all([
         fetch("/api/cases", { cache: 'no-store' }),
         fetch("/api/trending", { cache: 'no-store' }),
         fetch("/api/save-case", { cache: 'no-store' }),
+        fetch("/api/profile", { cache: 'no-store' }),
       ]);
 
       const casesData = (await casesRes.json()) as CasePost[];
       const trendingData = (await trendingRes.json()) as TrendingCase[];
       const savedData = (await savedRes.json()) as SavedCase[];
+      
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setCurrentUser(profileData);
+      }
 
       setCases(casesData);
       setTrending(trendingData);
@@ -192,7 +200,11 @@ export default function FeedPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="flex items-center gap-3 mb-3">
                 <button onClick={(e) => { e.stopPropagation(); router.push('/profile'); }} className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                  <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  {currentUser?.profileImage ? (
+                    <img src={currentUser.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  )}
                 </button>
               <button onClick={() => router.push("/create-case")} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-500 text-left px-4 py-2.5 rounded-full transition font-medium">
                 Discuss a clinical case, doctor...
@@ -272,8 +284,12 @@ export default function FeedPage() {
                           Dr. {c.doctor.fullName}
                         </h3>
                         {c.doctor.isVerified && <svg className="w-4 h-4 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
-                        <FollowButton doctorId={c.doctor.id} />
-                        <FriendButton doctorId={c.doctor.id} />
+                        {currentUser?.id !== c.doctor.id && (
+                          <>
+                            <FollowButton doctorId={c.doctor.id} />
+                            <FriendButton doctorId={c.doctor.id} />
+                          </>
+                        )}
                       </div>
                       <p className="text-sm text-gray-500 mt-1">{new Date(c.createdAt).toLocaleDateString()} • {c.specialty}</p>
                     </div>

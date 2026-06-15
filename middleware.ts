@@ -69,11 +69,26 @@ export function middleware(request: NextRequest) {
   }
 
   let role = 'DOCTOR';
+  let verificationStatus = 'PENDING';
   if (token) {
     const decoded = decodeJwt(token);
     if (decoded?.role) {
       role = decoded.role;
     }
+    if (decoded?.verificationStatus) {
+      verificationStatus = decoded.verificationStatus;
+    }
+  }
+
+  // Define routes that require the user to be fully verified
+  const requireVerifiedPrefixes = [
+    '/feed', '/create-case', '/case', '/messages', '/ai', '/patients', '/appointments', '/consultations'
+  ];
+
+  const requiresVerification = requireVerifiedPrefixes.some(prefix => request.nextUrl.pathname.startsWith(prefix));
+
+  if (requiresVerification && verificationStatus !== 'VERIFIED') {
+    return NextResponse.redirect(new URL('/verification', request.url));
   }
 
   const isAdminPage = request.nextUrl.pathname.startsWith('/admin');
