@@ -88,22 +88,41 @@ function SearchContent() {
               </div>
             </div>
           ) : result ? (
-            <div className="markdown-content text-gray-800 
-              [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-6 [&>h1]:text-indigo-900 [&>h1]:border-b [&>h1]:pb-2
-              [&>h2]:text-2xl [&>h2]:font-semibold [&>h2]:mt-10 [&>h2]:mb-4 [&>h2]:text-indigo-800 [&>h2]:flex [&>h2]:items-center [&>h2]:gap-2
-              [&>h3]:text-xl [&>h3]:font-medium [&>h3]:mt-6 [&>h3]:mb-3 [&>h3]:text-indigo-700
-              [&>p]:mb-5 [&>p]:leading-relaxed [&>p]:text-gray-700
-              [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-6 [&>ul>li]:mb-2 [&>ul>li]:text-gray-700 [&>ul>li>strong]:text-indigo-900
-              [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-6 [&>ol>li]:mb-2
-              [&>strong]:text-indigo-900 [&>strong]:font-semibold
-              [&>blockquote]:border-l-4 [&>blockquote]:border-indigo-400 [&>blockquote]:pl-5 [&>blockquote]:italic [&>blockquote]:bg-indigo-50/50 [&>blockquote]:py-3 [&>blockquote]:pr-4 [&>blockquote]:rounded-r-lg [&>blockquote]:my-6
-              [&_table]:w-full [&_table]:mb-6 [&_table]:border-collapse [&_table]:border [&_table]:border-gray-200
-              [&_th]:bg-indigo-50 [&_th]:border [&_th]:border-gray-200 [&_th]:px-4 [&_th]:py-2 [&_th]:text-left [&_th]:text-indigo-900
-              [&_td]:border [&_td]:border-gray-200 [&_td]:px-4 [&_td]:py-2"
-            >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {result}
-              </ReactMarkdown>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(() => {
+                let flashcards = [];
+                try {
+                  const cleanJson = result.replace(/```json/gi, '').replace(/```/gi, '').trim();
+                  flashcards = JSON.parse(cleanJson);
+                  if (!Array.isArray(flashcards)) throw new Error("Not an array");
+                } catch(e) {
+                  return (
+                    <div className="col-span-full p-6 bg-red-50 text-red-600 rounded-xl border border-red-100">
+                      <h3 className="font-bold mb-2">Error formatting response</h3>
+                      <p>The AI did not return a valid flashcard format. Raw response:</p>
+                      <pre className="mt-4 p-4 bg-white rounded text-sm overflow-auto text-black">{result}</pre>
+                    </div>
+                  );
+                }
+                
+                return flashcards.map((card, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full transform hover:-translate-y-1">
+                    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-5 border-b border-indigo-100">
+                      <h3 className="text-lg font-bold text-indigo-900 flex items-center">
+                        <span className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center mr-3 text-sm shadow-sm flex-shrink-0">
+                          {idx + 1}
+                        </span>
+                        {card.title}
+                      </h3>
+                    </div>
+                    <div className="p-6 flex-1 bg-white">
+                      <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                        {card.content}
+                      </div>
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
           ) : (
             <div className="text-center py-16 text-gray-500">

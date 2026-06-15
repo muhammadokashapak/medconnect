@@ -13,46 +13,32 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json({ 
-        response: `> [!WARNING]
-> **API Key Missing!**
-> 
-> To enable real AI responses, please add \`OPENROUTER_API_KEY=your_key_here\` to your \`.env\` file.
-> 
-> *This is a fallback simulated response.*
-
-# Simulated Overview: ${query}
-
-This is a simulated AI response because the API key is missing. 
-Once you add the API key, the system will provide real-time, comprehensive medical data about **${query}** including:
-* Detailed Symptoms
-* Causes and Risk Factors
-* Potential Complications
-* Detection Methods
-* Recommended Treatments` 
+        response: `[
+          { "title": "API Key Missing", "content": "To enable real AI responses, please add OPENROUTER_API_KEY to your .env file. This is a fallback simulated response." },
+          { "title": "Disease Overview", "content": "This is a simulated overview for ${query}. Real data will appear here once the API is connected." },
+          { "title": "Symptoms", "content": "Simulated symptoms include A, B, and C." },
+          { "title": "Causes & Risk Factors", "content": "Simulated causes." },
+          { "title": "Cure & Treatment", "content": "Simulated treatments." }
+        ]` 
       }, { status: 200 });
     }
 
     const prompt = `You are MedConnect's elite clinical AI, acting as a highly advanced medical encyclopedia. 
 Your purpose is to provide structured, comprehensive, and scientifically accurate medical information about diseases or clinical conditions.
 
-Format your response strictly in Markdown. Do not include any HTML tags.
+Format your response STRICTLY as a raw JSON array of objects. Do not include any markdown code blocks like \`\`\`json. Just output the raw array.
+Each object must have exactly two keys: "title" and "content".
+Provide 6 flashcards exactly with these titles:
+1. "Disease Overview" (A high-level clinical summary)
+2. "Symptoms" (Detailed list of early, common, and severe symptoms)
+3. "Causes & Risk Factors" (Biological mechanisms, pathogens, genetics, or lifestyle factors)
+4. "Effects & Complications" (Short-term and long-term effects on the body)
+5. "Detection & Diagnosis" (Laboratory tests, imaging, or clinical criteria used to identify it)
+6. "Cure & Treatment" (Medications, therapies, lifestyle changes, or surgical interventions)
 
-For the requested disease or medical query: "${query}", you MUST provide detailed information under the following exact headings:
-# ${query.toUpperCase()}
-## 1. Disease Overview
-(A high-level clinical summary)
-## 2. Symptoms
-(Detailed list of early, common, and severe symptoms)
-## 3. Causes & Risk Factors
-(Biological mechanisms, pathogens, genetics, or lifestyle factors)
-## 4. Effects & Complications
-(Short-term and long-term effects on the body)
-## 5. Detection & Diagnosis
-(Laboratory tests, imaging, or clinical criteria used to identify it)
-## 6. Cure & Treatment
-(Medications, therapies, lifestyle changes, or surgical interventions)
+For the requested disease or medical query: "${query}". Provide the 6 flashcards. Keep the content inside the JSON strings concise but highly informative. Use bullet points (using standard dash '-') within the text string if it helps readability.
 
-If the query is completely unrelated to medicine, health, or biology, politely decline and clarify your purpose. Keep the output highly professional and clinical, yet readable.`;
+If the query is completely unrelated to medicine, health, or biology, return a single flashcard with title "Error" and content "This query is unrelated to medicine."`;
 
     const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
