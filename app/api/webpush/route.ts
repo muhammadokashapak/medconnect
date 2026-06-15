@@ -7,11 +7,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_medconnect_123
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
 
-webpush.setVapidDetails(
-  "mailto:admin@medconnect.com",
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    "mailto:admin@medconnect.com",
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+} else {
+  console.warn("VAPID keys are not set. Web push notifications will be disabled.");
+}
 
 function getUserIdFromToken(req: Request): string | null {
   const tokenCookie = req.headers.get("cookie")?.split("; ").find(c => c.startsWith("medconnect_token="));
