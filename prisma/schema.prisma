@@ -183,6 +183,7 @@ model ConversationParticipant {
   doctor         Doctor       @relation(fields: [doctorId], references: [id])
   hasUnread      Boolean      @default(false)
   createdAt      DateTime     @default(now())
+  isEdited       Boolean      @default(false)
   
   @@unique([conversationId, doctorId])
 }

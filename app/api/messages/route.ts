@@ -128,7 +128,7 @@ async function generateAiResponse(conversationId: string, userMessage: string, a
       return;
     }
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". Reply naturally and concisely. If it's a greeting, greet them back using their name (Dr. ${doctorName}). If it's a medical question, answer it professionally but clearly state you are an AI assistant. If the user asks for sensitive, harmful, illegal, or unethical content, you MUST refuse to answer and state exactly: "I cannot reply about this, it is against my policies."`;
     
     let text = "";

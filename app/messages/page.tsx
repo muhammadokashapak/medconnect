@@ -153,13 +153,29 @@ export default function MessagesListPage() {
                           <button onClick={(e) => { e.stopPropagation(); router.push(`/messages/${conv.id}`); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Open Chat
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); alert("Chat cleared successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          <button onClick={async (e) => { 
+                            e.stopPropagation(); 
+                            if(confirm("Clear all messages in this chat?")) {
+                              await fetch(`/api/messages/${conv.id}`, { method: 'DELETE' });
+                              alert("Chat cleared successfully!"); 
+                            }
+                            setActiveMenu(null); 
+                          }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Clear Chat
                           </button>
                           <button onClick={(e) => { e.stopPropagation(); alert("Chat muted successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Mute Chat
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); setConversations(prev => prev.filter(c => c.id !== conv.id)); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                          <button onClick={async (e) => { 
+                            e.stopPropagation(); 
+                            if(confirm("Are you sure you want to delete this chat completely?")) {
+                              const res = await fetch(`/api/conversations/${conv.id}`, { method: 'DELETE' });
+                              if(res.ok) {
+                                setConversations(prev => prev.filter(c => c.id !== conv.id)); 
+                              }
+                            }
+                            setActiveMenu(null); 
+                          }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                             Delete Chat
                           </button>
                         </div>

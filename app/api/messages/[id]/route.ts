@@ -63,3 +63,26 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  try {
+    const params = await props.params;
+    const userId = getUserIdFromToken(req);
+    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const conversationId = params.id;
+    const participation = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_doctorId: { conversationId, doctorId: userId } }
+    });
+    if (!participation) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+
+    await prisma.message.deleteMany({
+      where: { conversationId }
+    });
+
+    return NextResponse.json({ message: "Chat cleared" }, { status: 200 });
+  } catch (error) {
+    console.error("Clear Chat Error:", error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+  }
+}

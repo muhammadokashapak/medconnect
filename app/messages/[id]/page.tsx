@@ -161,9 +161,18 @@ export default function ChatPage() {
   };
 
   const handleDeleteMessage = async (messageId: string) => {
-    // In a real app, you would make an API call here to delete from DB
-    // e.g. await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
-    setMessages(prev => prev.filter(m => m.id !== messageId));
+    if (confirm("Are you sure you want to delete this message?")) {
+      try {
+        const res = await fetch(`/api/messages/message/${messageId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setMessages(prev => prev.filter(m => m.id !== messageId));
+        } else {
+          alert("Failed to delete message");
+        }
+      } catch (err) {
+        alert("Error deleting message");
+      }
+    }
     setActiveMenu(null);
   };
 
@@ -276,9 +285,32 @@ export default function ChatPage() {
 
                     {/* Dropdown Menu */}
                     {activeMenu === msg.id && (
-                      <div className={`absolute top-8 z-10 w-32 bg-white rounded-md shadow-lg py-1 border border-gray-200 ${isMine ? "right-full mr-2" : "left-full ml-2"}`}>
+                      <div className={`absolute top-8 z-10 w-40 bg-white rounded-md shadow-lg py-1 border border-gray-200 ${isMine ? "right-full mr-2" : "left-full ml-2"}`}>
                         <button onClick={() => handleCopyMessage(msg.content)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                           Copy
+                        </button>
+                        {isMine && (
+                          <button onClick={() => {
+                            const newContent = prompt("Edit message:", msg.content);
+                            if (newContent !== null && newContent !== msg.content) {
+                              fetch(`/api/messages/message/${msg.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ content: newContent })
+                              }).then(res => {
+                                if (res.ok) setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: newContent, isEdited: true } : m));
+                              });
+                            }
+                            setActiveMenu(null);
+                          }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Edit
+                          </button>
+                        )}
+                        <button onClick={() => {
+                            alert(`Message Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}\nStatus: ${msg.isRead ? "Read by recipient" : "Delivered (Unread)"}`);
+                            setActiveMenu(null);
+                          }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          Info
                         </button>
                         {!isMine && (
                           <>
@@ -301,6 +333,7 @@ export default function ChatPage() {
                     <span>
                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
+                    {msg.isEdited && <span className="italic text-gray-400 mx-1">(edited)</span>}
                     {isMine && msg.isRead && (
                       <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7m-9 9l4 4L23 7"></path></svg>
                     )}
