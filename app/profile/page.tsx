@@ -52,7 +52,7 @@ export default function ProfilePage() {
 
   const [myCases, setMyCases] = useState<any[]>([]);
   const [myVideos, setMyVideos] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"posts" | "videos">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">("posts");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -413,6 +413,12 @@ export default function ProfilePage() {
                 Cases / Posts
               </button>
               <button
+                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'photos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('photos')}
+              >
+                Photos
+              </button>
+              <button
                 className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'videos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setActiveTab('videos')}
               >
@@ -442,6 +448,36 @@ export default function ProfilePage() {
                           </button>
                           <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded transition">
                             Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab Content: Photos */}
+            {activeTab === "photos" && (
+              <div>
+                {myCases.filter(c => c.imageUrl).length === 0 ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
+                    You haven't uploaded any photos yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {myCases.filter(c => c.imageUrl).map(c => (
+                      <div key={c.id} className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200" onClick={() => router.push(`/case/${c.id}`)}>
+                        <img src={c.imageUrl} alt={c.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <p className="text-white text-sm font-bold px-2 text-center truncate w-full">{c.title}</p>
+                        </div>
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                          <button onClick={(e) => { e.stopPropagation(); router.push(`/create-case?edit=${c.id}`); }} className="bg-white text-blue-600 p-1.5 rounded-full shadow hover:bg-blue-50">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="bg-white text-red-600 p-1.5 rounded-full shadow hover:bg-red-50">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                           </button>
                         </div>
                       </div>

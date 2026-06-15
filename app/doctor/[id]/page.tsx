@@ -46,7 +46,7 @@ export default function DoctorProfilePage() {
   const [messaging, setMessaging] = useState(false);
   const [friendUpdating, setFriendUpdating] = useState(false);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"posts" | "videos">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">("posts");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -274,6 +274,12 @@ export default function DoctorProfilePage() {
                 Cases / Posts
               </button>
               <button
+                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'photos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('photos')}
+              >
+                Photos
+              </button>
+              <button
                 className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'videos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setActiveTab('videos')}
               >
@@ -309,6 +315,28 @@ export default function DoctorProfilePage() {
                   {currentDoctorId === doctor.id
                     ? 'You have no posts yet. Share a case to start engagement.'
                     : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see posts.' : 'No posts available yet.')
+                  }
+                </div>
+              )
+            )}
+
+            {activeTab === 'photos' && (
+              doctor.posts?.filter(p => p.imageUrl).length ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {doctor.posts.filter(p => p.imageUrl).map(post => (
+                    <div key={post.id} className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200" onClick={() => router.push(`/case/${post.id}`)}>
+                      <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <p className="text-white text-sm font-bold px-2 text-center truncate w-full">{post.title}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  {currentDoctorId === doctor.id
+                    ? 'You have no photos yet. Share a case with an image to show it here.'
+                    : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see photos.' : 'No photos available yet.')
                   }
                 </div>
               )
