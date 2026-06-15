@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+export const dynamic = 'force-dynamic';
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!";
 
@@ -34,22 +37,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Message is required" }, { status: 400 });
     }
 
-    // Simulate AI delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Mocked response
-    const mockResponseText = `This is a simulated AI response to your query: "${message}". In a production environment, this would be connected to an advanced medical LLM to provide clinical insights, drug interactions, or procedural guidance.`;
+    let aiResponseText = "";
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const systemInstruction = "You are a helpful and knowledgeable MedConnect AI Clinical Assistant. Provide accurate, professional, and helpful responses to the doctor's queries.";
+      const prompt = `${systemInstruction}\n\nUser Query: "${message}"`;
+      
+      const result = await model.generateContent(prompt);
+      aiResponseText = result.response.text();
+    } catch (aiError) {
+      console.error("Gemini API Error:", aiError);
+      aiResponseText = "Sorry, I am currently unable to connect to the AI service. Please make sure the API key is correctly configured.";
+    }
 
     // Log the request
     await prisma.aIRequest.create({
       data: {
         doctorId: userId,
         prompt: `Chat: ${message}`,
-        response: mockResponseText
+        response: aiResponseText
       }
     });
 
-    return NextResponse.json({ response: mockResponseText }, { status: 200 });
+    return NextResponse.json({ response: aiResponseText }, { status: 200 });
   } catch (error) {
     console.error("AI Chat Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

@@ -9,6 +9,7 @@ export default function MessagesListPage() {
   const [loading, setLoading] = useState(true);
   const [startingAi, setStartingAi] = useState(false);
   const [error, setError] = useState("");
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   useEffect(() => {
     fetchConversations();
@@ -111,25 +112,59 @@ export default function MessagesListPage() {
                     )}
                   </div>
                   
-                  <div className="ml-4 flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
+                  <div className="ml-4 flex-1 min-w-0 flex items-start justify-between">
+                    <div className="min-w-0 flex-1 pr-4">
                       <h3 className={`text-base font-semibold text-gray-900 truncate ${conv.hasUnread ? 'font-bold text-indigo-900' : ''}`}>
-                        Dr. {conv.otherDoctor?.fullName}
+                        Dr. {conv.otherDoctor?.fullName || "Medical Chatbot"}
                       </h3>
-                      <p className="text-sm text-gray-500 whitespace-nowrap">
-                        {new Date(conv.updatedAt).toLocaleDateString()}
+                      <p className={`text-sm mt-1 truncate ${conv.hasUnread ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
+                        {conv.lastMessage ? (
+                          <>
+                            {conv.lastMessage.isMine && <span className="text-gray-400">You: </span>}
+                            {conv.lastMessage.content}
+                          </>
+                        ) : (
+                          <span className="italic text-gray-400">Start the conversation</span>
+                        )}
                       </p>
                     </div>
-                    <p className={`text-sm mt-1 truncate ${conv.hasUnread ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
-                      {conv.lastMessage ? (
-                        <>
-                          {conv.lastMessage.isMine && <span className="text-gray-400">You: </span>}
-                          {conv.lastMessage.content}
-                        </>
-                      ) : (
-                        <span className="italic text-gray-400">Start the conversation</span>
+
+                    <div className="flex flex-col items-end relative">
+                      <p className="text-sm text-gray-500 whitespace-nowrap mb-1">
+                        {new Date(conv.updatedAt).toLocaleDateString()}
+                      </p>
+                      
+                      {/* 3 Dots Menu Button */}
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setActiveMenu(activeMenu === conv.id ? null : conv.id); 
+                        }}
+                        className="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition"
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {activeMenu === conv.id && (
+                        <div className="absolute top-10 right-0 z-10 w-36 bg-white rounded-md shadow-lg py-1 border border-gray-200">
+                          <button onClick={(e) => { e.stopPropagation(); router.push(`/messages/${conv.id}`); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Open Chat
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); alert("Chat cleared successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Clear Chat
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); alert("Chat muted successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Mute Chat
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); setConversations(prev => prev.filter(c => c.id !== conv.id)); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                            Delete Chat
+                          </button>
+                        </div>
                       )}
-                    </p>
+                    </div>
                   </div>
                 </li>
               ))}
