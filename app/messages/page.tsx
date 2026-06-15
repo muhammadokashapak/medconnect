@@ -62,10 +62,10 @@ export default function MessagesListPage() {
           </div>
           <div className="flex gap-4">
             <button
-              onClick={() => router.push("/feed")}
+              onClick={() => router.push("/")}
               className="text-gray-600 hover:text-gray-900 font-medium"
             >
-              Dashboard
+              Home
             </button>
             <button
               onClick={() => router.push("/doctors")}

@@ -99,69 +99,14 @@ export async function POST(req: Request) {
     }
 
     if (isAiConversation && aiBotId) {
-      // Trigger AI response asynchronously
-      generateAiResponse(conversationId, content, aiBotId, doctor.fullName).catch(console.error);
+      // Don't generate response here asynchronously. Let frontend trigger it.
     }
 
-    return NextResponse.json({ message: "Message sent", data: message }, { status: 201 });
+    return NextResponse.json({ message: "Message sent", data: message, isAiConversation, aiBotId }, { status: 201 });
   } catch (error) {
     console.error("Send Message Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-
-async function generateAiResponse(conversationId: string, userMessage: string, aiBotId: string, doctorName: string) {
-  try {
-    if (!GEMINI_API_KEY) {
-      console.warn("GEMINI_API_KEY is not set.");
-      await prisma.message.create({
-        data: {
-          content: "Please set the GEMINI_API_KEY environment variable to enable AI responses.",
-          conversationId,
-          senderId: aiBotId,
-        }
-      });
-      return;
-    }
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". Reply naturally and concisely. If it's a greeting, greet them back using their name (Dr. ${doctorName}). If it's a medical question, answer it professionally but clearly state you are an AI assistant. If the user asks for sensitive, harmful, illegal, or unethical content, you MUST refuse to answer and state exactly: "I cannot reply about this, it is against my policies."`;
-    
-    let text = "";
-    try {
-      const result = await model.generateContent(prompt);
-      text = result.response.text();
-    } catch (apiError: any) {
-      console.error("Gemini API specific error (possible safety block):", apiError);
-      text = "I cannot reply about this, it is against my policies.";
-    }
-    
-    await prisma.message.create({
-      data: {
-        content: text,
-        conversationId,
-        senderId: aiBotId,
-      }
-    });
-
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() }
-    });
-
-    await prisma.conversationParticipant.updateMany({
-      where: {
-        conversationId,
-        doctorId: { not: aiBotId }
-      },
-      data: { hasUnread: true }
-    });
-  } catch (err) {
-    console.error("AI Generation Error:", err);
-  }
-}
 

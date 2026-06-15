@@ -132,14 +132,14 @@ export default function ChatPage() {
       });
 
       if (!res.ok) throw new Error("Failed to send message");
-      const savedMessage = await res.json();
+      const { data: savedMessage, isAiConversation, aiBotId } = await res.json();
       setReplyToMessage(null);
       
       // Emit via socket
       if (socket) {
         // Need to add fake sender data to mimic full payload
         const payload = {
-          ...savedMessage.data,
+          ...savedMessage,
           sender: {
             fullName: currentUser.fullName,
             profileImage: currentUser.profileImage
@@ -151,6 +151,30 @@ export default function ChatPage() {
           } : null
         };
         socket.emit("send_message", payload);
+      }
+      
+      if (isAiConversation && aiBotId) {
+        setIsTyping(true);
+        try {
+          const aiRes = await fetch("/api/messages/ai-reply", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              conversationId: params?.id,
+              userMessage: content,
+              aiBotId,
+              doctorName: currentUser.fullName
+            })
+          });
+          if (aiRes.ok) {
+            const aiMessage = await aiRes.json();
+            setMessages(prev => [...prev, aiMessage]);
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsTyping(false);
+        }
       }
       
     } catch (err: any) {
@@ -195,7 +219,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex flex-col bg-gray-50 overflow-hidden">
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
