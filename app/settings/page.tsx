@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navigation from "../components/Navigation";
 
 export default function SettingsPage() {
   const router = useRouter();

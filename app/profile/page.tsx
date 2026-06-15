@@ -387,6 +387,7 @@ export default function ProfilePage() {
             </form>
           )}
         </div>
+      </div>
 
         {/* User Posts Section */}
         {!isEditing && (
