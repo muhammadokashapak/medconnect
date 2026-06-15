@@ -74,19 +74,33 @@ export async function POST(req: Request) {
 
     // Notify other participants
     const others = await prisma.conversationParticipant.findMany({
-      where: { conversationId, doctorId: { not: userId } }
+      where: { conversationId, doctorId: { not: userId } },
+      include: { doctor: true }
     });
     
+    let isAiConversation = false;
+    let aiBotId = "";
+
     for (const p of others) {
-      await prisma.notification.create({
-        data: {
-          doctorId: p.doctorId,
-          title: "New Message",
-          message: `Dr. ${doctor.fullName} sent you a message.`,
-          type: "MESSAGE",
-          actionUrl: "/messages"
-        }
-      });
+      if (p.doctor.pmdcNumber === "AI-BOT") {
+        isAiConversation = true;
+        aiBotId = p.doctorId;
+      } else {
+        await prisma.notification.create({
+          data: {
+            doctorId: p.doctorId,
+            title: "New Message",
+            message: `Dr. ${doctor.fullName} sent you a message.`,
+            type: "MESSAGE",
+            actionUrl: "/messages"
+          }
+        });
+      }
+    }
+
+    if (isAiConversation && aiBotId) {
+      // Trigger AI response asynchronously
+      generateAiResponse(conversationId, content, aiBotId, doctor.fullName).catch(console.error);
     }
 
     return NextResponse.json({ message: "Message sent", data: message }, { status: 201 });
@@ -95,3 +109,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+
+async function generateAiResponse(conversationId: string, userMessage: string, aiBotId: string, doctorName: string) {
+  try {
+    if (!GEMINI_API_KEY) {
+      console.warn("GEMINI_API_KEY is not set.");
+      // Fallback
+      await prisma.message.create({
+        data: {
+          content: "Please set the GEMINI_API_KEY environment variable to enable AI responses.",
+          conversationId,
+          senderId: aiBotId,
+        }
+      });
+      return;
+    }
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". Reply naturally and concisely. If it's a greeting, greet them back. If it's a medical question, answer it professionally but clearly state you are an AI assistant.`;
+    
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    
+    await prisma.message.create({
+      data: {
+        content: text,
+        conversationId,
+        senderId: aiBotId,
+      }
+    });
+
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { updatedAt: new Date() }
+    });
+
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        conversationId,
+        doctorId: { not: aiBotId }
+      },
+      data: { hasUnread: true }
+    });
+  } catch (err) {
+    console.error("AI Generation Error:", err);
+  }
+}
+

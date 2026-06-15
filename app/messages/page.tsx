@@ -7,6 +7,7 @@ export default function MessagesListPage() {
   const router = useRouter();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [startingAi, setStartingAi] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -26,6 +27,23 @@ export default function MessagesListPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartAiChat = async () => {
+    try {
+      setStartingAi(true);
+      const res = await fetch("/api/ai/start-conversation", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.conversationId) {
+        router.push(`/messages/${data.conversationId}`);
+      } else {
+        setError(data.message || "Failed to start AI chat");
+        setStartingAi(false);
+      }
+    } catch (err) {
+      setError("Error starting AI chat");
+      setStartingAi(false);
     }
   };
 
@@ -119,6 +137,25 @@ export default function MessagesListPage() {
           </div>
         )}
       </div>
+
+      {/* Floating AI Bot Button */}
+      <button
+        onClick={handleStartAiChat}
+        disabled={startingAi}
+        className="fixed bottom-24 right-6 sm:bottom-8 sm:right-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-full shadow-2xl hover:shadow-[0_10px_25px_-5px_rgba(79,70,229,0.6)] hover:scale-105 transition-all z-50 flex items-center justify-center group disabled:opacity-70 disabled:cursor-not-allowed border-2 border-white"
+        title="Chat with Medical AI"
+      >
+        {startingAi ? (
+          <div className="w-8 h-8 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        )}
+        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-3 transition-all duration-300 ease-in-out font-semibold">
+          {startingAi ? "Connecting..." : "Medical Chatbot"}
+        </span>
+      </button>
     </div>
   );
 }
