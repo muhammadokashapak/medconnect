@@ -71,6 +71,7 @@ model Doctor {
   receiverHistory        CallHistory[] @relation("ReceiverHistory")
 
   savedGuidelines        SavedGuideline[]
+  guidelines             Guideline[] @relation("DoctorGuidelines")
   savedResearch          SavedResearch[]
   resourceViews          ResourceView[]
 
@@ -349,6 +350,9 @@ model Guideline {
   version     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  doctorId    String?
+  doctor      Doctor?  @relation("DoctorGuidelines", fields: [doctorId], references: [id])
 
   saves       SavedGuideline[]
 }
