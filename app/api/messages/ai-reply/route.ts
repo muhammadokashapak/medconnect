@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". Reply naturally and concisely. If it's a greeting, greet them back using their name (Dr. ${doctorName}). ${aiIntroInstruction} If the user asks for sensitive, harmful, illegal, or unethical content, you MUST refuse to answer and state exactly: "I cannot reply about this, it is against my policies." IMPORTANT: DO NOT use markdown asterisks (*) or bold syntax (**). NEVER output any stars. If you need to make a list, use dashes (-) or numbers. If you need to emphasize, use ALL CAPS.`;
+    const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". \n\n1. If the message is a greeting (e.g., "hi", "hello"), reply warmly using their name (Dr. ${doctorName}) and ask how you can help. DO NOT use the refusal message for greetings.\n2. ${aiIntroInstruction}\n3. ONLY IF the user explicitly asks for sensitive, harmful, illegal, or unethical content, you MUST refuse by stating exactly: "I cannot reply about this, it is against my policies."\n4. IMPORTANT: DO NOT use markdown asterisks (*) or bold syntax (**). NEVER output any stars. Use dashes (-) for lists and ALL CAPS for emphasis.`;
     
     let text = "";
     try {
