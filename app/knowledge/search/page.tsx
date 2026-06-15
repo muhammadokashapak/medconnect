@@ -5,6 +5,62 @@ import { useSearchParams, useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+function FlipCard({ card, idx }: { card: any, idx: number }) {
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  return (
+    <div 
+      className="relative w-full h-[320px] cursor-pointer group"
+      style={{ perspective: '1000px' }}
+      onClick={() => setIsFlipped(!isFlipped)}
+    >
+      <div 
+        className="w-full h-full relative transition-transform duration-700 ease-in-out"
+        style={{ 
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' 
+        }}
+      >
+        {/* Front of card */}
+        <div 
+          className="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-indigo-100 flex flex-col items-center justify-center p-6 hover:shadow-xl hover:border-indigo-300 transition-colors"
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+        >
+          <div className="w-16 h-16 rounded-full bg-indigo-600 text-white flex items-center justify-center mb-6 text-2xl font-bold shadow-md">
+            {idx + 1}
+          </div>
+          <h3 className="text-2xl font-bold text-indigo-900 text-center">{card.title}</h3>
+          <div className="mt-8 px-5 py-2 bg-white rounded-full text-indigo-600 text-sm font-bold tracking-wider uppercase shadow-sm flex items-center gap-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            Tap to Flip ⤵
+          </div>
+        </div>
+
+        {/* Back of card */}
+        <div 
+          className="absolute inset-0 w-full h-full bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
+          style={{ 
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)' 
+          }}
+        >
+          <div className="bg-indigo-600 px-5 py-3 flex justify-between items-center text-white shrink-0">
+            <h3 className="font-bold flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">{idx + 1}</span>
+              {card.title}
+            </h3>
+          </div>
+          <div className="p-5 overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-indigo-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+              {card.content}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q");
@@ -106,21 +162,7 @@ function SearchContent() {
                 }
                 
                 return flashcards.map((card, idx) => (
-                  <div key={idx} className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full transform hover:-translate-y-1">
-                    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-5 border-b border-indigo-100">
-                      <h3 className="text-lg font-bold text-indigo-900 flex items-center">
-                        <span className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center mr-3 text-sm shadow-sm flex-shrink-0">
-                          {idx + 1}
-                        </span>
-                        {card.title}
-                      </h3>
-                    </div>
-                    <div className="p-6 flex-1 bg-white">
-                      <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
-                        {card.content}
-                      </div>
-                    </div>
-                  </div>
+                  <FlipCard key={idx} card={card} idx={idx} />
                 ));
               })()}
             </div>
