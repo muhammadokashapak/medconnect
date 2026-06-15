@@ -136,6 +136,9 @@ export default function Navbar() {
                     <Link href="/saved-cases" onClick={closeAll} className="block px-4 py-2 hover:bg-gray-50 flex items-center">
                       <span className="text-xl mr-3">🔖</span> <span className="font-medium text-gray-900 text-sm sm:text-base">Saved Cases</span>
                     </Link>
+                    <Link href="/settings" onClick={closeAll} className="block px-4 py-2 hover:bg-gray-50 flex items-center">
+                      <span className="text-xl mr-3">⚙️</span> <span className="font-medium text-gray-900 text-sm sm:text-base">Settings</span>
+                    </Link>
                     <div className="border-t border-gray-100 my-2"></div>
                     <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center text-red-600">
                       <span className="text-xl mr-3">🚪</span> <span className="font-medium text-sm sm:text-base">Logout</span>

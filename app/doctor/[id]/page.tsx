@@ -20,6 +20,7 @@ type DoctorProfile = {
   isVerified?: boolean;
   isProfilePrivate?: boolean;
   isFriend?: boolean;
+  friendRequestStatus?: string | null;
   posts?: Array<{
     id: string;
     title: string;
@@ -83,47 +84,27 @@ export default function DoctorProfilePage() {
     loadProfile();
   }, [params?.id, router]);
 
-  const handleMessageClick = async () => {
-    if (!doctor) return;
 
-    setMessaging(true);
-    try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetDoctorId: doctor.id }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to start conversation");
-      router.push(`/messages/${data.conversationId}`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to start conversation";
-      alert(message);
-    } finally {
-      setMessaging(false);
-    }
-  };
 
   const handleFriendToggle = async () => {
-    if (!doctor) return;
+    if (!doctor || doctor.isFriend || doctor.friendRequestStatus === "PENDING") return;
     setFriendUpdating(true);
 
     try {
-      const res = await fetch("/api/follow", {
+      const res = await fetch("/api/friend-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ followingId: doctor.id }),
+        body: JSON.stringify({ action: "send", targetId: doctor.id }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "Unable to update friend status");
+        throw new Error(data.message || "Unable to send friend request");
       }
 
       await loadDoctorProfile();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update friend status";
+      const message = err instanceof Error ? err.message : "Failed to send friend request";
       alert(message);
     } finally {
       setFriendUpdating(false);
@@ -149,6 +130,28 @@ export default function DoctorProfilePage() {
     }
   };
 
+  const handleMessageClick = async () => {
+    if (!doctor) return;
+    setMessaging(true);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetDoctorId: doctor.id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.conversationId) {
+        router.push(`/messages/${data.conversationId}`);
+      } else {
+        alert("Failed to start conversation.");
+      }
+    } catch (err) {
+      alert("Error starting conversation.");
+    } finally {
+      setMessaging(false);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>;
   }
@@ -156,6 +159,32 @@ export default function DoctorProfilePage() {
   if (error || !doctor) {
     return <div className="min-h-screen flex items-center justify-center text-red-600">{error || "Doctor not found"}</div>;
   }
+
+  const renderFriendButton = () => {
+    if (doctor.isFriend) {
+      return (
+        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-green-600 text-white">
+          Friends
+        </button>
+      );
+    } else if (doctor.friendRequestStatus === "PENDING") {
+      return (
+        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-gray-200 text-gray-600">
+          Request Sent
+        </button>
+      );
+    } else {
+      return (
+        <button
+          onClick={handleFriendToggle}
+          disabled={friendUpdating}
+          className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50"
+        >
+          {friendUpdating ? "Sending..." : "Add Friend"}
+        </button>
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
@@ -200,15 +229,7 @@ export default function DoctorProfilePage() {
                     {messaging ? "Wait..." : "Message"}
                   </button>
                   
-                  {currentDoctorId && currentDoctorId !== doctor.id && (
-                    <button
-                      onClick={handleFriendToggle}
-                      disabled={friendUpdating}
-                      className={`flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center ${doctor.isFriend ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50'}`}
-                    >
-                      {doctor.isFriend ? 'Friends' : 'Add Friend'}
-                    </button>
-                  )}
+                  {currentDoctorId && currentDoctorId !== doctor.id && renderFriendButton()}
                 </div>
               </div>
             </div>

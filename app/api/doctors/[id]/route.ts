@@ -101,10 +101,21 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       orderBy: { createdAt: "desc" },
     });
 
+    const friendRequest = await prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: params.id },
+          { senderId: params.id, receiverId: userId }
+        ]
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
     return NextResponse.json({
       ...doctor,
       isFollowing: Boolean(isFollowing),
       isFriend,
+      friendRequestStatus: friendRequest?.status || null,
       posts,
       videos,
     }, { status: 200 });
