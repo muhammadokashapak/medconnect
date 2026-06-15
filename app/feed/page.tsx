@@ -117,14 +117,17 @@ export default function FeedPage() {
   };
 
   const [currentUser, setCurrentUser] = useState<{ id: string; profileImage?: string; } | null>(null);
+  const [friendsSet, setFriendsSet] = useState<Set<string>>(new Set());
+  const [pendingFriendsSet, setPendingFriendsSet] = useState<Set<string>>(new Set());
 
   const fetchData = async () => {
     try {
-      const [casesRes, trendingRes, savedRes, profileRes] = await Promise.all([
+      const [casesRes, trendingRes, savedRes, profileRes, friendsRes] = await Promise.all([
         fetch("/api/cases", { cache: 'no-store' }),
         fetch("/api/trending", { cache: 'no-store' }),
         fetch("/api/save-case", { cache: 'no-store' }),
         fetch("/api/profile", { cache: 'no-store' }),
+        fetch("/api/friends", { cache: 'no-store' }),
       ]);
 
       const casesData = (await casesRes.json()) as CasePost[];
@@ -134,6 +137,12 @@ export default function FeedPage() {
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setCurrentUser(profileData);
+      }
+
+      if (friendsRes.ok) {
+        const fData = await friendsRes.json();
+        setFriendsSet(new Set(fData.friends || []));
+        setPendingFriendsSet(new Set(fData.pending || []));
       }
 
       setCases(casesData);
@@ -287,7 +296,9 @@ export default function FeedPage() {
                         {currentUser?.id !== c.doctor.id && (
                           <>
                             <FollowButton doctorId={c.doctor.id} />
-                            <FriendButton doctorId={c.doctor.id} />
+                            {!friendsSet.has(c.doctor.id) && !pendingFriendsSet.has(c.doctor.id) && (
+                              <FriendButton doctorId={c.doctor.id} />
+                            )}
                           </>
                         )}
                       </div>

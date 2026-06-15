@@ -10,6 +10,8 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [activeTab, setActiveTab] = useState("security");
+  
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
@@ -136,91 +138,154 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading settings...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-100">Loading settings...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 sm:pb-0 sm:pl-64">
-      <Navigation />
-      
-      <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account security and preferences.</p>
+    <div className="min-h-screen bg-[#F0F2F5] pb-20 sm:pb-0">
+      <div className="max-w-[1100px] mx-auto pt-8 px-4 flex flex-col md:flex-row gap-6">
+        
+        {/* Settings Sidebar */}
+        <div className="w-full md:w-80 flex-shrink-0">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-24">
+            <h1 className="text-2xl font-bold text-gray-900 px-6 py-5 border-b border-gray-100">Settings</h1>
+            <nav className="p-3">
+              <button
+                onClick={() => setActiveTab("security")}
+                className={`w-full flex items-center px-4 py-3 rounded-lg transition mb-1 ${activeTab === "security" ? "bg-blue-50 text-blue-600 font-semibold" : "text-gray-700 hover:bg-gray-100 font-medium"}`}
+              >
+                <div className={`p-2 rounded-full mr-3 ${activeTab === "security" ? "bg-blue-100" : "bg-gray-200"}`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                Password and security
+              </button>
+              
+              <button
+                onClick={() => setActiveTab("notifications")}
+                className={`w-full flex items-center px-4 py-3 rounded-lg transition mb-1 ${activeTab === "notifications" ? "bg-blue-50 text-blue-600 font-semibold" : "text-gray-700 hover:bg-gray-100 font-medium"}`}
+              >
+                <div className={`p-2 rounded-full mr-3 ${activeTab === "notifications" ? "bg-blue-100" : "bg-gray-200"}`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </div>
+                Notifications
+              </button>
+
+              <button
+                onClick={() => router.push("/profile")}
+                className="w-full flex items-center px-4 py-3 rounded-lg transition text-gray-700 hover:bg-gray-100 font-medium mb-1"
+              >
+                <div className="p-2 rounded-full mr-3 bg-gray-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </div>
+                Personal details
+              </button>
+            </nav>
+          </div>
         </div>
 
-        {error && <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>}
-        {success && <div className="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">{success}</div>}
+        {/* Main Content Area */}
+        <div className="flex-1 max-w-3xl">
+          {error && <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 shadow-sm"><p className="font-bold">Error</p><p>{error}</p></div>}
+          {success && <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 shadow-sm"><p className="font-bold">Success</p><p>{success}</p></div>}
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 sm:p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <svg className="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-              Security
-            </h2>
-
-            <div className="flex items-start sm:items-center justify-between p-4 border border-gray-100 rounded-lg bg-gray-50/50">
-              <div className="flex-1 pr-4">
-                <h3 className="font-medium text-gray-900">Two-Factor Authentication (2FA)</h3>
-                <p className="text-sm text-gray-500 mt-1">Protect your account by requiring an email OTP code when logging in.</p>
+          {activeTab === "security" && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900">Password and security</h2>
+                <p className="text-gray-500 mt-1">Manage your password, login options, and Two-Factor Authentication.</p>
               </div>
-              <div className="mt-2 sm:mt-0">
+              
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Login & recovery</h3>
+                <div className="flex items-center justify-between py-4 border-b border-gray-100 hover:bg-gray-50 px-2 rounded-lg cursor-pointer transition">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Change password</h4>
+                    <p className="text-sm text-gray-500">It's a good idea to use a strong password.</p>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+
+                <div className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition mt-2">
+                  <div className="flex-1 pr-4">
+                    <h4 className="font-semibold text-gray-900">Two-Factor Authentication (2FA)</h4>
+                    <p className="text-sm text-gray-500 mt-1">We'll ask for a login code via email if we notice a login from an unrecognized device.</p>
+                  </div>
+                  <div className="mt-2 sm:mt-0">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isTwoFactorEnabled}
+                      onClick={() => {
+                        setIsTwoFactorEnabled(!isTwoFactorEnabled);
+                        // Auto-save when toggled
+                        setTimeout(() => handleSave(), 100);
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
+                        isTwoFactorEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isTwoFactorEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-6 border-t border-gray-200 flex justify-end">
                 <button
-                  type="button"
-                  role="switch"
-                  aria-checked={isTwoFactorEnabled}
-                  onClick={() => setIsTwoFactorEnabled(!isTwoFactorEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-                    isTwoFactorEnabled ? 'bg-indigo-600' : 'bg-gray-200'
-                  }`}
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-lg shadow-sm transition disabled:opacity-70"
                 >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      isTwoFactorEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
+                  {saving ? "Saving..." : "Save changes"}
                 </button>
               </div>
             </div>
+          )}
 
-            <div className="flex items-start sm:items-center justify-between p-4 mt-4 border border-gray-100 rounded-lg bg-gray-50/50">
-              <div className="flex-1 pr-4">
-                <h3 className="font-medium text-gray-900">Push Notifications</h3>
-                <p className="text-sm text-gray-500 mt-1">Receive real-time alerts for messages and updates even when the app is closed.</p>
+          {activeTab === "notifications" && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+                <p className="text-gray-500 mt-1">Choose how you receive notifications and updates.</p>
               </div>
-              <div className="mt-2 sm:mt-0 flex items-center">
-                {pushLoading && <span className="text-sm text-gray-500 mr-3">Wait...</span>}
-                <button
-                  type="button"
-                  role="switch"
-                  disabled={pushLoading}
-                  aria-checked={isPushEnabled}
-                  onClick={handlePushToggle}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-                    isPushEnabled ? 'bg-indigo-600' : 'bg-gray-200'
-                  } ${pushLoading ? 'opacity-50' : ''}`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      isPushEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+              
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Push Notifications</h3>
+                
+                <div className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition">
+                  <div className="flex-1 pr-4">
+                    <h4 className="font-semibold text-gray-900">Browser Push Alerts</h4>
+                    <p className="text-sm text-gray-500 mt-1">Receive real-time alerts for messages and updates even when the app is closed.</p>
+                  </div>
+                  <div className="mt-2 sm:mt-0 flex items-center">
+                    {pushLoading && <span className="text-sm text-gray-500 mr-3">Wait...</span>}
+                    <button
+                      type="button"
+                      role="switch"
+                      disabled={pushLoading}
+                      aria-checked={isPushEnabled}
+                      onClick={handlePushToggle}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
+                        isPushEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                      } ${pushLoading ? 'opacity-50' : ''}`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isPushEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm transition disabled:opacity-70"
-              >
-                {saving ? "Saving..." : "Save Settings"}
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
