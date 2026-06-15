@@ -46,10 +46,10 @@ export async function POST(req: Request) {
     const userId = getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { newsId } = await req.json();
+    const body = await req.json();
 
-    if (newsId) {
-       const newsItem = await prisma.medicalNews.findUnique({ where: { id: newsId }});
+    if (body.newsId) {
+       const newsItem = await prisma.medicalNews.findUnique({ where: { id: body.newsId }});
        if (newsItem) {
           await prisma.resourceView.create({
             data: {
@@ -60,9 +60,24 @@ export async function POST(req: Request) {
             }
           });
        }
+       return NextResponse.json({ message: "View recorded" }, { status: 200 });
     }
 
-    return NextResponse.json({ message: "View recorded" }, { status: 200 });
+    if (body.title && body.content && body.category) {
+      const doctor = await prisma.doctor.findUnique({ where: { id: userId } });
+      const newArticle = await prisma.medicalNews.create({
+        data: {
+          title: body.title,
+          content: body.content,
+          category: body.category,
+          source: doctor ? `Dr. ${doctor.fullName}` : "MedConnect User",
+          doctorId: userId
+        }
+      });
+      return NextResponse.json(newArticle, { status: 201 });
+    }
+
+    return NextResponse.json({ message: "Invalid request payload" }, { status: 400 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

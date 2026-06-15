@@ -21,7 +21,18 @@ export async function POST(req: Request) {
       email = email.trim().toLowerCase();
     }
 
-    console.log("STEP 3: Checking existing doctor");
+    console.log("STEP 3: Validating PMDC and checking existing doctor");
+
+    // PMDC Validation
+    if (pmdcNumber) {
+      const pmdcRegex = /^\d{6}-[mM]$/;
+      if (!pmdcRegex.test(pmdcNumber)) {
+        return Response.json(
+          { message: "Invalid PMDC License Format. It must be exactly 6 digits followed by -m (e.g. 121211-m)." },
+          { status: 400 }
+        );
+      }
+    }
 
     const orConditions: any[] = [{ email }];
     if (phoneNumber && phoneNumber.trim() !== "") {
@@ -40,15 +51,22 @@ export async function POST(req: Request) {
     console.log("STEP 4: Existing doctor result:", existingDoctor);
 
     if (existingDoctor) {
-      let duplicateField = "Doctor";
-      if (existingDoctor.email === email) duplicateField = "Email";
-      else if (existingDoctor.phoneNumber === phoneNumber) duplicateField = "Phone number";
-      else if (existingDoctor.pmdcNumber === pmdcNumber) duplicateField = "PMDC number";
-
-      return Response.json(
-        { message: `${duplicateField} is already registered` },
-        { status: 400 }
-      );
+      if (existingDoctor.email === email) {
+        return Response.json(
+          { message: "aap k gmail se account bana hoa ha already, aap login kr lein." },
+          { status: 400 }
+        );
+      } else if (existingDoctor.pmdcNumber === pmdcNumber) {
+        return Response.json(
+          { message: "This PMDC number is already registered." },
+          { status: 400 }
+        );
+      } else {
+        return Response.json(
+          { message: "Phone number is already registered." },
+          { status: 400 }
+        );
+      }
     }
 
     console.log("STEP 5: Hashing password");

@@ -11,7 +11,15 @@ export default function NewsPage() {
   const [category, setCategory] = useState("All");
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
 
+  // New states for adding news
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newCategory, setNewCategory] = useState("Global Health");
+  const [submitting, setSubmitting] = useState(false);
+
   const categories = ["All", "Cardiology", "Neurology", "Oncology", "Pediatrics", "Global Health"];
+  const formCategories = ["Cardiology", "Neurology", "Oncology", "Pediatrics", "Global Health"];
 
   useEffect(() => {
     fetchData();
@@ -46,6 +54,37 @@ export default function NewsPage() {
     }
   };
 
+  const handlePostNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newContent.trim()) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/news", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          content: newContent,
+          category: newCategory
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to post news");
+
+      // Reset form and reload
+      setNewTitle("");
+      setNewContent("");
+      setIsModalOpen(false);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to share news. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
@@ -54,7 +93,15 @@ export default function NewsPage() {
             <svg className="w-8 h-8 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
             Medical News
           </h1>
-          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition"
+            >
+              Share News
+            </button>
+            <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-8">
@@ -122,6 +169,78 @@ export default function NewsPage() {
           </div>
         </div>
       </div>
+
+      {/* Share News Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-xl font-bold text-gray-900">Share Medical News</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handlePostNews} className="p-4 overflow-y-auto flex-1">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 text-black px-3 py-2 border" 
+                    placeholder="Enter headline..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select 
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 text-black px-3 py-2 border"
+                  >
+                    {formCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content / Details</label>
+                  <textarea 
+                    required 
+                    rows={6}
+                    value={newContent}
+                    onChange={(e) => setNewContent(e.target.value)}
+                    className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 text-black px-3 py-2 border"
+                    placeholder="Paste the article details or summary here..."
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 font-medium rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg disabled:opacity-50"
+                >
+                  {submitting ? "Posting..." : "Post News"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

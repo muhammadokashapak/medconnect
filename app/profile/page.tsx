@@ -14,9 +14,9 @@ type DoctorProfileData = {
   medicalCollege?: string;
   experienceYears?: number | null;
   bio?: string;
-  linkedinUrl?: string;
   websiteUrl?: string;
   profileImage?: string;
+  coverImage?: string;
   isProfilePrivate?: boolean;
   email?: string;
   phoneNumber?: string;
@@ -46,6 +46,7 @@ export default function ProfilePage() {
     linkedinUrl: "",
     websiteUrl: "",
     profileImage: "",
+    coverImage: "",
     isProfilePrivate: false,
   });
 
@@ -76,6 +77,7 @@ export default function ProfilePage() {
           linkedinUrl: data.linkedinUrl || "",
           websiteUrl: data.websiteUrl || "",
           profileImage: data.profileImage || "",
+          coverImage: data.coverImage || "",
           isProfilePrivate: data.isProfilePrivate || false,
         });
         
@@ -147,6 +149,34 @@ export default function ProfilePage() {
     }
   };
 
+  const handleCoverUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError("");
+
+    const data = new FormData();
+    data.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data,
+      });
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.message);
+
+      setFormData({ ...formData, coverImage: result.url });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message || "Failed to upload cover image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
@@ -207,10 +237,28 @@ export default function ProfilePage() {
         {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-6">{error}</div>}
         {success && <div className="bg-green-100 text-green-700 p-4 rounded mb-6">{success}</div>}
 
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center space-x-6 mb-8">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 border-2 border-indigo-100">
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          {/* Cover Image Section */}
+          <div className="h-48 w-full bg-indigo-100 relative group">
+            {(formData.coverImage || doctor?.coverImage) ? (
+              <img src={formData.coverImage || doctor?.coverImage} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-indigo-300 to-purple-400"></div>
+            )}
+            
+            {isEditing && (
+              <label className="absolute bottom-4 right-4 bg-white text-gray-700 p-2 rounded-lg cursor-pointer shadow-md hover:bg-gray-50 transition opacity-0 group-hover:opacity-100 flex items-center text-sm font-medium">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Upload Cover
+                <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} disabled={uploading} />
+              </label>
+            )}
+          </div>
+
+          <div className="p-6 pt-0 relative">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 space-y-4 sm:space-y-0 sm:space-x-6 mb-8">
+              <div className="relative z-10">
+                <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg">
                 {formData.profileImage ? (
                   <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
                 ) : (

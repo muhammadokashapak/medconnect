@@ -2,10 +2,15 @@
   "name": "MedConnect",
   "short_name": "MedConnect",
   "description": "The Ultimate Medical Networking App",
-  "start_url": "/",
+  "start_url": "/feed",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
+  "orientation": "portrait",
+  "dir": "ltr",
+  "lang": "en-US",
+  "categories": ["medical", "social", "productivity"],
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -28,5 +33,31 @@
       "form_factor": "narrow",
       "label": "MedConnect Feed View"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "New Post",
+      "short_name": "Post",
+      "description": "Create a new clinical case",
+      "url": "/create-case",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Search Hub",
+      "short_name": "Search",
+      "description": "Search cases and doctors",
+      "url": "/search",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/create-case",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }
