@@ -6,18 +6,28 @@ import { useRouter } from "next/navigation";
 export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchNotifications();
+    fetchData();
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch("/api/notifications");
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
+      const [notifRes, freqRes] = await Promise.all([
+        fetch("/api/notifications"),
+        fetch("/api/friend-request")
+      ]);
+      
+      if (notifRes.ok) {
+        const notifData = await notifRes.json();
+        setNotifications(notifData);
+      }
+      
+      if (freqRes.ok) {
+        const freqData = await freqRes.json();
+        if (freqData.requests) setFriendRequests(freqData.requests);
       }
     } catch (error) {} finally {
       setLoading(false);
@@ -31,14 +41,27 @@ export default function NotificationsPage() {
     } catch (error) {}
   };
 
+  const handleFriendRequest = async (requestId: string, action: 'accept' | 'decline') => {
+    try {
+      const res = await fetch("/api/friend-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, requestId })
+      });
+      if (res.ok) {
+        setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+      }
+    } catch (error) {}
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading notifications...</div>;
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
             <svg className="w-7 h-7 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
             Notifications
@@ -54,13 +77,42 @@ export default function NotificationsPage() {
           </div>
         </div>
 
+        {friendRequests.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <h2 className="px-4 py-3 bg-indigo-50 border-b border-indigo-100 font-bold text-indigo-900">Friend Requests</h2>
+            <ul className="divide-y divide-gray-100">
+              {friendRequests.map((req) => (
+                <li key={req.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
+                      {req.sender.profileImage ? (
+                        <img src={req.sender.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">Dr. {req.sender.fullName}</p>
+                      <p className="text-sm text-gray-500">{req.sender.specialization || "Doctor"}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleFriendRequest(req.id, 'accept')} className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-indigo-700 transition">Accept</button>
+                    <button onClick={() => handleFriendRequest(req.id, 'decline')} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-300 transition">Decline</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {notifications.length === 0 ? (
             <div className="p-8 text-center text-gray-500">You have no notifications.</div>
           ) : (
             <ul className="divide-y divide-gray-200">
-              {notifications.map((n) => (
-                <li key={n.id} className={`p-4 hover:bg-gray-50 transition ${!n.isRead ? 'bg-indigo-50/50' : ''}`}>
+              {notifications.map((n) => {
+                const NotificationContent = (
                   <div className="flex items-start">
                     <div className="flex-shrink-0 mt-1">
                       {n.type === 'MESSAGE' && <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"></path></svg></div>}
@@ -75,8 +127,23 @@ export default function NotificationsPage() {
                     </div>
                     {!n.isRead && <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>}
                   </div>
-                </li>
-              ))}
+                );
+
+                return (
+                  <li key={n.id} className={`hover:bg-gray-50 transition cursor-pointer ${!n.isRead ? 'bg-indigo-50/50' : ''}`} onClick={() => {
+                    if (!n.isRead) {
+                      // Optional: optimistically mark read here by hitting an API /api/notifications/[id]/read
+                    }
+                    if (n.actionUrl) {
+                      router.push(n.actionUrl);
+                    }
+                  }}>
+                    <div className="p-4 block w-full h-full">
+                      {NotificationContent}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

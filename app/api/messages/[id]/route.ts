@@ -50,6 +50,9 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       include: {
         sender: {
           select: { id: true, fullName: true, profileImage: true }
+        },
+        replyTo: {
+          select: { id: true, content: true, sender: { select: { fullName: true } } }
         }
       }
     });

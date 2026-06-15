@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "You must be VERIFIED to send messages" }, { status: 403 });
     }
 
-    const { conversationId, content } = await req.json();
+    const { conversationId, content, replyToId } = await req.json();
     if (!conversationId || !content.trim()) {
       return NextResponse.json({ message: "Invalid message data" }, { status: 400 });
     }
@@ -50,7 +50,11 @@ export async function POST(req: Request) {
       data: {
         content,
         conversationId,
-        senderId: userId
+        senderId: userId,
+        replyToId: replyToId || null,
+      },
+      include: {
+        replyTo: true
       }
     });
 

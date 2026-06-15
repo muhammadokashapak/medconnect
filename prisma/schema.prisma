@@ -54,6 +54,8 @@ model Doctor {
   notifications   Notification[]
   followers       Follow[]       @relation("Followers")
   following       Follow[]       @relation("Following")
+  sentRequests    FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
   savedCases      SavedCase[]
   activities      Activity[]
   caseViews       CaseView[]
@@ -153,6 +155,10 @@ model Comment {
   
   casePostId  String
   casePost    CasePost  @relation(fields: [casePostId], references: [id])
+
+  parentId    String?
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
 }
 
 model Conversation {
@@ -188,6 +194,10 @@ model Message {
   
   senderId       String
   sender         Doctor       @relation(fields: [senderId], references: [id])
+
+  replyToId      String?
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("MessageReplies")
 }
 
 model AIRequest {
@@ -205,6 +215,7 @@ model Notification {
   title     String
   message   String
   type      String   // e.g., "MESSAGE", "COMMENT", "SYSTEM"
+  actionUrl String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -222,6 +233,19 @@ model Follow {
   following   Doctor   @relation("Following", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
+}
+
+model FriendRequest {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  status      String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  createdAt   DateTime @default(now())
+
+  sender      Doctor   @relation("SentRequests", fields: [senderId], references: [id])
+  receiver    Doctor   @relation("ReceivedRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
 }
 
 model SavedCase {

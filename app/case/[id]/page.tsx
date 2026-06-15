@@ -59,6 +59,7 @@ export default function CaseDetailsPage() {
   const [deletingPost, setDeletingPost] = useState(false);
   const [commentContent, setCommentContent] = useState("");
   const [postingComment, setPostingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<any>(null);
 
   const fetchCurrentUser = async () => {
     try {
@@ -102,6 +103,15 @@ export default function CaseDetailsPage() {
     const load = async () => {
       await fetchCaseDetails();
       await fetchCurrentUser();
+      
+      // Record view
+      try {
+        await fetch("/api/cases/view", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ casePostId: params?.id }),
+        });
+      } catch {}
     };
     load();
   }, [params?.id]);
@@ -131,6 +141,7 @@ export default function CaseDetailsPage() {
         body: JSON.stringify({
           casePostId: params?.id,
           content: commentContent,
+          parentId: replyingTo?.id || undefined,
         }),
       });
 
@@ -138,6 +149,7 @@ export default function CaseDetailsPage() {
       const data = await res.json();
       setCasePost(prev => prev ? { ...prev, comments: [...(prev.comments || []), data.comment] } : prev);
       setCommentContent("");
+      setReplyingTo(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to post comment";
       alert(message);
@@ -345,7 +357,20 @@ export default function CaseDetailsPage() {
                     </span>
                     <span className="text-xs text-gray-500 ml-3">{new Date(comment.createdAt).toLocaleString()}</span>
                   </div>
+                  
+                  {comment.parent && (
+                    <div className="mb-2 text-xs text-gray-500 bg-gray-100 p-2 rounded border-l-2 border-indigo-300">
+                      <span className="font-semibold">Replying to Dr. {comment.parent.doctor.fullName}</span>
+                    </div>
+                  )}
+
                   <p className="text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+                  
+                  <div className="mt-2 flex items-center">
+                    <button onClick={() => setReplyingTo(comment)} className="text-xs font-bold text-gray-500 hover:text-indigo-600 transition">
+                      Reply
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -357,9 +382,20 @@ export default function CaseDetailsPage() {
               <button onClick={() => router.push("/verification")} className="mt-2 text-indigo-600 hover:underline font-bold">Verify Now</button>
             </div>
           ) : (
-            <form onSubmit={handleCommentSubmit} className="mt-8">
+            <form onSubmit={handleCommentSubmit} className="mt-8 relative">
               <label className="block text-sm font-medium text-gray-700 mb-2">Add your clinical opinion</label>
-              <textarea value={commentContent} onChange={(e) => setCommentContent(e.target.value)} rows={4} placeholder="What are your thoughts on this case?" className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition mb-3 text-black bg-white placeholder-gray-500"></textarea>
+              
+              {replyingTo && (
+                <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-t-lg flex justify-between items-center -mb-2 z-10 relative">
+                  <div>
+                    <span className="text-xs font-bold text-indigo-800">Replying to Dr. {replyingTo.doctor.fullName}</span>
+                    <p className="text-xs text-indigo-600 line-clamp-1">{replyingTo.content}</p>
+                  </div>
+                  <button type="button" onClick={() => setReplyingTo(null)} className="text-indigo-400 hover:text-indigo-800"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+              )}
+
+              <textarea value={commentContent} onChange={(e) => setCommentContent(e.target.value)} rows={4} placeholder="What are your thoughts on this case?" className={`w-full border p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition mb-3 text-black bg-white placeholder-gray-500 ${replyingTo ? 'rounded-b-lg border-t-0' : 'rounded-lg'}`}></textarea>
               <div className="flex justify-end">
                 <button type="submit" disabled={postingComment || !commentContent.trim()} className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow hover:bg-indigo-700 disabled:bg-indigo-300 transition">{postingComment ? "Posting..." : "Post Comment"}</button>
               </div>

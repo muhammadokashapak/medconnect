@@ -49,6 +49,8 @@ export default function ProfilePage() {
     isProfilePrivate: false,
   });
 
+  const [myCases, setMyCases] = useState<any[]>([]);
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -76,6 +78,18 @@ export default function ProfilePage() {
           profileImage: data.profileImage || "",
           isProfilePrivate: data.isProfilePrivate || false,
         });
+        
+        // Fetch posts for this doctor
+        if (data.id) {
+          fetch(`/api/cases?doctorId=${data.id}`)
+            .then(r => r.json())
+            .then(casesData => {
+              if (Array.isArray(casesData)) {
+                setMyCases(casesData);
+              }
+            }).catch(console.error);
+        }
+
         setLoading(false);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
@@ -86,6 +100,20 @@ export default function ProfilePage() {
 
     loadProfile();
   }, [router]);
+
+  const handleDeletePost = async (caseId: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+    try {
+      const res = await fetch(`/api/cases/${caseId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMyCases(prev => prev.filter(c => c.id !== caseId));
+      } else {
+        alert("Failed to delete post.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -155,9 +183,9 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-start sm:items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Doctor Profile</h1>
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex justify-between items-start sm:items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Doctor Profile</h1>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => router.push("/feed")}
@@ -311,6 +339,39 @@ export default function ProfilePage() {
             </form>
           )}
         </div>
+
+        {/* User Posts Section */}
+        {!isEditing && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Activity</h2>
+            {myCases.length === 0 ? (
+              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
+                You haven't posted any clinical cases yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {myCases.map(c => (
+                  <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col sm:flex-row justify-between hover:shadow-md transition">
+                    <div className="flex-1 cursor-pointer" onClick={() => router.push(`/case/${c.id}`)}>
+                      <h3 className="font-bold text-lg text-indigo-900 mb-1">{c.title}</h3>
+                      <p className="text-sm text-gray-500 mb-2">{c.specialty} • {new Date(c.createdAt).toLocaleDateString()}</p>
+                      <p className="text-gray-700 line-clamp-2">{c.description}</p>
+                    </div>
+                    <div className="mt-4 sm:mt-0 flex items-start gap-2 ml-4">
+                      {/* Note: In a real app we'd have an edit page, e.g. /edit-case/[id] */}
+                      <button onClick={(e) => { e.stopPropagation(); router.push(`/create-case?edit=${c.id}`); }} className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded transition">
+                        Edit
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded transition">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

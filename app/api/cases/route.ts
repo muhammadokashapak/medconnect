@@ -68,14 +68,23 @@ export async function GET(req: Request) {
     const followerIds = new Set(myFollowers.map(f => f.followerId));
     const friendsIds = myFollowing.filter(f => followerIds.has(f.followingId)).map(f => f.followingId);
 
+    const url = new URL(req.url);
+    const requestedDoctorId = url.searchParams.get("doctorId");
+
+    let whereClause: any = {
+      OR: [
+        { doctorId: doctorId },
+        { privacy: "PUBLIC" },
+        { privacy: "FRIENDS", doctorId: { in: friendsIds } }
+      ]
+    };
+
+    if (requestedDoctorId) {
+      whereClause = { doctorId: requestedDoctorId };
+    }
+
     const cases = await prisma.casePost.findMany({
-      where: {
-        OR: [
-          { doctorId: doctorId },
-          { privacy: "PUBLIC" },
-          { privacy: "FRIENDS", doctorId: { in: friendsIds } }
-        ]
-      },
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
       include: {
         doctor: {

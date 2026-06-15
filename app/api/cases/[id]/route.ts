@@ -36,6 +36,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
             specialization: true,
             profileImage: true,
             isVerified: true,
+            isProfilePrivate: true,
           }
         },
         comments: {
@@ -47,6 +48,12 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
                 fullName: true,
                 profileImage: true,
                 isVerified: true,
+              }
+            },
+            parent: {
+              select: {
+                id: true,
+                doctor: { select: { fullName: true } }
               }
             }
           }
@@ -84,7 +91,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
 
     const isFriend = Boolean(isFollowing && authorFollowsMe);
 
-    if (casePost.privacy === "FRIENDS" && casePost.doctorId !== currentUser && !isFriend) {
+    if (casePost.doctor.isProfilePrivate && casePost.doctorId !== currentUser && !isFriend) {
       return NextResponse.json({ message: "This post is private" }, { status: 403 });
     }
 
@@ -123,7 +130,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     }
 
     const body = await req.json();
-    const { title, specialty, description, imageUrl, isAnonymous, privacy } = body;
+    const { title, specialty, description, imageUrl, isAnonymous } = body;
 
     const updatedPost = await prisma.casePost.update({
       where: { id },
@@ -133,7 +140,6 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
         description: description ?? casePost.description,
         imageUrl: imageUrl ?? casePost.imageUrl,
         isAnonymous: isAnonymous ?? casePost.isAnonymous,
-        privacy: privacy ?? casePost.privacy,
       },
     });
 

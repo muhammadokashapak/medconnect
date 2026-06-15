@@ -59,7 +59,7 @@ export default function KnowledgeHubPage() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-12 pr-32 py-5 rounded-2xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-lg transition" 
+              className="block w-full pl-12 pr-32 py-5 rounded-2xl bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-lg transition" 
               placeholder="Search diseases, drugs, guidelines..." 
             />
             <button type="submit" className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl transition">
@@ -93,7 +93,7 @@ export default function KnowledgeHubPage() {
                     }
                   }}
                   placeholder="e.g., What are the latest guidelines for treating Stage 2 Hypertension?" 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-black transition" 
                 />
                 <button 
                   onClick={() => {

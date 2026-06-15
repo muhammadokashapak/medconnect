@@ -16,6 +16,7 @@ export default function ChatPage() {
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<any>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -126,21 +127,27 @@ export default function ChatPage() {
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: params?.id, content }),
+        body: JSON.stringify({ conversationId: params?.id, content, replyToId: replyToMessage?.id }),
       });
 
       if (!res.ok) throw new Error("Failed to send message");
       const savedMessage = await res.json();
+      setReplyToMessage(null);
       
       // Emit via socket
       if (socket) {
         // Need to add fake sender data to mimic full payload
         const payload = {
-          ...savedMessage,
+          ...savedMessage.data,
           sender: {
             fullName: currentUser.fullName,
             profileImage: currentUser.profileImage
-          }
+          },
+          replyTo: replyToMessage ? {
+            id: replyToMessage.id,
+            content: replyToMessage.content,
+            sender: { fullName: replyToMessage.sender?.fullName }
+          } : null
         };
         socket.emit("send_message", payload);
       }
@@ -161,7 +168,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
@@ -201,14 +208,31 @@ export default function ChatPage() {
 
                 <div className={`max-w-[85%] md:max-w-[65%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                   {!isMine && showAvatar && <span className="text-xs text-gray-500 mb-1 ml-1">Dr. {msg.sender?.fullName}</span>}
-                  <div 
-                    className={`px-4 py-3 rounded-3xl ${
-                      isMine 
-                        ? 'bg-indigo-600 text-white rounded-br-none' 
-                        : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-sm'
-                    } break-words whitespace-pre-wrap max-w-full`}
-                  >
-                    <p>{msg.content}</p>
+                  
+                  <div className={`group relative flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                    {/* Reply Button (visible on hover) */}
+                    <button 
+                      onClick={() => setReplyToMessage(msg)}
+                      className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition p-1 bg-white rounded-full shadow-sm text-gray-500 hover:text-indigo-600 ${isMine ? '-left-8' : '-right-8'}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    </button>
+
+                    <div 
+                      className={`px-4 py-3 rounded-3xl ${
+                        isMine 
+                          ? 'bg-indigo-600 text-white rounded-br-none' 
+                          : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-sm'
+                      } break-words whitespace-pre-wrap max-w-full flex flex-col`}
+                    >
+                      {msg.replyTo && (
+                        <div className={`mb-2 pl-3 border-l-2 text-sm rounded py-1 px-2 ${isMine ? 'border-indigo-300 bg-indigo-700 text-indigo-100' : 'border-gray-400 bg-gray-100 text-gray-600'}`}>
+                          <p className="font-bold text-xs mb-1">Replying to {msg.replyTo.sender?.fullName || 'Someone'}</p>
+                          <p className="line-clamp-2 italic">{msg.replyTo.content}</p>
+                        </div>
+                      )}
+                      <p>{msg.content}</p>
+                    </div>
                   </div>
                   <div className="flex items-center mt-1 mx-1 space-x-1 text-xs text-gray-400">
                     <span>
@@ -237,19 +261,31 @@ export default function ChatPage() {
       </div>
 
       <div className="bg-white border-t p-4 flex-shrink-0">
-        <div className="max-w-5xl mx-auto w-full">
+        <div className="max-w-5xl mx-auto w-full relative">
+          {replyToMessage && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-100 border border-gray-200 rounded-lg p-3 flex justify-between items-center shadow-sm">
+              <div className="flex-1 min-w-0 mr-4">
+                <p className="text-xs font-bold text-indigo-600 mb-1">Replying to Dr. {replyToMessage.sender?.fullName}</p>
+                <p className="text-sm text-gray-600 truncate">{replyToMessage.content}</p>
+              </div>
+              <button onClick={() => setReplyToMessage(null)} className="text-gray-400 hover:text-gray-600 bg-white rounded-full p-1 shadow-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          )}
+
           {currentUser && currentUser.verificationStatus !== "VERIFIED" ? (
             <div className="bg-amber-50 p-3 rounded text-center text-sm text-amber-800">
               You must complete PMDC verification to send messages. <button onClick={() => router.push("/verification")} className="font-bold hover:underline">Verify</button>
             </div>
           ) : (
-            <form onSubmit={handleSendMessage} className="flex flex-col sm:flex-row items-center gap-3">
+            <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-gray-100 rounded-full p-1 shadow-inner">
               <input
                 type="text"
                 value={newMessage}
                 onChange={handleTyping}
                 placeholder="Type a message..."
-                className="w-full border p-3 rounded-full focus:ring-2 focus:ring-indigo-500 outline-none transition bg-gray-50"
+                className="flex-1 bg-transparent border-none py-3 px-5 focus:outline-none focus:ring-0 text-gray-800"
               />
               <button
                 type="submit"

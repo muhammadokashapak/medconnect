@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { casePostId, content } = body;
+    const { casePostId, content, parentId } = body;
 
     if (!casePostId || !content) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
         content,
         casePostId,
         doctorId,
+        parentId: parentId || null,
       },
       include: {
         doctor: {
@@ -48,6 +49,12 @@ export async function POST(req: Request) {
             fullName: true,
             profileImage: true,
             isVerified: true,
+          }
+        },
+        parent: {
+          select: {
+            id: true,
+            doctor: { select: { fullName: true } }
           }
         }
       }

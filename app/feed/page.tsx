@@ -68,15 +68,43 @@ export default function FeedPage() {
     };
 
     return (
-      <button onClick={toggleFollow} className={`ml-3 px-3 py-1 rounded-full text-sm ${isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-indigo-600 text-white'}`}>
+      <button onClick={toggleFollow} className={`ml-3 px-3 py-1 rounded-full text-sm font-medium transition ${isFollowing ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
         {isFollowing ? 'Following' : 'Follow'}
+      </button>
+    );
+  }
+
+  function FriendButton({ doctorId }: { doctorId: string }) {
+    const [status, setStatus] = useState<string>("Add Friend");
+    
+    const sendRequest = async (e: MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      if (status !== "Add Friend") return;
+      
+      try {
+        const res = await fetch("/api/friend-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "send", targetId: doctorId })
+        });
+        if (res.ok) {
+          setStatus("Request Sent");
+        } else {
+          setStatus("Error");
+        }
+      } catch {}
+    };
+
+    return (
+      <button disabled={status === "Request Sent"} onClick={sendRequest} className={`ml-2 px-3 py-1 rounded-full text-sm font-medium transition ${status === "Request Sent" ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}>
+        {status}
       </button>
     );
   }
 
   const fetchFollowings = async () => {
     try {
-      const res = await fetch('/api/follow');
+      const res = await fetch('/api/follow', { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
       const s = new Set<string>();
@@ -91,9 +119,9 @@ export default function FeedPage() {
   const fetchData = async () => {
     try {
       const [casesRes, trendingRes, savedRes] = await Promise.all([
-        fetch("/api/cases"),
-        fetch("/api/trending"),
-        fetch("/api/save-case"),
+        fetch("/api/cases", { cache: 'no-store' }),
+        fetch("/api/trending", { cache: 'no-store' }),
+        fetch("/api/save-case", { cache: 'no-store' }),
       ]);
 
       const casesData = (await casesRes.json()) as CasePost[];
@@ -212,6 +240,7 @@ export default function FeedPage() {
                         </h3>
                         {c.doctor.isVerified && <svg className="w-4 h-4 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
                         <FollowButton doctorId={c.doctor.id} />
+                        <FriendButton doctorId={c.doctor.id} />
                       </div>
                       <p className="text-sm text-gray-500 mt-1">{new Date(c.createdAt).toLocaleDateString()} • {c.specialty}</p>
                     </div>
