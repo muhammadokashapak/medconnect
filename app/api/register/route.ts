@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       const pmdcRegex = /^\d{6}-[mM]$/;
       if (!pmdcRegex.test(pmdcNumber)) {
         return Response.json(
-          { message: "Invalid PMDC License Format. It must be exactly 6 digits followed by -m (e.g. 121211-m)." },
+          { message: "Invalid PMDC License Format." },
           { status: 400 }
         );
       }
