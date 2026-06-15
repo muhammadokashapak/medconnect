@@ -31,6 +31,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
     }
 
+    // Mark pending messages as delivered
+    await prisma.message.updateMany({
+      where: {
+        conversation: {
+          participants: {
+            some: { doctorId: doctorId }
+          }
+        },
+        senderId: { not: doctorId },
+        isDelivered: false
+      },
+      data: { isDelivered: true }
+    });
+
     const { password, ...safeDoctor } = doctor;
     return NextResponse.json(safeDoctor, { status: 200 });
   } catch (error) {

@@ -42,6 +42,19 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         where: { id: participation.id },
         data: { hasUnread: false }
       });
+      
+      await prisma.message.updateMany({
+        where: {
+          conversationId,
+          senderId: { not: userId },
+          isRead: false
+        },
+        data: {
+          isRead: true,
+          isDelivered: true,
+          readAt: new Date()
+        }
+      });
     }
 
     const messages = await prisma.message.findMany({

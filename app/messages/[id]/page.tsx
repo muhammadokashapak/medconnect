@@ -262,7 +262,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-gray-50 overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 bottom-0 h-[100dvh] z-[100] flex flex-col bg-gray-50 overflow-hidden">
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
