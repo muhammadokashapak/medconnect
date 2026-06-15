@@ -34,17 +34,12 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Save to public/uploads for local persistence
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    await mkdir(uploadDir, { recursive: true });
-    
-    const uniqueName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-    const filePath = path.join(uploadDir, uniqueName);
-    await writeFile(filePath, buffer);
+    // Convert to base64 to support Vercel serverless environment
+    const base64Str = buffer.toString('base64');
+    const mimeType = file.type || "video/mp4";
+    const dataUrl = `data:${mimeType};base64,${base64Str}`;
 
-    const publicUrl = `/uploads/${uniqueName}`;
-
-    return NextResponse.json({ message: "Upload successful", url: publicUrl }, { status: 200 });
+    return NextResponse.json({ message: "Upload successful", url: dataUrl }, { status: 200 });
   } catch (error) {
     console.error("Upload Error:", error);
     return NextResponse.json({ message: "Server Error during upload" }, { status: 500 });
