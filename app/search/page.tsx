@@ -51,9 +51,9 @@ function SearchContent() {
               const formData = new FormData(e.currentTarget);
               const q = formData.get("q")?.toString() || "";
               if (q.trim()) router.push(`/search?q=${encodeURIComponent(q.trim())}`);
-            }} className="max-w-md mx-auto flex gap-2">
-              <input name="q" type="text" placeholder="Search by name, specialty..." className="flex-1 border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" autoFocus />
-              <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">Search</button>
+            }} className="max-w-md mx-auto flex flex-col sm:flex-row gap-2">
+              <input name="q" type="text" placeholder="Search by name, specialty..." className="w-full sm:flex-1 border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" autoFocus />
+              <button type="submit" className="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">Search</button>
             </form>
           </div>
         ) : results.length === 0 ? (
