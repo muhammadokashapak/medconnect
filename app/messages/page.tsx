@@ -91,13 +91,13 @@ export default function MessagesListPage() {
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <ul className="divide-y divide-gray-200">
               {conversations.map((conv) => (
                 <li 
                   key={conv.id} 
                   onClick={() => router.push(`/messages/${conv.id}`)}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer transition flex items-center ${conv.hasUnread ? 'bg-indigo-50/30' : ''}`}
+                  className={`p-4 hover:bg-gray-50 cursor-pointer transition flex items-center first:rounded-t-xl last:rounded-b-xl ${conv.hasUnread ? 'bg-indigo-50/30' : ''}`}
                 >
                   <div className="relative">
                     <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
