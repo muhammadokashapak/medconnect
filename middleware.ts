@@ -70,6 +70,7 @@ export function middleware(request: NextRequest) {
 
   let role = 'DOCTOR';
   let verificationStatus = 'PENDING';
+  let isLegacyUser = false;
   if (token) {
     const decoded = decodeJwt(token);
     if (decoded?.role) {
@@ -77,6 +78,9 @@ export function middleware(request: NextRequest) {
     }
     if (decoded?.verificationStatus) {
       verificationStatus = decoded.verificationStatus;
+    }
+    if (decoded?.isLegacyUser) {
+      isLegacyUser = decoded.isLegacyUser;
     }
   }
 
@@ -87,7 +91,7 @@ export function middleware(request: NextRequest) {
 
   const requiresVerification = requireVerifiedPrefixes.some(prefix => request.nextUrl.pathname.startsWith(prefix));
 
-  if (requiresVerification && verificationStatus !== 'VERIFIED') {
+  if (requiresVerification && verificationStatus !== 'VERIFIED' && !isLegacyUser) {
     return NextResponse.redirect(new URL('/verification', request.url));
   }
 

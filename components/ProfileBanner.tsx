@@ -45,6 +45,11 @@ export default function ProfileBanner() {
     return null; // Don't show anything while loading or if not logged in
   }
 
+  const isLegacy = profile.createdAt && new Date(profile.createdAt) < new Date("2026-06-16T00:00:00Z");
+  if (isLegacy || profile.verificationStatus === "VERIFIED") {
+    return null; // Do not show banner to verified or legacy users
+  }
+
   // Check if profile is incomplete
   // A new user might only have fullName, email, phoneNum, pmdcNumber.
   // We can consider it incomplete if specialization, city, or bio is missing.

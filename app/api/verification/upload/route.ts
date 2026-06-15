@@ -102,8 +102,9 @@ export async function POST(req: Request) {
 
     if (autoVerified) {
       const jwt = require("jsonwebtoken");
+      const isLegacyUser = new Date(doctor.createdAt) < new Date("2026-06-16T00:00:00Z");
       const token = jwt.sign(
-        { id: doctor.id, email: doctor.email, role: doctor.role, verificationStatus: "VERIFIED" },
+        { id: doctor.id, email: doctor.email, role: doctor.role, verificationStatus: "VERIFIED", isLegacyUser },
         process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!",
         { expiresIn: "7d" }
       );
