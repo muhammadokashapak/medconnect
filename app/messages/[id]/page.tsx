@@ -133,6 +133,7 @@ export default function ChatPage() {
 
       if (!res.ok) throw new Error("Failed to send message");
       const { data: savedMessage, isAiConversation, aiBotId } = await res.json();
+      setMessages(prev => [...prev, savedMessage]);
       setReplyToMessage(null);
       
       // Emit via socket
@@ -168,7 +169,7 @@ export default function ChatPage() {
           });
           if (aiRes.ok) {
             const aiMessage = await aiRes.json();
-            setMessages(prev => [...prev, aiMessage]);
+            setMessages(prev => prev.map(m => m.id === savedMessage.id ? { ...m, isRead: true, isDelivered: true } : m).concat(aiMessage));
           }
         } catch (err) {
           console.error(err);
@@ -358,8 +359,14 @@ export default function ChatPage() {
                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     {msg.isEdited && <span className="italic text-gray-400 mx-1">(edited)</span>}
-                    {isMine && msg.isRead && (
-                      <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7m-9 9l4 4L23 7"></path></svg>
+                    {isMine && (
+                      msg.isRead ? (
+                        <svg className="w-4 h-4 text-blue-500 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7m-9 9l4 4L23 7"></path></svg>
+                      ) : msg.isDelivered ? (
+                        <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7m-9 9l4 4L23 7"></path></svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                      )
                     )}
                   </div>
                 </div>

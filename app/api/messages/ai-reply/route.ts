@@ -52,6 +52,12 @@ export async function POST(req: Request) {
       console.error("Gemini API specific error:", apiError);
       text = "I cannot reply about this, it is against my policies.";
     }
+
+    // Mark previous user messages as read and delivered since AI processed them
+    await prisma.message.updateMany({
+      where: { conversationId, senderId: userId, isRead: false },
+      data: { isRead: true, isDelivered: true, readAt: new Date() }
+    });
     
     const savedMessage = await prisma.message.create({
       data: {
