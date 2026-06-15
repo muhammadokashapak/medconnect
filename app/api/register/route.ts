@@ -124,6 +124,12 @@ export async function POST(req: Request) {
     await transporter.sendMail(mailOptions);
 
     console.log("STEP 8: Email sent successfully");
+    
+    // Also send SMS if phone number is available
+    if (phoneNumber) {
+      const { sendSMS } = require("@/lib/sms");
+      await sendSMS(phoneNumber, `Your MedConnect verification code is: ${otpCode}`);
+    }
 
     return Response.json({
       message: "Doctor registered. OTP sent.",
