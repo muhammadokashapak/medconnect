@@ -118,7 +118,6 @@ async function generateAiResponse(conversationId: string, userMessage: string, a
   try {
     if (!GEMINI_API_KEY) {
       console.warn("GEMINI_API_KEY is not set.");
-      // Fallback
       await prisma.message.create({
         data: {
           content: "Please set the GEMINI_API_KEY environment variable to enable AI responses.",
@@ -130,10 +129,16 @@ async function generateAiResponse(conversationId: string, userMessage: string, a
     }
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". Reply naturally and concisely. If it's a greeting, greet them back. If it's a medical question, answer it professionally but clearly state you are an AI assistant.`;
+    const prompt = `You are a helpful Medical AI Assistant named "Medical Chatbot" inside a doctor's messaging app. You are talking to Dr. ${doctorName}. They said: "${userMessage}". Reply naturally and concisely. If it's a greeting, greet them back using their name (Dr. ${doctorName}). If it's a medical question, answer it professionally but clearly state you are an AI assistant. If the user asks for sensitive, harmful, illegal, or unethical content, you MUST refuse to answer and state exactly: "I cannot reply about this, it is against my policies."`;
     
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    let text = "";
+    try {
+      const result = await model.generateContent(prompt);
+      text = result.response.text();
+    } catch (apiError: any) {
+      console.error("Gemini API specific error (possible safety block):", apiError);
+      text = "I cannot reply about this, it is against my policies.";
+    }
     
     await prisma.message.create({
       data: {
