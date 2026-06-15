@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { io, Socket } from "socket.io-client";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 let socket: Socket;
 
@@ -295,7 +297,11 @@ export default function ChatPage() {
                           <p className="line-clamp-2 italic">{msg.replyTo.content}</p>
                         </div>
                       )}
-                      <p>{msg.content}</p>
+                      <div className="markdown-body text-sm space-y-2 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4 [&>h1]:font-bold [&>h1]:text-lg [&>h2]:font-bold [&>h2]:text-base">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                     
                     {/* 3 Dots Menu Button */}
