@@ -48,6 +48,25 @@ export async function POST(req: Request) {
       );
     }
 
+    const isLegacyUser = new Date(doctor.createdAt) < new Date("2026-06-16T00:00:00Z");
+
+    // 3-Day Auto Deletion Check
+    if (!isLegacyUser && doctor.verificationStatus === "PENDING") {
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      if (new Date(doctor.createdAt) < threeDaysAgo) {
+        // Delete doctor (cascading deletes will handle related records if set up, otherwise we might need to delete related data or just rely on Prisma cascade)
+        try {
+          await prisma.doctor.delete({ where: { id: doctor.id } });
+          return NextResponse.json(
+            { message: "Your account has been deleted because you failed to verify your PMDC certificate within 3 days of registration. Please register again." },
+            { status: 403 }
+          );
+        } catch (delErr) {
+          console.error("Failed to auto-delete user:", delErr);
+        }
+      }
+    }
+
     if (doctor.isTwoFactorEnabled) {
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -100,7 +119,6 @@ export async function POST(req: Request) {
     }
 
     // Create JWT Token
-    const isLegacyUser = new Date(doctor.createdAt) < new Date("2026-06-16T00:00:00Z");
     const token = jwt.sign(
       { id: doctor.id, email: doctor.email, role: doctor.role, verificationStatus: doctor.verificationStatus, isLegacyUser },
       process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!",
