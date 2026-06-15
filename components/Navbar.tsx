@@ -67,13 +67,13 @@ export default function Navbar() {
             {/* Center: Main Navigation */}
             <div className="hidden lg:flex flex-1 justify-center items-center px-8 h-full">
               <div className="flex space-x-2 h-full">
-                <NavIcon href="/feed" active={pathname === "/feed"}>
+                <NavIcon href="/feed" active={pathname === "/feed"} onClick={closeAll}>
                   <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
                 </NavIcon>
-                <NavIcon href="/video" active={pathname === "/video"}>
+                <NavIcon href="/video" active={pathname === "/video"} onClick={closeAll}>
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                 </NavIcon>
-                <NavIcon href="/knowledge" active={pathname === "/knowledge"}>
+                <NavIcon href="/knowledge" active={pathname === "/knowledge"} onClick={closeAll}>
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </NavIcon>
               </div>
@@ -152,9 +152,9 @@ export default function Navbar() {
   );
 }
 
-function NavIcon({ children, href, active }: { children: React.ReactNode, href: string, active: boolean }) {
+function NavIcon({ children, href, active, onClick }: { children: React.ReactNode, href: string, active: boolean, onClick?: () => void }) {
   return (
-    <Link href={href} className="h-full flex">
+    <Link href={href} onClick={onClick} className="h-full flex">
       <div className={`px-10 h-full flex items-center justify-center transition-colors duration-200 border-b-[3px]
         ${active ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:bg-gray-100 rounded-lg my-1 hover:text-gray-700'}`}>
         {children}
@@ -163,9 +163,9 @@ function NavIcon({ children, href, active }: { children: React.ReactNode, href: 
   );
 }
 
-function MenuCard({ icon, title, href }: { icon: string, title: string, href: string }) {
+function MenuCard({ icon, title, href, onClick }: { icon: string, title: string, href: string, onClick?: () => void }) {
   return (
-    <Link href={href} className="flex items-center p-2 rounded-lg hover:bg-gray-50 transition border border-transparent hover:border-gray-200">
+    <Link href={href} onClick={onClick} className="flex items-center p-2 rounded-lg hover:bg-gray-50 transition border border-transparent hover:border-gray-200">
       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl mr-3">{icon}</div>
       <span className="font-medium text-gray-900 text-sm">{title}</span>
     </Link>

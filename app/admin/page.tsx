@@ -142,14 +142,12 @@ export default function AdminDashboardPage() {
                         >
                           Review
                         </button>
-                        {(statusFilter === "PENDING" || statusFilter === "REJECTED") && (
-                          <button
-                            onClick={() => handleDelete(doc.id, doc.fullName)}
-                            className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded"
-                          >
-                            Delete
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleDelete(doc.id, doc.fullName)}
+                          className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}

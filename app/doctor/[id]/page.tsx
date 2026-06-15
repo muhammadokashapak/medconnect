@@ -163,49 +163,45 @@ export default function DoctorProfilePage() {
         <div className="bg-white shadow rounded-xl overflow-hidden">
           <div className="bg-indigo-600 h-32"></div>
           <div className="px-6 md:px-10 pb-10">
-            <div className="flex flex-col md:flex-row justify-between items-start">
-              <div className="relative -mt-16 mb-4 md:mb-0">
-                <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-gray-200 shadow-lg">
-                  {doctor.profileImage ? (
-                    <img src={doctor.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-6 relative -mt-16 mb-6">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 shadow-lg shrink-0">
+                {doctor.profileImage ? (
+                  <img src={doctor.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                )}
+              </div>
+              
+              <div className="flex-1 text-center md:text-left mt-2 md:mt-16">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                  Dr. {doctor.fullName}
+                  {doctor.isVerified && (
+                    <svg className="w-6 h-6 md:w-8 md:h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  )}
+                </h1>
+                <p className="text-lg md:text-xl text-indigo-600 font-medium mt-1">{doctor.specialization || "General Medicine"}</p>
+                
+                {/* Buttons Row */}
+                <div className="flex flex-row justify-center md:justify-start gap-3 mt-4 w-full sm:w-auto">
+                  <button
+                    onClick={handleMessageClick}
+                    disabled={messaging}
+                    className="flex-1 sm:flex-none bg-indigo-600 text-white px-5 py-2.5 rounded-lg shadow hover:bg-indigo-700 transition font-bold disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                  >
+                    <svg className="w-5 h-5 mr-2 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    {messaging ? "Wait..." : "Message"}
+                  </button>
+                  
+                  {currentDoctorId && currentDoctorId !== doctor.id && (
+                    <button
+                      onClick={handleFriendToggle}
+                      disabled={friendUpdating}
+                      className={`flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center ${doctor.isFriend ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50'}`}
+                    >
+                      {doctor.isFriend ? 'Friends' : 'Add Friend'}
+                    </button>
                   )}
                 </div>
-              </div>
-
-              <div className="mt-4 md:mt-6">
-                <button
-                  onClick={handleMessageClick}
-                  disabled={messaging}
-                  className="bg-indigo-600 text-white px-8 py-3 rounded-lg shadow hover:bg-indigo-700 transition font-bold disabled:opacity-50 flex items-center"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                  {messaging ? "Starting Chat..." : "Message Doctor"}
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                    Dr. {doctor.fullName}
-                    {doctor.isVerified && (
-                      <svg className="w-6 h-6 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                    )}
-                  </h1>
-                  <p className="text-xl text-indigo-600 font-medium mt-1">{doctor.specialization || "General Medicine"}</p>
-                </div>
-                {currentDoctorId && currentDoctorId !== doctor.id && (
-                  <button
-                    onClick={handleFriendToggle}
-                    disabled={friendUpdating}
-                    className={`px-5 py-3 rounded-lg shadow font-semibold transition ${doctor.isFriend ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
-                  >
-                    {doctor.isFriend ? 'Friends' : 'Add Friend'}
-                  </button>
-                )}
               </div>
             </div>
 
