@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     let aiResponseText = "";
     try {
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       
       const systemInstruction = "You are a helpful and knowledgeable MedConnect AI Clinical Assistant. Provide accurate, professional, and helpful responses to the doctor's queries.";
       const prompt = `${systemInstruction}\n\nUser Query: "${message}"`;
