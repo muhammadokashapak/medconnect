@@ -42,17 +42,26 @@ export async function PUT(req: Request, props: { params: Promise<{ messageId: st
     const userId = getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { content } = await req.json();
-    if (!content) return NextResponse.json({ message: "Content is required" }, { status: 400 });
+    const body = await req.json();
+    const { content, isPinned } = body;
 
     const message = await prisma.message.findUnique({ where: { id: params.messageId } });
     if (!message || message.senderId !== userId) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
+    const dataToUpdate: any = {};
+    if (content !== undefined) {
+      dataToUpdate.content = content;
+      dataToUpdate.isEdited = true;
+    }
+    if (isPinned !== undefined) {
+      dataToUpdate.isPinned = isPinned;
+    }
+
     const updatedMessage = await prisma.message.update({
       where: { id: params.messageId },
-      data: { content, isEdited: true }
+      data: dataToUpdate
     });
 
     return NextResponse.json(updatedMessage, { status: 200 });

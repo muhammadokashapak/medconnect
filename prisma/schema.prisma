@@ -182,6 +182,7 @@ model ConversationParticipant {
   doctorId       String
   doctor         Doctor       @relation(fields: [doctorId], references: [id])
   hasUnread      Boolean      @default(false)
+  isMuted        Boolean      @default(false)
   createdAt      DateTime     @default(now())
   isEdited       Boolean      @default(false)
   
@@ -195,6 +196,7 @@ model Message {
   
   isDelivered    Boolean      @default(false)
   isRead         Boolean      @default(false)
+  isPinned       Boolean      @default(false)
   readAt         DateTime?
   
   conversationId String

@@ -20,6 +20,8 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isChatMuted, setIsChatMuted] = useState(false);
+  const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -101,6 +103,17 @@ export default function ChatPage() {
     } finally {
       if (showLoading) setLoading(false);
     }
+  };
+
+  const handleTouchStart = (msgId: string) => {
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => {
+      setActiveMenu(msgId);
+    }, 500); // 500ms long press
+  };
+
+  const handleTouchEnd = () => {
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,8 +221,35 @@ export default function ChatPage() {
     setActiveMenu(null);
   };
 
-  const handleMuteUser = (userId: string) => {
-    alert("User muted successfully!");
+  const handleMuteToggle = async () => {
+    const newMuteStatus = !isChatMuted;
+    setIsChatMuted(newMuteStatus);
+    try {
+      await fetch('/api/messages/mute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: params?.id, isMuted: newMuteStatus })
+      });
+    } catch (err) {
+      setIsChatMuted(!newMuteStatus); // revert on error
+    }
+    setActiveMenu(null);
+  };
+
+  const handlePinToggle = async (msg: any) => {
+    const newPinnedStatus = !msg.isPinned;
+    try {
+      const res = await fetch(`/api/messages/message/${msg.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPinned: newPinnedStatus })
+      });
+      if (res.ok) {
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isPinned: newPinnedStatus } : m));
+      }
+    } catch (err) {
+      alert("Failed to pin message");
+    }
     setActiveMenu(null);
   };
 
@@ -236,6 +276,17 @@ export default function ChatPage() {
             <p className="text-sm text-gray-500">Secure chat with your medical colleagues.</p>
           </div>
         </div>
+        <button
+          onClick={handleMuteToggle}
+          className={`mr-2 p-2 rounded-full transition ${isChatMuted ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+          title={isChatMuted ? "Unmute Chat" : "Mute Chat"}
+        >
+          {isChatMuted ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+          )}
+        </button>
         <button
           onClick={() => {
             if (confirm("Are you sure you want to delete this entire conversation?")) {
@@ -276,6 +327,13 @@ export default function ChatPage() {
                   {!isMine && showAvatar && <span className="text-xs text-gray-500 mb-1 ml-1">Dr. {msg.sender?.fullName}</span>}
                   
                   <div className={`group relative flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                    {/* Pinned Indicator */}
+                    {msg.isPinned && (
+                      <div className="absolute -top-3 flex items-center text-xs text-indigo-500 font-bold bg-white px-2 py-0.5 rounded-full border border-indigo-100 shadow-sm z-10">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10zM12 7a1 1 0 00-1 1v4H8a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3V8a1 1 0 00-1-1z" /></svg> Pinned
+                      </div>
+                    )}
+
                     {/* Reply Button (visible on hover) */}
                     <button 
                       onClick={() => setReplyToMessage(msg)}
@@ -290,6 +348,12 @@ export default function ChatPage() {
                           ? 'bg-indigo-600 text-white rounded-br-none' 
                           : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-sm'
                       } break-words whitespace-pre-wrap max-w-full flex flex-col`}
+                      onTouchStart={() => handleTouchStart(msg.id)}
+                      onTouchEnd={handleTouchEnd}
+                      onTouchMove={handleTouchEnd}
+                      onMouseDown={() => handleTouchStart(msg.id)}
+                      onMouseUp={handleTouchEnd}
+                      onMouseLeave={handleTouchEnd}
                     >
                       {msg.replyTo && (
                         <div className={`mb-2 pl-3 border-l-2 text-sm rounded py-1 px-2 ${isMine ? 'border-indigo-300 bg-indigo-700 text-indigo-100' : 'border-gray-400 bg-gray-100 text-gray-600'}`}>
@@ -304,10 +368,10 @@ export default function ChatPage() {
                       </div>
                     </div>
                     
-                    {/* 3 Dots Menu Button */}
+                    {/* 3 Dots Menu Button - Visible mainly on desktop hover */}
                     <button
                       onClick={() => setActiveMenu(activeMenu === msg.id ? null : msg.id)}
-                      className={`absolute top-2 text-gray-400 hover:text-gray-700 transition ${isMine ? "right-full mr-2" : "left-full ml-2"}`}
+                      className={`hidden md:block absolute top-2 text-gray-400 hover:text-gray-700 transition opacity-0 group-hover:opacity-100 ${isMine ? "right-full mr-2" : "left-full ml-2"}`}
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -316,26 +380,31 @@ export default function ChatPage() {
 
                     {/* Dropdown Menu */}
                     {activeMenu === msg.id && (
-                      <div className={`absolute top-8 z-10 w-40 bg-white rounded-md shadow-lg py-1 border border-gray-200 ${isMine ? "right-full mr-2" : "left-full ml-2"}`}>
+                      <div className={`absolute top-8 z-10 w-48 bg-white rounded-md shadow-xl py-1 border border-gray-200 ${isMine ? "right-0 md:right-full md:mr-2" : "left-0 md:left-full md:ml-2"}`}>
                         <button onClick={() => handleCopyMessage(msg.content)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                           Copy
                         </button>
                         {isMine && (
-                          <button onClick={() => {
-                            const newContent = prompt("Edit message:", msg.content);
-                            if (newContent !== null && newContent !== msg.content) {
-                              fetch(`/api/messages/message/${msg.id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ content: newContent })
-                              }).then(res => {
-                                if (res.ok) setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: newContent, isEdited: true } : m));
-                              });
-                            }
-                            setActiveMenu(null);
-                          }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Edit
-                          </button>
+                          <>
+                            <button onClick={() => handlePinToggle(msg)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                              {msg.isPinned ? "Unpin Message" : "Pin Message"}
+                            </button>
+                            <button onClick={() => {
+                              const newContent = prompt("Edit message:", msg.content);
+                              if (newContent !== null && newContent !== msg.content) {
+                                fetch(`/api/messages/message/${msg.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ content: newContent })
+                                }).then(res => {
+                                  if (res.ok) setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: newContent, isEdited: true } : m));
+                                });
+                              }
+                              setActiveMenu(null);
+                            }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                              Edit
+                            </button>
+                          </>
                         )}
                         <button onClick={() => {
                             alert(`Message Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}\nStatus: ${msg.isRead ? "Read by recipient" : "Delivered (Unread)"}`);
@@ -345,17 +414,24 @@ export default function ChatPage() {
                         </button>
                         {!isMine && (
                           <>
-                            <button onClick={() => handleMuteUser(msg.senderId)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                              Mute
+                            <button onClick={() => handlePinToggle(msg)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                              {msg.isPinned ? "Unpin Message" : "Pin Message"}
                             </button>
                             <button onClick={() => { alert("User blocked successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                               Block
                             </button>
                           </>
                         )}
-                        <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                          Delete
-                        </button>
+                        {isMine && (
+                          <>
+                            <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                              Delete for me
+                            </button>
+                            <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-bold">
+                              Delete for everyone
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
 
