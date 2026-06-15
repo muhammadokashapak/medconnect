@@ -96,11 +96,17 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         })
       : [];
 
+    const videos = await prisma.videoPost.findMany({
+      where: { doctorId: params.id },
+      orderBy: { createdAt: "desc" },
+    });
+
     return NextResponse.json({
       ...doctor,
       isFollowing: Boolean(isFollowing),
       isFriend,
       posts,
+      videos,
     }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

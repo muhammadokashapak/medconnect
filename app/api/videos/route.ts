@@ -23,7 +23,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const filterDoctorId = searchParams.get("doctorId");
+
     const videos = await prisma.videoPost.findMany({
+      where: filterDoctorId ? { doctorId: filterDoctorId } : undefined,
       orderBy: { createdAt: 'desc' },
       include: {
         doctor: {
@@ -76,6 +80,25 @@ export async function POST(req: Request) {
         doctorId,
       },
     });
+
+    // Find friends to notify
+    const myFollowers = await prisma.follow.findMany({ where: { followingId: doctorId }, select: { followerId: true } });
+    const myFollowing = await prisma.follow.findMany({ where: { followerId: doctorId }, select: { followingId: true } });
+    
+    const followerIds = new Set(myFollowers.map(f => f.followerId));
+    const friendsIds = myFollowing.filter(f => followerIds.has(f.followingId)).map(f => f.followingId);
+
+    if (friendsIds.length > 0) {
+      await prisma.notification.createMany({
+        data: friendsIds.map(friendId => ({
+          doctorId: friendId,
+          title: "New Video from a Friend",
+          message: `Dr. ${doctor.fullName} just uploaded a new video: "${title}".`,
+          type: "SYSTEM",
+          actionUrl: `/video` // Video feed is /video
+        }))
+      });
+    }
 
     return NextResponse.json({ message: "Video uploaded successfully", videoPost: newVideo }, { status: 201 });
   } catch (error) {

@@ -28,6 +28,13 @@ type DoctorProfile = {
     createdAt: string;
     _count: { reactions: number; comments: number; views: number };
   }>;
+  videos?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    videoUrl: string;
+    createdAt: string;
+  }>;
 };
 
 export default function DoctorProfilePage() {
@@ -39,6 +46,7 @@ export default function DoctorProfilePage() {
   const [messaging, setMessaging] = useState(false);
   const [friendUpdating, setFriendUpdating] = useState(false);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos">("posts");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -249,43 +257,87 @@ export default function DoctorProfilePage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Profile Posts</h2>
-                <p className="text-sm text-gray-500">{doctor.isProfilePrivate ? 'Posts are visible only to mutual friends.' : 'Anyone can view these posts.'}</p>
+                <h2 className="text-2xl font-bold text-gray-900">Activity</h2>
+                <p className="text-sm text-gray-500">{doctor.isProfilePrivate ? 'Content is visible only to mutual friends.' : 'Anyone can view this content.'}</p>
               </div>
               {doctor.isProfilePrivate && !doctor.isFriend && currentDoctorId !== doctor.id && (
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Private</span>
               )}
             </div>
 
-            {doctor.posts?.length ? (
-              <div className="space-y-4">
-                {doctor.posts.map((post) => (
-                  <div key={post.id} className="border rounded-2xl p-4 hover:shadow-lg transition bg-gray-50">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <div>
-                        <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
-                        <h3 className="text-lg font-semibold text-gray-900 mt-2">{post.title}</h3>
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 mb-6">
+              <button
+                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'posts' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('posts')}
+              >
+                Cases / Posts
+              </button>
+              <button
+                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'videos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('videos')}
+              >
+                Videos
+              </button>
+            </div>
+
+            {activeTab === 'posts' && (
+              doctor.posts?.length ? (
+                <div className="space-y-4">
+                  {doctor.posts.map((post) => (
+                    <div key={post.id} className="border rounded-2xl p-4 hover:shadow-lg transition bg-gray-50">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                          <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+                          <h3 className="text-lg font-semibold text-gray-900 mt-2">{post.title}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span>{post.specialty}</span>
+                          <span className="px-2 py-1 bg-white border rounded-full">{post._count.reactions} Likes</span>
+                          <span className="px-2 py-1 bg-white border rounded-full">{post._count.comments} Comments</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>{post.specialty}</span>
-                        <span className="px-2 py-1 bg-white border rounded-full">{post._count.reactions} Likes</span>
-                        <span className="px-2 py-1 bg-white border rounded-full">{post._count.comments} Comments</span>
+                      <p className="mt-3 text-gray-700 line-clamp-3">{post.description}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button onClick={() => router.push(`/case/${post.id}`)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">View</button>
                       </div>
                     </div>
-                    <p className="mt-3 text-gray-700 line-clamp-3">{post.description}</p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button onClick={() => router.push(`/case/${post.id}`)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">View</button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  {currentDoctorId === doctor.id
+                    ? 'You have no posts yet. Share a case to start engagement.'
+                    : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see posts.' : 'No posts available yet.')
+                  }
+                </div>
+              )
+            )}
+
+            {activeTab === 'videos' && (
+              doctor.videos?.length ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {doctor.videos.map(v => (
+                    <div key={v.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+                      <div className="aspect-video bg-gray-900 relative">
+                        <video src={v.videoUrl} controls className="w-full h-full object-cover"></video>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-900 mb-1">{v.title}</h3>
+                        <p className="text-sm text-gray-500 mb-3">{new Date(v.createdAt).toLocaleDateString()}</p>
+                        <p className="text-gray-700 line-clamp-2">{v.description}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                {currentDoctorId === doctor.id
-                  ? 'You have no posts yet. Share a case to start engagement.'
-                  : (doctor.isProfilePrivate ? 'This profile is private. Add as friend to see posts.' : 'No posts available yet.')
-                }
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  {currentDoctorId === doctor.id
+                    ? 'You have no videos yet. Upload a video to share with others.'
+                    : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see videos.' : 'No videos available yet.')
+                  }
+                </div>
+              )
             )}
           </div>
         </div>

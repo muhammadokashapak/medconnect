@@ -47,6 +47,27 @@ export async function POST(req: Request) {
       },
     });
 
+    if (!isAnonymous) {
+      // Find friends to notify
+      const myFollowers = await prisma.follow.findMany({ where: { followingId: doctorId }, select: { followerId: true } });
+      const myFollowing = await prisma.follow.findMany({ where: { followerId: doctorId }, select: { followingId: true } });
+      
+      const followerIds = new Set(myFollowers.map(f => f.followerId));
+      const friendsIds = myFollowing.filter(f => followerIds.has(f.followingId)).map(f => f.followingId);
+
+      if (friendsIds.length > 0) {
+        await prisma.notification.createMany({
+          data: friendsIds.map(friendId => ({
+            doctorId: friendId,
+            title: "New Post from a Friend",
+            message: `Dr. ${doctor.fullName} just posted a new case: "${title}".`,
+            type: "SYSTEM",
+            actionUrl: `/case/${newCase.id}`
+          }))
+        });
+      }
+    }
+
     return NextResponse.json({ message: "Case created successfully", casePost: newCase }, { status: 201 });
   } catch (error) {
     console.error("Create Case Error:", error);

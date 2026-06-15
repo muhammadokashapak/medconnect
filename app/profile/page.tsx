@@ -51,6 +51,8 @@ export default function ProfilePage() {
   });
 
   const [myCases, setMyCases] = useState<any[]>([]);
+  const [myVideos, setMyVideos] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"posts" | "videos">("posts");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -88,6 +90,14 @@ export default function ProfilePage() {
             .then(casesData => {
               if (Array.isArray(casesData)) {
                 setMyCases(casesData);
+              }
+            }).catch(console.error);
+
+          fetch(`/api/videos?doctorId=${data.id}`)
+            .then(r => r.json())
+            .then(videosData => {
+              if (Array.isArray(videosData)) {
+                setMyVideos(videosData);
               }
             }).catch(console.error);
         }
@@ -393,30 +403,120 @@ export default function ProfilePage() {
         {!isEditing && (
           <div className="mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">My Activity</h2>
-            {myCases.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
-                You haven't posted any clinical cases yet.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {myCases.map(c => (
-                  <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col sm:flex-row justify-between hover:shadow-md transition">
-                    <div className="flex-1 cursor-pointer" onClick={() => router.push(`/case/${c.id}`)}>
-                      <h3 className="font-bold text-lg text-indigo-900 mb-1">{c.title}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{c.specialty} • {new Date(c.createdAt).toLocaleDateString()}</p>
-                      <p className="text-gray-700 line-clamp-2">{c.description}</p>
-                    </div>
-                    <div className="mt-4 sm:mt-0 flex items-start gap-2 ml-4">
-                      {/* Note: In a real app we'd have an edit page, e.g. /edit-case/[id] */}
-                      <button onClick={(e) => { e.stopPropagation(); router.push(`/create-case?edit=${c.id}`); }} className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded transition">
-                        Edit
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded transition">
-                        Delete
-                      </button>
-                    </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 mb-6">
+              <button
+                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'posts' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('posts')}
+              >
+                Cases / Posts
+              </button>
+              <button
+                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'videos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('videos')}
+              >
+                Videos
+              </button>
+            </div>
+
+            {/* Tab Content: Posts */}
+            {activeTab === "posts" && (
+              <div>
+                {myCases.length === 0 ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
+                    You haven't posted any clinical cases yet.
                   </div>
-                ))}
+                ) : (
+                  <div className="space-y-4">
+                    {myCases.map(c => (
+                      <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col sm:flex-row justify-between hover:shadow-md transition">
+                        <div className="flex-1 cursor-pointer" onClick={() => router.push(`/case/${c.id}`)}>
+                          <h3 className="font-bold text-lg text-indigo-900 mb-1">{c.title}</h3>
+                          <p className="text-sm text-gray-500 mb-2">{c.specialty} • {new Date(c.createdAt).toLocaleDateString()}</p>
+                          <p className="text-gray-700 line-clamp-2">{c.description}</p>
+                        </div>
+                        <div className="mt-4 sm:mt-0 flex items-start gap-2 ml-4">
+                          <button onClick={(e) => { e.stopPropagation(); router.push(`/create-case?edit=${c.id}`); }} className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded transition">
+                            Edit
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded transition">
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab Content: Videos */}
+            {activeTab === "videos" && (
+              <div>
+                {myVideos.length === 0 ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
+                    You haven't uploaded any videos yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {myVideos.map(v => (
+                      <div key={v.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+                        <div className="aspect-video bg-gray-900 relative">
+                          <video src={v.videoUrl} controls className="w-full h-full object-cover"></video>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-bold text-lg text-gray-900 mb-1">{v.title}</h3>
+                          <p className="text-sm text-gray-500 mb-3">{new Date(v.createdAt).toLocaleDateString()}</p>
+                          <p className="text-gray-700 line-clamp-2 mb-4">{v.description}</p>
+                          
+                          <div className="flex gap-2 border-t border-gray-100 pt-4">
+                            <button 
+                              onClick={() => {
+                                const newTitle = prompt("Enter new title:", v.title);
+                                if (newTitle === null) return;
+                                const newDesc = prompt("Enter new description:", v.description);
+                                if (newDesc === null) return;
+                                
+                                fetch(`/api/videos/${v.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ title: newTitle, description: newDesc })
+                                }).then(res => {
+                                  if(res.ok) {
+                                    setMyVideos(myVideos.map(video => video.id === v.id ? {...video, title: newTitle, description: newDesc} : video));
+                                  } else {
+                                    alert('Failed to update video');
+                                  }
+                                });
+                              }} 
+                              className="flex-1 text-center text-blue-600 hover:bg-blue-50 py-2 rounded transition font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if(confirm("Are you sure you want to delete this video?")) {
+                                  fetch(`/api/videos/${v.id}`, { method: 'DELETE' })
+                                  .then(res => {
+                                    if(res.ok) {
+                                      setMyVideos(myVideos.filter(video => video.id !== v.id));
+                                    } else {
+                                      alert('Failed to delete video');
+                                    }
+                                  });
+                                }
+                              }} 
+                              className="flex-1 text-center text-red-600 hover:bg-red-50 py-2 rounded transition font-medium"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
