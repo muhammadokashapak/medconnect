@@ -83,7 +83,8 @@ export async function POST(req: Request) {
           doctorId: p.doctorId,
           title: "New Message",
           message: `Dr. ${doctor.fullName} sent you a message.`,
-          type: "MESSAGE"
+          type: "MESSAGE",
+          actionUrl: "/messages"
         }
       });
     }
