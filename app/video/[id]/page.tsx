@@ -267,26 +267,37 @@ export default function VideoCallRoom() {
         
         <div className="flex flex-col md:flex-row items-center gap-10">
           {/* Preview Window */}
-          <div className="relative w-full max-w-3xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
+          <div className="relative w-full max-w-3xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-gray-700">
             {stream && cameraOn ? (
               <video playsInline muted ref={myVideo} autoPlay className="w-full h-full object-cover transform scale-x-[-1]" />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900">
-                <svg className="w-20 h-20 mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-                <span className="text-xl">Camera is off</span>
+              <div className="w-full h-full flex flex-col items-center justify-center bg-[#3c4043]">
+                <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-[#8ab4f8] text-[#202124] flex items-center justify-center text-5xl sm:text-6xl font-normal shadow-lg tracking-wider">
+                  {name ? name.replace('Dr. ', '').trim().charAt(0).toUpperCase() : "Y"}
+                </div>
+                <span className="text-[15px] mt-6 text-gray-300 font-medium tracking-wide">Camera is off</span>
               </div>
             )}
             
+            {/* Small Mic Indicator Top Right */}
+            <div className="absolute top-4 right-4 bg-black/50 p-1.5 rounded-full backdrop-blur-sm">
+              {micOn ? (
+                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+              ) : (
+                 <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+              )}
+            </div>
+
             {/* Controls in Preview */}
             <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
-              <button onClick={toggleMic} className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors border border-gray-600 shadow-sm ${micOn ? 'bg-transparent hover:bg-gray-700/50 text-white' : 'bg-[#ea4335] hover:bg-[#f25244] text-white border-transparent'}`} title={micOn ? "Turn off mic" : "Turn on mic"}>
+              <button onClick={toggleMic} className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors shadow-lg border border-transparent ${micOn ? 'bg-[#3c4043] hover:bg-[#4a4e51] text-white border-gray-600/50' : 'bg-[#ea4335] hover:bg-[#f25244] text-white'}`} title={micOn ? "Turn off mic" : "Turn on mic"}>
                 {micOn ? (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                 ) : (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
                 )}
               </button>
-              <button onClick={toggleCamera} className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors border border-gray-600 shadow-sm ${cameraOn ? 'bg-transparent hover:bg-gray-700/50 text-white' : 'bg-[#ea4335] hover:bg-[#f25244] text-white border-transparent'}`} title={cameraOn ? "Turn off camera" : "Turn on camera"}>
+              <button onClick={toggleCamera} className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors shadow-lg border border-transparent ${cameraOn ? 'bg-[#3c4043] hover:bg-[#4a4e51] text-white border-gray-600/50' : 'bg-[#ea4335] hover:bg-[#f25244] text-white'}`} title={cameraOn ? "Turn off camera" : "Turn on camera"}>
                 {cameraOn ? (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                 ) : (
