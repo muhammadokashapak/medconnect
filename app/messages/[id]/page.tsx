@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState, useRef, use } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 let socket: Socket;
 
-export default function ChatPage(props: { params: Promise<{ id: string }> }) {
+export default function ChatPage() {
   const router = useRouter();
-  const { id } = use(props.params);
+  const params = useParams();
+  const id = params?.id as string;
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
