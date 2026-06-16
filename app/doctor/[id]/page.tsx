@@ -12,6 +12,8 @@ type DoctorProfile = {
   city?: string;
   bio?: string;
   profileImage?: string;
+  coverImage?: string;
+  pmdcNumber?: string;
   experienceYears?: number | null;
   qualification?: string;
   medicalCollege?: string;
@@ -49,7 +51,7 @@ export default function DoctorProfilePage() {
   const [messaging, setMessaging] = useState(false);
   const [friendUpdating, setFriendUpdating] = useState(false);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos" | "friends" | "about">("posts");
 
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [bookingAppointment, setBookingAppointment] = useState(false);
@@ -60,8 +62,27 @@ export default function DoctorProfilePage() {
   const [friends, setFriends] = useState<any[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [mutualFriends, setMutualFriends] = useState<any[]>([]);
-  const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
+  const [friendsSearchQuery, setFriendsSearchQuery] = useState("");
+
+  const loadDoctorProfile = async () => {
+    try {
+      const res = await fetch(`/api/doctors/${params?.id}`);
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+        const errorData = await res.json();
+        throw new Error(errorData?.message || "Failed to load doctor profile");
+      }
+      const doctorData = await res.json();
+      setDoctor(doctorData);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load doctor profile";
+      setError(message);
+    }
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -115,8 +136,6 @@ export default function DoctorProfilePage() {
     loadProfile();
   }, [params?.id, router]);
 
-
-
   const handleFriendToggle = async () => {
     if (!doctor || doctor.isFriend || doctor.friendRequestStatus === "PENDING") return;
     setFriendUpdating(true);
@@ -139,25 +158,6 @@ export default function DoctorProfilePage() {
       alert(message);
     } finally {
       setFriendUpdating(false);
-    }
-  };
-
-  const loadDoctorProfile = async () => {
-    try {
-      const res = await fetch(`/api/doctors/${params?.id}`);
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/login");
-          return;
-        }
-        const errorData = await res.json();
-        throw new Error(errorData?.message || "Failed to load doctor profile");
-      }
-      const doctorData = await res.json();
-      setDoctor(doctorData);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load doctor profile";
-      setError(message);
     }
   };
 
@@ -217,22 +217,34 @@ export default function DoctorProfilePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F2F5]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
+        <p className="text-gray-600 font-semibold">Loading doctor profile...</p>
+      </div>
+    );
   }
 
   if (error || !doctor) {
-    return <div className="min-h-screen flex items-center justify-center text-red-600">{error || "Doctor not found"}</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F2F5] px-4 text-center">
+        <div className="text-red-500 text-5xl mb-4">⚠️</div>
+        <p className="text-red-600 font-bold text-xl">{error || "Doctor profile not found"}</p>
+        <button onClick={() => router.back()} className="mt-6 bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-indigo-700 transition">Go Back</button>
+      </div>
+    );
   }
 
   const renderFriendButton = () => {
     if (doctor.isFriend) {
       return (
-        <div className="relative">
+        <div className="relative flex-1 sm:flex-none">
           <button 
             onClick={() => setShowUnfriendConfirm(!showUnfriendConfirm)} 
-            className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-green-600 text-white hover:bg-green-700"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-lg shadow-sm font-bold transition text-sm flex items-center justify-center gap-1.5 bg-green-600 text-white hover:bg-green-700"
           >
-            ✓ Friends
+            <span>✓ Friends</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
           </button>
           {showUnfriendConfirm && (
             <div className="absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-gray-200 p-2 z-50 w-48">
@@ -241,16 +253,26 @@ export default function DoctorProfilePage() {
                   setShowUnfriendConfirm(false);
                   setFriendUpdating(true);
                   try {
-                    await fetch('/api/friend-request', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'unfriend', targetId: doctor.id }) });
+                    await fetch('/api/friend-request', { 
+                      method: 'POST', 
+                      headers: {'Content-Type':'application/json'}, 
+                      body: JSON.stringify({ action: 'unfriend', targetId: doctor.id }) 
+                    });
                     await loadDoctorProfile();
                     const friendsRes = await fetch(`/api/friends?doctorId=${params?.id}`);
-                    if (friendsRes.ok) { const d = await friendsRes.json(); setFriends(d.friends||[]); setFriendCount(d.friendCount||0); }
-                  } catch(e) { alert('Failed to unfriend'); }
+                    if (friendsRes.ok) { 
+                      const d = await friendsRes.json(); 
+                      setFriends(d.friends||[]); 
+                      setFriendCount(d.friendCount||0); 
+                    }
+                  } catch(e) { 
+                    alert('Failed to unfriend'); 
+                  }
                   setFriendUpdating(false);
                 }}
-                className="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-medium text-sm"
+                className="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-bold text-sm transition"
               >
-                Unfriend
+                Unfriend Dr. {doctor.fullName.split(" ")[0]}
               </button>
             </div>
           )}
@@ -258,7 +280,7 @@ export default function DoctorProfilePage() {
       );
     } else if (doctor.friendRequestStatus === "PENDING") {
       return (
-        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-gray-200 text-gray-600">
+        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow-sm font-bold text-sm flex items-center justify-center bg-gray-200 text-gray-600 cursor-not-allowed">
           Request Sent
         </button>
       );
@@ -267,7 +289,7 @@ export default function DoctorProfilePage() {
         <button
           onClick={handleFriendToggle}
           disabled={friendUpdating}
-          className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50"
+          className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow-sm font-bold text-sm flex items-center justify-center bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50 transition"
         >
           {friendUpdating ? "Sending..." : "Add Friend"}
         </button>
@@ -275,346 +297,527 @@ export default function DoctorProfilePage() {
     }
   };
 
+  const isProfileAccessible = !doctor.isProfilePrivate || doctor.isFriend || currentDoctorId === doctor.id;
+
+  const filteredFriends = friends.filter(f => 
+    f.fullName.toLowerCase().includes(friendsSearchQuery.toLowerCase()) ||
+    (f.specialization && f.specialization.toLowerCase().includes(friendsSearchQuery.toLowerCase()))
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={() => router.back()}
-          className="mb-6 flex items-center text-indigo-600 hover:text-indigo-800 transition font-medium"
-        >
-          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          Back
-        </button>
-
-        <div className="bg-white shadow rounded-xl overflow-hidden">
-          <div className="bg-indigo-600 h-32"></div>
-          <div className="px-6 md:px-10 pb-10">
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-6 relative -mt-16 mb-6">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 shadow-lg shrink-0">
-                {doctor.profileImage ? (
-                  <img src={doctor.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                )}
-              </div>
-              
-              <div className="flex-1 text-center md:text-left mt-2 md:mt-16">
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center justify-center md:justify-start gap-2">
-                  Dr. {doctor.fullName}
-                  {doctor.isVerified && (
-                    <svg className="w-6 h-6 md:w-8 md:h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  )}
-                </h1>
-                <p className="text-lg md:text-xl text-indigo-600 font-medium mt-1">{doctor.specialization || "General Medicine"}</p>
-
-                {/* Friend Count */}
-                <div className="flex items-center gap-4 mt-2">
-                  <button onClick={() => setShowFriendsModal(true)} className="text-gray-600 hover:text-indigo-600 transition">
-                    <span className="font-bold text-gray-900">{friendCount}</span> <span className="text-gray-500">Friends</span>
-                  </button>
-                </div>
-
-                {/* Mutual Friends (only show when viewing another doctor) */}
-                {currentDoctorId && currentDoctorId !== doctor.id && mutualFriends.length > 0 && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex -space-x-2">
-                      {mutualFriends.slice(0, 3).map(mf => (
-                        <div key={mf.id} className="w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-                          {mf.profileImage ? <img src={mf.profileImage} alt="" className="w-full h-full object-cover" /> : <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      <span className="font-medium text-gray-700">{mutualFriends.length} mutual friend{mutualFriends.length !== 1 ? 's' : ''}</span>
-                      {mutualFriends.length > 0 && <> including <span className="font-medium text-gray-700">Dr. {mutualFriends[0].fullName}</span>{mutualFriends.length > 1 && <> and <span className="font-medium text-gray-700">Dr. {mutualFriends[1].fullName}</span></>}</>}
-                    </p>
-                  </div>
-                )}
-
-                {/* Buttons Row */}
-                <div className="flex flex-row justify-center md:justify-start gap-3 mt-4 w-full sm:w-auto">
-                  <button
-                    onClick={handleMessageClick}
-                    disabled={messaging}
-                    className="flex-1 sm:flex-none bg-indigo-600 text-white px-5 py-2.5 rounded-lg shadow hover:bg-indigo-700 transition font-bold disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                  >
-                    <svg className="w-5 h-5 mr-2 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    {messaging ? "Wait..." : "Message"}
-                  </button>
-                  
-                  {currentDoctorId && currentDoctorId !== doctor.id && (
-                    <>
-                      {/* Voice Call */}
-                      <button
-                        onClick={() => {
-                          const roomId = `call_${[currentDoctorId, doctor.id].sort().join('_')}`;
-                          fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'AUDIO', roomId }) });
-                          router.push(`/video/${roomId}`);
-                        }}
-                        className="px-4 py-2.5 rounded-lg shadow font-bold transition text-sm flex items-center justify-center bg-green-600 text-white hover:bg-green-700"
-                        title="Voice Call"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                      </button>
-
-                      {/* Video Call */}
-                      <button
-                        onClick={() => {
-                          const roomId = `call_${[currentDoctorId, doctor.id].sort().join('_')}`;
-                          fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'VIDEO', roomId }) });
-                          router.push(`/video/${roomId}`);
-                        }}
-                        className="px-4 py-2.5 rounded-lg shadow font-bold transition text-sm flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
-                        title="Video Call"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                      </button>
-
-                      {doctor.appointment ? (
-                        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-gray-200 text-gray-600">
-                          {doctor.appointment.status === "PENDING" ? "Pending Appointment" : "Appointment Scheduled"}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setShowAppointmentModal(true)}
-                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-purple-600 text-white hover:bg-purple-700"
-                        >
-                          Book Appointment
-                        </button>
-                      )}
-                      {renderFriendButton()}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 border-t pt-8">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Professional Details</h3>
-                <div className="space-y-3 text-gray-900">
-                  <p className="flex"><span className="w-32 text-gray-500 font-medium">Hospital:</span> {doctor.hospital || "-"}</p>
-                  <p className="flex"><span className="w-32 text-gray-500 font-medium">City:</span> {doctor.city || "-"}</p>
-                  <p className="flex"><span className="w-32 text-gray-500 font-medium">Experience:</span> {doctor.experienceYears ? `${doctor.experienceYears} Years` : "-"}</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Education</h3>
-                <div className="space-y-3 text-gray-900">
-                  <p className="flex"><span className="w-32 text-gray-500 font-medium">Qualification:</span> {doctor.qualification || "-"}</p>
-                  <p className="flex"><span className="w-32 text-gray-500 font-medium">College:</span> {doctor.medicalCollege || "-"}</p>
-                </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Biography</h3>
-                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
-                  {doctor.bio || "No professional biography provided."}
-                </p>
-              </div>
-
-              {(doctor.linkedinUrl || doctor.websiteUrl) && (
-                <div className="md:col-span-2">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Links</h3>
-                  <div className="flex flex-col sm:flex-row sm:space-x-4 gap-2">
-                    {doctor.linkedinUrl && (
-                      <a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline font-medium">LinkedIn Profile</a>
-                    )}
-                    {doctor.websiteUrl && (
-                      <a href={doctor.websiteUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline font-medium">Personal Website</a>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+    <div className="min-h-screen bg-[#F0F2F5] pb-12">
+      {/* Header Container */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-[1100px] mx-auto">
+          {/* Cover Photo */}
+          <div className="h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden sm:rounded-b-2xl">
+            {doctor.coverImage ? (
+              <img src={doctor.coverImage || undefined} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Activity</h2>
-                <p className="text-sm text-gray-500">{doctor.isProfilePrivate ? 'Content is visible only to mutual friends.' : 'Anyone can view this content.'}</p>
+          {/* Profile Details Header */}
+          <div className="px-4 py-6 sm:px-8">
+            <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-16 md:-mt-24 gap-4 pb-6 border-b border-gray-200">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0">
+                  {doctor.profileImage ? (
+                    <img src={doctor.profileImage || undefined} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-indigo-50 flex items-center justify-center text-indigo-400 text-5xl font-bold">
+                      {doctor.fullName[0]}
+                    </div>
+                  )}
+                </div>
+
+                <div className="md:mb-3">
+                  <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                    Dr. {doctor.fullName}
+                    {doctor.isVerified && (
+                      <span className="bg-blue-500 text-white rounded-full p-1" title="Verified Practitioner">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                      </span>
+                    )}
+                  </h1>
+                  <p className="text-gray-600 font-semibold text-lg">{doctor.specialization || "General Medicine"}</p>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
+                    <span>PMDC Verified Practitioner</span>
+                    <span>•</span>
+                    <span className="font-bold text-gray-800">{friendCount} friend{friendCount !== 1 ? 's' : ''}</span>
+                  </div>
+
+                  {/* Mutual Friends Stack */}
+                  {currentDoctorId && currentDoctorId !== doctor.id && mutualFriends.length > 0 && (
+                    <div className="flex items-center justify-center md:justify-start gap-2 mt-3 text-xs text-gray-500">
+                      <div className="flex -space-x-1.5 overflow-hidden">
+                        {mutualFriends.slice(0, 3).map(mf => (
+                          <div key={mf.id} className="w-6 h-6 rounded-full border border-white overflow-hidden bg-gray-200" title={mf.fullName}>
+                            {mf.profileImage ? <img src={mf.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-500">{mf.fullName[0]}</div>}
+                          </div>
+                        ))}
+                      </div>
+                      <p>
+                        <span className="font-bold text-gray-700">{mutualFriends.length} mutual friend{mutualFriends.length !== 1 ? 's' : ''}</span>
+                        {mutualFriends.length > 0 && <> including <span className="font-semibold text-gray-800">Dr. {mutualFriends[0].fullName}</span></>}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-              {doctor.isProfilePrivate && !doctor.isFriend && currentDoctorId !== doctor.id && (
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Private</span>
-              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-center">
+                <button
+                  onClick={handleMessageClick}
+                  disabled={messaging}
+                  className="flex-1 md:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                  <span>{messaging ? "Wait..." : "Message"}</span>
+                </button>
+
+                {currentDoctorId && currentDoctorId !== doctor.id && (
+                  <>
+                    {/* Voice Call */}
+                    <button
+                      onClick={() => {
+                        const roomId = `call_${[currentDoctorId, doctor.id].sort().join('_')}`;
+                        fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'AUDIO', roomId }) });
+                        router.push(`/video/${roomId}`);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                      title="Voice Call"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    </button>
+
+                    {/* Video Call */}
+                    <button
+                      onClick={() => {
+                        const roomId = `call_${[currentDoctorId, doctor.id].sort().join('_')}`;
+                        fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'VIDEO', roomId }) });
+                        router.push(`/video/${roomId}`);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                      title="Video Call"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </button>
+
+                    {doctor.appointment ? (
+                      <button disabled className="px-5 py-2.5 rounded-lg shadow-sm font-bold text-sm flex items-center justify-center bg-gray-100 text-gray-500 cursor-not-allowed">
+                        {doctor.appointment.status === "PENDING" ? "Pending Appt" : "Scheduled"}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowAppointmentModal(true)}
+                        className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm font-bold text-sm flex items-center justify-center"
+                      >
+                        Book Appt
+                      </button>
+                    )}
+                    
+                    {renderFriendButton()}
+                  </>
+                )}
+                <button
+                  onClick={() => router.back()}
+                  className="bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                  title="Go Back"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+              </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 mb-6">
-              <button
-                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'posts' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('posts')}
-              >
-                Cases / Posts
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'photos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('photos')}
-              >
-                Photos
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'videos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('videos')}
-              >
-                Videos
-              </button>
+            {/* Navigation Tabs */}
+            <div className="flex gap-2 overflow-x-auto pt-2 scrollbar-none">
+              {(["posts", "videos", "photos", "friends", "about"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-3.5 px-4 font-bold text-sm md:text-base border-b-4 transition whitespace-nowrap capitalize ${
+                    activeTab === tab 
+                      ? "border-indigo-600 text-indigo-600" 
+                      : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg"
+                  }`}
+                >
+                  {tab === "posts" ? "Clinical Cases" : tab}
+                </button>
+              ))}
             </div>
-
-            {activeTab === 'posts' && (
-              doctor.posts?.length ? (
-                <div className="space-y-4">
-                  {doctor.posts.map((post) => (
-                    <div key={post.id} className="border rounded-2xl p-4 hover:shadow-lg transition bg-gray-50">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div>
-                          <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
-                          <h3 className="text-lg font-semibold text-gray-900 mt-2">{post.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <span>{post.specialty}</span>
-                          <span className="px-2 py-1 bg-white border rounded-full">{post._count.reactions} Likes</span>
-                          <span className="px-2 py-1 bg-white border rounded-full">{post._count.comments} Comments</span>
-                        </div>
-                      </div>
-                      <p className="mt-3 text-gray-700 line-clamp-3">{post.description}</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button onClick={() => router.push(`/case/${post.id}`)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">View</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  {currentDoctorId === doctor.id
-                    ? 'You have no posts yet. Share a case to start engagement.'
-                    : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see posts.' : 'No posts available yet.')
-                  }
-                </div>
-              )
-            )}
-
-            {activeTab === 'photos' && (
-              doctor.posts?.filter(p => p.imageUrl).length ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {doctor.posts.filter(p => p.imageUrl).map(post => (
-                    <div key={post.id} className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200" onClick={() => router.push(`/case/${post.id}`)}>
-                      <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <p className="text-white text-sm font-bold px-2 text-center truncate w-full">{post.title}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  {currentDoctorId === doctor.id
-                    ? 'You have no photos yet. Share a case with an image to show it here.'
-                    : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see photos.' : 'No photos available yet.')
-                  }
-                </div>
-              )
-            )}
-
-            {activeTab === 'videos' && (
-              doctor.videos?.length ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {doctor.videos.map(v => (
-                    <div key={v.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-                      <div className="aspect-video bg-gray-900 relative">
-                        <video src={v.videoUrl} controls className="w-full h-full object-cover"></video>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-900 mb-1">{v.title}</h3>
-                        <p className="text-sm text-gray-500 mb-3">{new Date(v.createdAt).toLocaleDateString()}</p>
-                        <p className="text-gray-700 line-clamp-2">{v.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  {currentDoctorId === doctor.id
-                    ? 'You have no videos yet. Upload a video to share with others.'
-                    : (doctor.isProfilePrivate && !doctor.isFriend ? 'This profile is private. Add as friend to see videos.' : 'No videos available yet.')
-                  }
-                </div>
-              )
-            )}
           </div>
         </div>
       </div>
 
-      {/* Friends List Modal */}
-      {showFriendsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center flex-shrink-0">
-              <h3 className="text-xl font-bold text-white">{friendCount} Friends</h3>
-              <button onClick={() => setShowFriendsModal(false)} className="text-white hover:text-gray-200">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+      {/* Main Content Body */}
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {/* If private and not mutually friended */}
+        {!isProfileAccessible && activeTab !== "about" ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center max-w-md mx-auto shadow-sm mt-8">
+            <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-200">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
-            <div className="overflow-y-auto flex-1 p-4">
-              {friends.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No friends yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {friends.map(f => (
-                    <div key={f.id} onClick={() => { setShowFriendsModal(false); router.push(`/doctor/${f.id}`); }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                        {f.profileImage ? <img src={f.profileImage} alt="" className="w-full h-full object-cover" /> : <svg className="w-full h-full text-gray-400 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+            <h3 className="text-xl font-bold text-gray-900 mb-2">This Profile is Private</h3>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">Only mutual friends of Dr. {doctor.fullName} can view their clinical cases, videos, photos and friends directory.</p>
+            {doctor.friendRequestStatus === "PENDING" ? (
+              <span className="inline-block bg-gray-100 text-gray-500 font-bold px-6 py-2.5 rounded-lg text-sm">Friend Request Pending</span>
+            ) : (
+              <button 
+                onClick={handleFriendToggle}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition"
+              >
+                Send Friend Request
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Tab 1: Posts (Two-Column Layout) */}
+            {activeTab === "posts" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column (Sidebar Widgets) */}
+                <div className="space-y-6">
+                  {/* Intro Card */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Intro</h2>
+                    <div className="space-y-4">
+                      {doctor.bio && (
+                        <p className="text-gray-800 text-sm text-center italic py-2 bg-gray-50 rounded-lg whitespace-pre-wrap">
+                          "{doctor.bio}"
+                        </p>
+                      )}
+
+                      <div className="space-y-3 text-sm text-gray-700">
+                        {doctor.specialization && (
+                          <div className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <span>Specializes in <span className="font-semibold text-gray-950">{doctor.specialization}</span></span>
+                          </div>
+                        )}
+                        {doctor.hospital && (
+                          <div className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            <span>Works at <span className="font-semibold text-gray-950">{doctor.hospital}</span></span>
+                          </div>
+                        )}
+                        {doctor.city && (
+                          <div className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Based in <span className="font-semibold text-gray-950">{doctor.city}</span></span>
+                          </div>
+                        )}
+                        {doctor.experienceYears && (
+                          <div className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>Has <span className="font-semibold text-gray-950">{doctor.experienceYears} Years</span> of clinical experience</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">Dr. {f.fullName}</p>
-                        <p className="text-sm text-gray-500 truncate">{f.specialization || 'Doctor'}{f.hospital ? ` • ${f.hospital}` : ''}</p>
-                      </div>
-                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Friends Preview Card */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">Friends</h2>
+                        <p className="text-sm text-gray-500">{friendCount} friend{friendCount !== 1 ? 's' : ''}</p>
+                      </div>
+                      <button onClick={() => setActiveTab("friends")} className="text-sm text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition font-semibold">
+                        See all
+                      </button>
+                    </div>
+                    
+                    {friends.length === 0 ? (
+                      <p className="text-center text-gray-500 py-6 text-sm">No friends to show.</p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3">
+                        {friends.slice(0, 6).map(f => (
+                          <div 
+                            key={f.id} 
+                            onClick={() => router.push(`/doctor/${f.id}`)}
+                            className="cursor-pointer group text-center"
+                          >
+                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 mb-1.5">
+                              {f.profileImage ? (
+                                <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
+                              ) : (
+                                <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-400 font-bold text-xl uppercase">
+                                  {f.fullName[0]}
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-950 font-bold truncate">Dr. {f.fullName.split(" ")[0]}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column (Clinical Posts) */}
+                <div className="lg:col-span-2 space-y-6">
+                  {(!doctor.posts || doctor.posts.length === 0) ? (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-500">
+                      <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
+                      <p className="font-semibold text-lg text-gray-700">No Clinical Cases Shared Yet</p>
+                      <p className="text-sm text-gray-400 mt-1">Check back later or invite them to share case files.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {doctor.posts.map(post => (
+                        <div key={post.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                          {/* Post Header */}
+                          <div className="p-4 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                                {doctor.profileImage ? <img src={doctor.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">{doctor.fullName[0]}</div>}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer flex items-center gap-1.5">
+                                  Dr. {doctor.fullName}
+                                  {doctor.isVerified && (
+                                    <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" /></svg>
+                                  )}
+                                </h3>
+                                <p className="text-xs text-gray-500 font-medium">{new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} • {post.specialty}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Post Content */}
+                          <div className="px-4 pb-3 cursor-pointer" onClick={() => router.push(`/case/${post.id}`)}>
+                            <h4 className="font-bold text-indigo-950 text-base md:text-lg mb-2">{post.title}</h4>
+                            <p className="text-gray-800 text-sm md:text-base leading-relaxed whitespace-pre-wrap">{post.description}</p>
+                          </div>
+
+                          {/* Post Image */}
+                          {post.imageUrl && (
+                            <div className="border-t border-b border-gray-100 overflow-hidden bg-gray-50 max-h-[450px] flex items-center justify-center cursor-pointer" onClick={() => router.push(`/case/${post.id}`)}>
+                              <img src={post.imageUrl || undefined} alt={post.title} className="w-full object-contain max-h-[450px]" />
+                            </div>
+                          )}
+
+                          {/* Post Stats */}
+                          <div className="px-4 py-2.5 border-b border-gray-100 flex justify-between text-xs text-gray-500 font-medium">
+                            <div className="flex items-center gap-1.5">
+                              <span className="flex items-center justify-center bg-blue-500 text-white rounded-full p-0.5"><svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a2 2 0 00-.8 1.6v.8z" /></svg></span>
+                              <span>{post._count?.reactions || 0} Reactions</span>
+                            </div>
+                            <div className="flex gap-3">
+                              <span>{post._count?.comments || 0} Comments</span>
+                              <span>{post._count?.views || 0} Views</span>
+                            </div>
+                          </div>
+
+                          {/* Post Interactive Buttons */}
+                          <div className="px-2 py-1 flex gap-1 bg-white">
+                            <button onClick={() => router.push(`/case/${post.id}`)} className="flex-1 flex items-center justify-center gap-2 hover:bg-gray-100 text-gray-600 font-bold py-2 rounded-lg text-sm transition">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                              <span>Like</span>
+                            </button>
+                            <button onClick={() => router.push(`/case/${post.id}`)} className="flex-1 flex items-center justify-center gap-2 hover:bg-gray-100 text-gray-600 font-bold py-2 rounded-lg text-sm transition">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                              <span>Comment</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: Videos */}
+            {activeTab === "videos" && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Videos Shared</h2>
+                {(!doctor.videos || doctor.videos.length === 0) ? (
+                  <p className="text-center text-gray-500 py-10">No videos available.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {doctor.videos.map(v => (
+                      <div key={v.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition">
+                        <div className="aspect-video bg-gray-900 relative">
+                          <video src={v.videoUrl} controls className="w-full h-full object-cover"></video>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-bold text-gray-900 text-lg mb-1">{v.title}</h3>
+                          <p className="text-xs text-gray-500 mb-2">{new Date(v.createdAt).toLocaleDateString()}</p>
+                          <p className="text-gray-700 text-sm line-clamp-2">{v.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 3: Photos */}
+            {activeTab === "photos" && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Photos</h2>
+                {(!doctor.posts || doctor.posts.filter(p => p.imageUrl).length === 0) ? (
+                  <p className="text-center text-gray-500 py-10">No photos shared.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {doctor.posts.filter(p => p.imageUrl).map(post => (
+                      <div 
+                        key={post.id} 
+                        className="relative group aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 cursor-pointer"
+                        onClick={() => router.push(`/case/${post.id}`)}
+                      >
+                        <img src={post.imageUrl || undefined} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-end p-2.5">
+                          <p className="text-white text-xs font-bold truncate w-full">{post.title}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 4: Friends */}
+            {activeTab === "friends" && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Friends Directory</h2>
+                    <p className="text-sm text-gray-500">{friendCount} total friends</p>
+                  </div>
+                  <div className="w-full sm:w-64 relative">
+                    <input 
+                      type="text" 
+                      placeholder="Search friends..." 
+                      value={friendsSearchQuery}
+                      onChange={(e) => setFriendsSearchQuery(e.target.value)}
+                      className="w-full border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    />
+                    <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                  </div>
+                </div>
+
+                {filteredFriends.length === 0 ? (
+                  <p className="text-center text-gray-500 py-10">No friends found.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {filteredFriends.map(f => (
+                      <div 
+                        key={f.id} 
+                        onClick={() => router.push(`/doctor/${f.id}`)}
+                        className="border border-gray-200 rounded-xl p-4 flex gap-4 items-center hover:shadow-md cursor-pointer transition bg-white"
+                      >
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                          {f.profileImage ? <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold text-xl uppercase">{f.fullName[0]}</div>}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-gray-900 truncate">Dr. {f.fullName}</p>
+                          <p className="text-xs text-blue-600 font-semibold truncate">{f.specialization || "Practitioner"}</p>
+                          {f.hospital && <p className="text-xs text-gray-500 truncate mt-0.5">{f.hospital}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Tab 5: About (Always accessible even if profile is private) */}
+        {activeTab === "about" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">About Dr. {doctor.fullName}</h2>
+            
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Hospital Affiliation</h3>
+                  <p className="text-sm text-gray-800 font-semibold">{doctor.hospital || "Not Specified"}</p>
+                  <p className="text-xs text-gray-500 mt-1">{doctor.city || ""}</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Clinical Qualifications</h3>
+                  <p className="text-sm text-gray-800 font-semibold">{doctor.qualification || "-"}</p>
+                  <p className="text-xs text-gray-500 mt-1">Graduated from: {doctor.medicalCollege || "Not Specified"}</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Years Active</h3>
+                  <p className="text-sm text-gray-800 font-semibold">{doctor.experienceYears ? `${doctor.experienceYears} Years` : "-"}</p>
+                  <p className="text-xs text-gray-500 mt-1">Clinical field practice</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Details</h3>
+                  <p className="text-xs text-gray-500">Contact detail visibility is determined by account privacy.</p>
+                  <div className="mt-2 space-y-1 text-sm text-gray-800">
+                    <p className="flex"><span className="w-16 text-gray-500 font-medium">PMDC:</span> <span className="font-semibold">{doctor.pmdcNumber || "-"}</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {doctor.bio && (
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Biography</h3>
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{doctor.bio}</p>
+                </div>
+              )}
+
+              {(doctor.linkedinUrl || doctor.websiteUrl) && (
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Directory Links</h3>
+                  <div className="flex gap-4">
+                    {doctor.linkedinUrl && <a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0H5C2.24 0 0 2.24 0 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM7.5 19H4.5V9h3v10zM6 7.5C4.62 7.5 3.5 6.38 3.5 5S4.62 2.5 6 2.5 8.5 3.62 8.5 5 7.38 7.5 6 7.5zM19.5 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V9h3v1.77c1.4-2.59 7-2.78 7 2.48V19z"/></svg> LinkedIn</a>}
+                    {doctor.websiteUrl && <a href={doctor.websiteUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9"></path></svg> Website</a>}
+                  </div>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Unfriend Confirm Overlay - close when clicking outside */}
+      {/* Unfriend Dropdown Trigger Overlay */}
       {showUnfriendConfirm && <div className="fixed inset-0 z-40" onClick={() => setShowUnfriendConfirm(false)}></div>}
 
-      {/* Appointment Modal */}
+      {/* Appointment Booking Modal */}
       {showAppointmentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 bg-opacity-50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100">
             <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold text-white">Book Appointment</h3>
-              <button onClick={() => setShowAppointmentModal(false)} className="text-white hover:text-gray-200">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              <button onClick={() => setShowAppointmentModal(false)} className="text-white/80 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
               </button>
             </div>
             <div className="p-6">
-              <p className="text-gray-600 mb-4">Suggest a date and time for your appointment with Dr. {doctor.fullName}. The exact time will be confirmed when they accept.</p>
+              <p className="text-gray-600 text-sm mb-4 leading-relaxed">Suggest a date and time for your appointment request with Dr. {doctor.fullName}. The exact consultation schedule will be finalized once they approve.</p>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Proposed Date</label>
-                  <input type="date" value={proposedDate} onChange={e => setProposedDate(e.target.value)} className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-indigo-500 focus:border-indigo-500" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Proposed Date</label>
+                  <input type="date" value={proposedDate} onChange={e => setProposedDate(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none text-black transition" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Proposed Time</label>
-                  <input type="time" value={proposedTime} onChange={e => setProposedTime(e.target.value)} className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-indigo-500 focus:border-indigo-500" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Proposed Time</label>
+                  <input type="time" value={proposedTime} onChange={e => setProposedTime(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none text-black transition" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                  <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Describe your concern briefly..." className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Consultation Notes (Optional)</label>
+                  <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Provide details about symptoms, queries, or clinical concern..." className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none text-black transition"></textarea>
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <button disabled={bookingAppointment} onClick={() => setShowAppointmentModal(false)} className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">Cancel</button>
-                <button disabled={bookingAppointment || !proposedDate || !proposedTime} onClick={handleBookAppointment} className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold disabled:opacity-50">
+              <div className="mt-6 flex justify-end gap-3 border-t border-gray-100 pt-4">
+                <button disabled={bookingAppointment} onClick={() => setShowAppointmentModal(false)} className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-bold transition text-sm">Cancel</button>
+                <button disabled={bookingAppointment || !proposedDate || !proposedTime} onClick={handleBookAppointment} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold disabled:opacity-50 transition text-sm">
                   {bookingAppointment ? "Sending..." : "Send Request"}
                 </button>
               </div>

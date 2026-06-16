@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
     const doctor = await prisma.doctor.findUnique({
       where: { id: doctorId },
-      select: { isTwoFactorEnabled: true }
+      select: { isTwoFactorEnabled: true, twoFactorPhone: true }
     });
 
     if (!doctor) return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
@@ -42,10 +42,15 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const { isTwoFactorEnabled } = body;
 
+    const dataToUpdate: any = { isTwoFactorEnabled };
+    if (isTwoFactorEnabled === false) {
+      dataToUpdate.twoFactorPhone = null;
+    }
+
     const updatedDoctor = await prisma.doctor.update({
       where: { id: doctorId },
-      data: { isTwoFactorEnabled },
-      select: { isTwoFactorEnabled: true }
+      data: dataToUpdate,
+      select: { isTwoFactorEnabled: true, twoFactorPhone: true }
     });
 
     return NextResponse.json({ message: "Settings updated successfully", doctor: updatedDoctor }, { status: 200 });

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 export default function ProfileBanner() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

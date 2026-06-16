@@ -25,6 +25,15 @@ type DoctorProfileData = {
   linkedinUrl?: string;
 };
 
+const COVER_PRESETS = [
+  { name: "Clinical Blue", url: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&auto=format&fit=crop&q=80" },
+  { name: "Lab Tech", url: "https://images.unsplash.com/photo-1579684389782-64d84b5e901f?w=1000&auto=format&fit=crop&q=80" },
+  { name: "Clean Workspace", url: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1000&auto=format&fit=crop&q=80" },
+  { name: "Abstract Science", url: "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=1000&auto=format&fit=crop&q=80" },
+  { name: "Doctor Meeting", url: "https://images.unsplash.com/photo-1504813184591-01552ff75805?w=1000&auto=format&fit=crop&q=80" },
+  { name: "Medical Abstract", url: "https://images.unsplash.com/photo-1584515901367-f134706ef53a?w=1000&auto=format&fit=crop&q=80" }
+];
+
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -53,11 +62,11 @@ export default function ProfilePage() {
 
   const [myCases, setMyCases] = useState<any[]>([]);
   const [myVideos, setMyVideos] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos" | "friends" | "about">("posts");
 
   const [friends, setFriends] = useState<any[]>([]);
   const [friendCount, setFriendCount] = useState(0);
-  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [friendsSearchQuery, setFriendsSearchQuery] = useState("");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -127,13 +136,13 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleDeletePost = async (caseId: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!confirm("Are you sure you want to delete this clinical case?")) return;
     try {
       const res = await fetch(`/api/cases/${caseId}`, { method: 'DELETE' });
       if (res.ok) {
         setMyCases(prev => prev.filter(c => c.id !== caseId));
       } else {
-        alert("Failed to delete post.");
+        alert("Failed to delete case.");
       }
     } catch (err) {
       console.error(err);
@@ -163,7 +172,17 @@ export default function ProfilePage() {
 
       if (!res.ok) throw new Error(result.message);
 
-      setFormData({ ...formData, profileImage: result.url });
+      setFormData(prev => ({ ...prev, profileImage: result.url }));
+      
+      // Auto save the new profile image to the backend immediately
+      await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, profileImage: result.url }),
+      });
+      
+      setDoctor(prev => prev ? { ...prev, profileImage: result.url } : null);
+      setSuccess("Profile picture updated successfully!");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message || "Failed to upload image");
@@ -191,7 +210,17 @@ export default function ProfilePage() {
 
       if (!res.ok) throw new Error(result.message);
 
-      setFormData({ ...formData, coverImage: result.url });
+      setFormData(prev => ({ ...prev, coverImage: result.url }));
+
+      // Auto save the new cover image to the backend immediately
+      await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, coverImage: result.url }),
+      });
+
+      setDoctor(prev => prev ? { ...prev, coverImage: result.url } : null);
+      setSuccess("Cover photo updated successfully!");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message || "Failed to upload cover image");
@@ -231,390 +260,670 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F2F5]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-gray-600 font-semibold">Loading your profile...</p>
+      </div>
+    );
   }
 
+  const filteredFriends = friends.filter(f => 
+    f.fullName.toLowerCase().includes(friendsSearchQuery.toLowerCase()) ||
+    (f.specialization && f.specialization.toLowerCase().includes(friendsSearchQuery.toLowerCase()))
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-start sm:items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Doctor Profile</h1>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => router.push("/feed")}
-              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium"
-            >Back to Homepage</button>
-            <button
-              onClick={() => {
-                setIsEditing(!isEditing);
-                setSuccess("");
-                setError("");
-              }}
-              className="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 transition w-full sm:w-auto text-center"
-            >
-              {isEditing ? "Cancel Edit" : "Edit Profile"}
-            </button>
-          </div>
-        </div>
-
-        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-6">{error}</div>}
-        {success && <div className="bg-green-100 text-green-700 p-4 rounded mb-6">{success}</div>}
-
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          {/* Cover Image Section */}
-          <div className="h-48 w-full bg-indigo-100 relative group">
-            {(formData.coverImage || doctor?.coverImage) ? (
-              <img src={formData.coverImage || doctor?.coverImage} alt="Cover" className="w-full h-full object-cover" />
+    <div className="min-h-screen bg-[#F0F2F5] pb-12">
+      {/* Header Container */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-[1100px] mx-auto">
+          {/* Cover Photo */}
+          <div className="h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative group overflow-hidden sm:rounded-b-2xl">
+            {(doctor?.coverImage) ? (
+              <img src={doctor.coverImage || undefined} alt="Cover" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-indigo-300 to-purple-400"></div>
+              <div className="w-full h-full bg-gradient-to-r from-indigo-500 via-blue-500 to-teal-500"></div>
             )}
             
-            {isEditing && (
-              <label className="absolute bottom-4 right-4 bg-white text-gray-700 p-2 rounded-lg cursor-pointer shadow-md hover:bg-gray-50 transition opacity-0 group-hover:opacity-100 flex items-center text-sm font-medium">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Upload Cover
-                <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} disabled={uploading} />
-              </label>
-            )}
+            <label className="absolute bottom-4 right-4 bg-black/60 hover:bg-black/80 text-white py-2 px-4 rounded-lg cursor-pointer shadow-md transition flex items-center gap-2 text-sm font-semibold backdrop-blur-sm">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span>{uploading ? "Uploading..." : "Edit Cover Photo"}</span>
+              <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} disabled={uploading} />
+            </label>
           </div>
 
-          <div className="p-6 pt-0 relative">
-            <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 space-y-4 sm:space-y-0 sm:space-x-6 mb-8">
-              <div className="relative z-10">
-                <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg">
-                {formData.profileImage ? (
-                  <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                )}
+          {/* Profile Name & Primary Actions */}
+          <div className="px-4 py-6 sm:px-8">
+            <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-16 md:-mt-24 gap-4 pb-6 border-b border-gray-200">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
+                <div className="relative group/avatar">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10">
+                    {doctor?.profileImage ? (
+                      <img src={doctor.profileImage || undefined} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500">
+                        <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <label className="absolute bottom-1 right-1 z-20 bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 rounded-full p-2.5 cursor-pointer shadow-md transition border-2 border-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
+                  </label>
+                </div>
+
+                <div className="md:mb-3">
+                  <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                    Dr. {doctor?.fullName}
+                    {doctor?.isVerified && (
+                      <span className="bg-blue-500 text-white rounded-full p-1" title="Verified Medical Practitioner">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                      </span>
+                    )}
+                  </h1>
+                  <p className="text-gray-600 font-semibold text-lg">{doctor?.specialization || "General Medicine"}</p>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
+                    <span>PMDC: {doctor?.pmdcNumber}</span>
+                    <span>•</span>
+                    <button onClick={() => setActiveTab("friends")} className="font-bold text-gray-800 hover:underline">
+                      {friendCount} friend{friendCount !== 1 ? 's' : ''}
+                    </button>
+                  </div>
+                  {/* Friends Stack Preview */}
+                  {friends.length > 0 && (
+                    <div className="flex items-center justify-center md:justify-start -space-x-2 mt-3 overflow-hidden">
+                      {friends.slice(0, 5).map(f => (
+                        <div key={f.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gray-200" title={f.fullName}>
+                          {f.profileImage ? <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-xs text-blue-500 font-bold">{f.fullName[0]}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              {isEditing && (
-                <label className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-2 cursor-pointer shadow-lg hover:bg-blue-600 text-white transition">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                </label>
-              )}
+
+              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-center">
+                <button
+                  onClick={() => router.push("/create-case")}
+                  className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm md:text-base"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
+                  Add Case Post
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(!isEditing);
+                    if (!isEditing) setActiveTab("about");
+                    setSuccess("");
+                    setError("");
+                  }}
+                  className="flex-1 md:flex-initial bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm md:text-base"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                  {isEditing ? "View Profile" : "Edit Profile"}
+                </button>
+                <button
+                  onClick={() => router.push("/feed")}
+                  className="bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                  title="Back to Homepage"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </button>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                Dr. {doctor?.fullName}
-                {doctor?.isVerified && (
-                  <svg className="w-6 h-6 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                )}
-              </h2>
-              <p className="text-gray-500">{doctor?.specialization || "Specialization not specified"}</p>
-              <p className="text-sm text-gray-500 mt-1">PMDC: {doctor?.pmdcNumber} • {doctor?.isVerified ? "Verified" : "Verification Pending"}</p>
-              <div className="flex items-center gap-3 mt-2">
-                <button onClick={() => setShowFriendsModal(true)} className="flex items-center gap-1.5 text-gray-600 hover:text-indigo-600 transition">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                  <span className="font-bold text-gray-900">{friendCount}</span>
-                  <span className="text-gray-500">Friends</span>
+
+            {/* Navigation Tabs */}
+            <div className="flex gap-2 overflow-x-auto pt-2 scrollbar-none">
+              {(["posts", "videos", "photos", "friends", "about"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    if (tab !== "about") setIsEditing(false);
+                  }}
+                  className={`py-3.5 px-4 font-bold text-sm md:text-base border-b-4 transition whitespace-nowrap capitalize ${
+                    activeTab === tab 
+                      ? "border-blue-600 text-blue-600" 
+                      : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg"
+                  }`}
+                >
+                  {tab === "posts" ? "Clinical Cases" : tab}
                 </button>
-                <button onClick={() => setShowFriendsModal(true)} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition">
-                  See All Friends
-                </button>
-              </div>
+              ))}
             </div>
           </div>
-
-          {!isEditing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Contact Information</h3>
-                <div className="mt-2 text-gray-900">
-                  <p>Email: {doctor?.email}</p>
-                  <p>Phone: {doctor?.phoneNumber}</p>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Professional Details</h3>
-                <div className="mt-2 text-gray-900">
-                  <p>Hospital: {doctor?.hospital || "-"}</p>
-                  <p>City: {doctor?.city || "-"}</p>
-                  <p>Experience: {doctor?.experienceYears ? `${doctor.experienceYears} Years` : "-"}</p>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Education</h3>
-                <div className="mt-2 text-gray-900">
-                  <p>Qualification: {doctor?.qualification || "-"}</p>
-                  <p>College: {doctor?.medicalCollege || "-"}</p>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Links</h3>
-                <div className="mt-2 text-blue-600">
-                  {doctor?.linkedinUrl && <p><a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="hover:underline">LinkedIn Profile</a></p>}
-                  {doctor?.websiteUrl && <p><a href={doctor.websiteUrl} target="_blank" rel="noreferrer" className="hover:underline">Personal Website</a></p>}
-                </div>
-              </div>
-              <div className="md:col-span-2">
-                <h3 className="text-sm font-medium text-gray-500">Bio</h3>
-                <p className="mt-2 text-gray-900 whitespace-pre-wrap">{doctor?.bio || "No bio available."}</p>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                  <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                  <input type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hospital/Clinic</label>
-                  <input type="text" name="hospital" value={formData.hospital} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Highest Qualification</label>
-                  <input type="text" name="qualification" value={formData.qualification} onChange={handleInputChange} placeholder="e.g. MBBS, FCPS" className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Medical College</label>
-                  <input type="text" name="medicalCollege" value={formData.medicalCollege} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
-                  <input type="number" name="experienceYears" value={formData.experienceYears} onChange={handleInputChange} min="0" className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
-                  <input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
-                  <input type="url" name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200" />
-                </div>
-                <div className="md:col-span-2 flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="isProfilePrivate"
-                    name="isProfilePrivate"
-                    checked={formData.isProfilePrivate}
-                    onChange={(e) => setFormData({ ...formData, isProfilePrivate: e.target.checked })}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                  <label htmlFor="isProfilePrivate" className="text-sm text-gray-900 font-medium">Keep my profile posts private unless mutually friended</label>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Bio (max 500 chars)</label>
-                  <textarea name="bio" value={formData.bio} onChange={handleInputChange} maxLength={500} rows={4} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200"></textarea>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4">
-                <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50 transition">Cancel</button>
-                <button type="submit" disabled={saving || uploading} className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 disabled:bg-indigo-300 transition">
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
-          )}
         </div>
       </div>
 
-        {/* User Posts Section */}
-        {!isEditing && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Activity</h2>
+      {/* Main Content Body */}
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm">
+            <p className="font-bold">Error</p>
+            <p>{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
+            <p className="font-bold">Success</p>
+            <p>{success}</p>
+          </div>
+        )}
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 mb-6">
-              <button
-                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'posts' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('posts')}
-              >
-                Cases / Posts
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'photos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('photos')}
-              >
-                Photos
-              </button>
-              <button
-                className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'videos' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('videos')}
-              >
-                Videos
-              </button>
+        {/* Tab 1: Posts (Two-Column Layout) */}
+        {activeTab === "posts" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column (Sidebar Widgets) */}
+            <div className="space-y-6">
+              {/* Intro Card */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Intro</h2>
+                <div className="space-y-4">
+                  {doctor?.bio ? (
+                    <p className="text-gray-800 text-sm text-center italic py-2 bg-gray-50 rounded-lg whitespace-pre-wrap">
+                      "{doctor.bio}"
+                    </p>
+                  ) : (
+                    <button 
+                      onClick={() => { setActiveTab("about"); setIsEditing(true); }}
+                      className="w-full py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-semibold rounded-lg transition"
+                    >
+                      Add Bio
+                    </button>
+                  )}
+
+                  <div className="space-y-3 text-sm text-gray-700">
+                    {doctor?.specialization && (
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <span>Specializes in <span className="font-semibold">{doctor.specialization}</span></span>
+                      </div>
+                    )}
+                    {doctor?.hospital && (
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        <span>Works at <span className="font-semibold">{doctor.hospital}</span></span>
+                      </div>
+                    )}
+                    {doctor?.city && (
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span>Lives in <span className="font-semibold">{doctor.city}</span></span>
+                      </div>
+                    )}
+                    {doctor?.experienceYears && (
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span><span className="font-semibold">{doctor.experienceYears} Years</span> of clinical experience</span>
+                      </div>
+                    )}
+                    {doctor?.linkedinUrl && (
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        <a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline truncate font-semibold">LinkedIn Profile</a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Friends Preview Card */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Friends</h2>
+                    <p className="text-sm text-gray-500">{friendCount} friend{friendCount !== 1 ? 's' : ''}</p>
+                  </div>
+                  <button onClick={() => setActiveTab("friends")} className="text-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition font-semibold">
+                    See all friends
+                  </button>
+                </div>
+                
+                {friends.length === 0 ? (
+                  <p className="text-center text-gray-500 py-6 text-sm">No friends added yet.</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3">
+                    {friends.slice(0, 6).map(f => (
+                      <div 
+                        key={f.id} 
+                        onClick={() => router.push(`/doctor/${f.id}`)}
+                        className="cursor-pointer group text-center"
+                      >
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 mb-1.5">
+                          {f.profileImage ? (
+                            <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
+                          ) : (
+                            <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-400 font-bold text-xl uppercase">
+                              {f.fullName[0]}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-900 font-bold truncate">Dr. {f.fullName.split(" ")[0]}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Tab Content: Posts */}
-            {activeTab === "posts" && (
-              <div>
-                {myCases.length === 0 ? (
-                  <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
-                    You haven't posted any clinical cases yet.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {myCases.map(c => (
-                      <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col sm:flex-row justify-between hover:shadow-md transition">
-                        <div className="flex-1 cursor-pointer" onClick={() => router.push(`/case/${c.id}`)}>
-                          <h3 className="font-bold text-lg text-indigo-900 mb-1">{c.title}</h3>
-                          <p className="text-sm text-gray-500 mb-2">{c.specialty} • {new Date(c.createdAt).toLocaleDateString()}</p>
-                          <p className="text-gray-700 line-clamp-2">{c.description}</p>
+            {/* Right Column (Clinical Feed & Post Button) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* "What's on your mind" Box */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex gap-4 items-center">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                  {doctor?.profileImage ? (
+                    <img src={doctor.profileImage || undefined} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">Dr</div>
+                  )}
+                </div>
+                <button
+                  onClick={() => router.push("/create-case")}
+                  className="flex-1 text-left px-5 py-3 bg-[#F0F2F5] hover:bg-[#E4E6EB] text-gray-500 font-medium rounded-full transition text-sm sm:text-base outline-none"
+                >
+                  Share a clinical case or request consultation...
+                </button>
+              </div>
+
+              {/* Feed List */}
+              {myCases.length === 0 ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-500">
+                  <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
+                  <p className="font-semibold text-lg text-gray-700">No Clinical Cases Posted Yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Cases you share will appear here on your feed.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {myCases.map(c => (
+                    <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                      {/* Post Header */}
+                      <div className="p-4 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                            {doctor?.profileImage ? <img src={doctor.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">Dr</div>}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer flex items-center gap-1.5">
+                              Dr. {doctor?.fullName}
+                              {doctor?.isVerified && (
+                                <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" /></svg>
+                              )}
+                            </h3>
+                            <p className="text-xs text-gray-500 font-medium">{new Date(c.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} • {c.specialty}</p>
+                          </div>
                         </div>
-                        <div className="mt-4 sm:mt-0 flex items-start gap-2 ml-4">
-                          <button onClick={(e) => { e.stopPropagation(); router.push(`/create-case?edit=${c.id}`); }} className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded transition">
+
+                        {/* Post Actions Dropdown */}
+                        <div className="flex gap-1.5">
+                          <button 
+                            onClick={() => router.push(`/create-case?edit=${c.id}`)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition text-xs font-bold"
+                          >
                             Edit
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded transition">
+                          <button 
+                            onClick={() => handleDeletePost(c.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition text-xs font-bold"
+                          >
                             Delete
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Tab Content: Photos */}
-            {activeTab === "photos" && (
-              <div>
-                {myCases.filter(c => c.imageUrl).length === 0 ? (
-                  <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
-                    You haven't uploaded any photos yet.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {myCases.filter(c => c.imageUrl).map(c => (
-                      <div key={c.id} className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200" onClick={() => router.push(`/case/${c.id}`)}>
-                        <img src={c.imageUrl} alt={c.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <p className="text-white text-sm font-bold px-2 text-center truncate w-full">{c.title}</p>
-                        </div>
-                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                          <button onClick={(e) => { e.stopPropagation(); router.push(`/create-case?edit=${c.id}`); }} className="bg-white text-blue-600 p-1.5 rounded-full shadow hover:bg-blue-50">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                          </button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDeletePost(c.id); }} className="bg-white text-red-600 p-1.5 rounded-full shadow hover:bg-red-50">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                          </button>
-                        </div>
+                      {/* Post Content */}
+                      <div className="px-4 pb-3 cursor-pointer" onClick={() => router.push(`/case/${c.id}`)}>
+                        <h4 className="font-bold text-indigo-950 text-base md:text-lg mb-2">{c.title}</h4>
+                        <p className="text-gray-800 text-sm md:text-base leading-relaxed whitespace-pre-wrap">{c.description}</p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Tab Content: Videos */}
-            {activeTab === "videos" && (
-              <div>
-                {myVideos.length === 0 ? (
-                  <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-gray-200">
-                    You haven't uploaded any videos yet.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {myVideos.map(v => (
-                      <div key={v.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-                        <div className="aspect-video bg-gray-900 relative">
-                          <video src={v.videoUrl} controls className="w-full h-full object-cover"></video>
+                      {/* Post Image */}
+                      {c.imageUrl && (
+                        <div className="border-t border-b border-gray-100 overflow-hidden bg-gray-50 max-h-[450px] flex items-center justify-center cursor-pointer" onClick={() => router.push(`/case/${c.id}`)}>
+                          <img src={c.imageUrl || undefined} alt={c.title} className="w-full object-contain max-h-[450px] hover:scale-[1.01] transition duration-200" />
                         </div>
-                        <div className="p-4">
-                          <h3 className="font-bold text-lg text-gray-900 mb-1">{v.title}</h3>
-                          <p className="text-sm text-gray-500 mb-3">{new Date(v.createdAt).toLocaleDateString()}</p>
-                          <p className="text-gray-700 line-clamp-2 mb-4">{v.description}</p>
-                          
-                          <div className="flex gap-2 border-t border-gray-100 pt-4">
-                            <button 
-                              onClick={() => {
-                                const newTitle = prompt("Enter new title:", v.title);
-                                if (newTitle === null) return;
-                                const newDesc = prompt("Enter new description:", v.description);
-                                if (newDesc === null) return;
-                                
-                                fetch(`/api/videos/${v.id}`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ title: newTitle, description: newDesc })
-                                }).then(res => {
-                                  if(res.ok) {
-                                    setMyVideos(myVideos.map(video => video.id === v.id ? {...video, title: newTitle, description: newDesc} : video));
-                                  } else {
-                                    alert('Failed to update video');
-                                  }
-                                });
-                              }} 
-                              className="flex-1 text-center text-blue-600 hover:bg-blue-50 py-2 rounded transition font-medium"
-                            >
-                              Edit
-                            </button>
-                            <button 
-                              onClick={() => {
-                                if(confirm("Are you sure you want to delete this video?")) {
-                                  fetch(`/api/videos/${v.id}`, { method: 'DELETE' })
-                                  .then(res => {
-                                    if(res.ok) {
-                                      setMyVideos(myVideos.filter(video => video.id !== v.id));
-                                    } else {
-                                      alert('Failed to delete video');
-                                    }
-                                  });
-                                }
-                              }} 
-                              className="flex-1 text-center text-red-600 hover:bg-red-50 py-2 rounded transition font-medium"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                      )}
 
-      {/* Friends List Modal */}
-      {showFriendsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center flex-shrink-0">
-              <h3 className="text-xl font-bold text-white">{friendCount} Friends</h3>
-              <button onClick={() => setShowFriendsModal(false)} className="text-white hover:text-gray-200">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1 p-4">
-              {friends.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No friends yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {friends.map(f => (
-                    <div key={f.id} onClick={() => { setShowFriendsModal(false); router.push(`/doctor/${f.id}`); }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                        {f.profileImage ? <img src={f.profileImage} alt="" className="w-full h-full object-cover" /> : <svg className="w-full h-full text-gray-400 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+                      {/* Post Stats */}
+                      <div className="px-4 py-2.5 border-b border-gray-100 flex justify-between text-xs text-gray-500 font-medium">
+                        <div className="flex items-center gap-1.5">
+                          <span className="flex items-center justify-center bg-blue-500 text-white rounded-full p-0.5"><svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a2 2 0 00-.8 1.6v.8z" /></svg></span>
+                          <span>{c._count?.reactions || 0} Reactions</span>
+                        </div>
+                        <div className="flex gap-3">
+                          <span>{c._count?.comments || 0} Comments</span>
+                          <span>{c._count?.views || 0} Views</span>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">Dr. {f.fullName}</p>
-                        <p className="text-sm text-gray-500 truncate">{f.specialization || 'Doctor'}{f.hospital ? ` • ${f.hospital}` : ''}</p>
+
+                      {/* Post Interactive Buttons */}
+                      <div className="px-2 py-1 flex gap-1 bg-white">
+                        <button onClick={() => router.push(`/case/${c.id}`)} className="flex-1 flex items-center justify-center gap-2 hover:bg-gray-100 text-gray-600 font-bold py-2 rounded-lg text-sm transition">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                          <span>Like</span>
+                        </button>
+                        <button onClick={() => router.push(`/case/${c.id}`)} className="flex-1 flex items-center justify-center gap-2 hover:bg-gray-100 text-gray-600 font-bold py-2 rounded-lg text-sm transition">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                          <span>Comment</span>
+                        </button>
                       </div>
-                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
                   ))}
                 </div>
               )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Tab 2: Videos */}
+        {activeTab === "videos" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Uploaded Videos</h2>
+            {myVideos.length === 0 ? (
+              <p className="text-center text-gray-500 py-10">You haven't uploaded any video cases yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {myVideos.map(v => (
+                  <div key={v.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition flex flex-col">
+                    <div className="aspect-video bg-gray-950 relative">
+                      <video src={v.videoUrl} controls className="w-full h-full object-cover"></video>
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-lg mb-1">{v.title}</h3>
+                        <p className="text-xs text-gray-500 mb-2">{new Date(v.createdAt).toLocaleDateString()}</p>
+                        <p className="text-gray-700 text-sm line-clamp-2">{v.description}</p>
+                      </div>
+                      
+                      <div className="flex gap-2 border-t border-gray-100 pt-4 mt-4">
+                        <button 
+                          onClick={() => {
+                            const newTitle = prompt("Enter new title:", v.title);
+                            if (newTitle === null) return;
+                            const newDesc = prompt("Enter new description:", v.description);
+                            if (newDesc === null) return;
+                            
+                            fetch(`/api/videos/${v.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ title: newTitle, description: newDesc })
+                            }).then(res => {
+                              if(res.ok) {
+                                setMyVideos(myVideos.map(video => video.id === v.id ? {...video, title: newTitle, description: newDesc} : video));
+                              } else {
+                                alert('Failed to update video');
+                              }
+                            });
+                          }} 
+                          className="flex-1 text-center text-blue-600 hover:bg-blue-50 py-2 rounded-lg transition font-bold text-sm"
+                        >
+                          Edit Details
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if(confirm("Are you sure you want to delete this video?")) {
+                              fetch(`/api/videos/${v.id}`, { method: 'DELETE' })
+                              .then(res => {
+                                if(res.ok) {
+                                  setMyVideos(myVideos.filter(video => video.id !== v.id));
+                                } else {
+                                  alert('Failed to delete video');
+                                }
+                              });
+                            }
+                          }} 
+                          className="flex-1 text-center text-red-600 hover:bg-red-50 py-2 rounded-lg transition font-bold text-sm"
+                        >
+                          Delete Video
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Photos */}
+        {activeTab === "photos" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Photos Directory</h2>
+            {myCases.filter(c => c.imageUrl).length === 0 ? (
+              <p className="text-center text-gray-500 py-10">You haven't uploaded any photos yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {myCases.filter(c => c.imageUrl).map(c => (
+                  <div 
+                    key={c.id} 
+                    className="relative group aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 cursor-pointer"
+                    onClick={() => router.push(`/case/${c.id}`)}
+                  >
+                    <img src={c.imageUrl || undefined} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-end p-2.5">
+                      <p className="text-white text-xs font-bold truncate w-full">{c.title}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 4: Friends */}
+        {activeTab === "friends" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Friends Directory</h2>
+                <p className="text-sm text-gray-500">{friendCount} friend{friendCount !== 1 ? 's' : ''} total</p>
+              </div>
+              <div className="w-full sm:w-64 relative">
+                <input 
+                  type="text" 
+                  placeholder="Search friends..." 
+                  value={friendsSearchQuery}
+                  onChange={(e) => setFriendsSearchQuery(e.target.value)}
+                  className="w-full border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+                <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
+            </div>
+
+            {filteredFriends.length === 0 ? (
+              <p className="text-center text-gray-500 py-10">No friends found.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {filteredFriends.map(f => (
+                  <div 
+                    key={f.id} 
+                    onClick={() => router.push(`/doctor/${f.id}`)}
+                    className="border border-gray-200 rounded-xl p-4 flex gap-4 items-center hover:shadow-md cursor-pointer transition bg-white"
+                  >
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      {f.profileImage ? <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold text-xl uppercase">{f.fullName[0]}</div>}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-gray-900 truncate">Dr. {f.fullName}</p>
+                      <p className="text-xs text-blue-600 font-semibold truncate">{f.specialization || "Medical Practitioner"}</p>
+                      {f.hospital && <p className="text-xs text-gray-500 truncate mt-0.5">{f.hospital}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 5: About (Details & Edit Form) */}
+        {activeTab === "about" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">{isEditing ? "Edit Personal Details" : "Personal Information"}</h2>
+              {!isEditing && (
+                <button 
+                  onClick={() => setIsEditing(true)} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg text-sm shadow-sm transition"
+                >
+                  Edit Profile
+                </button>
+              )}
+            </div>
+
+            {!isEditing ? (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Details</h3>
+                    <div className="space-y-2 text-sm text-gray-800">
+                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Email:</span> <span className="font-semibold">{doctor?.email}</span></p>
+                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Phone:</span> <span className="font-semibold">{doctor?.phoneNumber}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Identity</h3>
+                    <div className="space-y-2 text-sm text-gray-800">
+                      <p className="flex"><span className="w-24 text-gray-500 font-medium">PMDC No:</span> <span className="font-semibold">{doctor?.pmdcNumber}</span></p>
+                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Status:</span> <span className={`font-bold ${doctor?.isVerified ? 'text-green-600' : 'text-amber-500'}`}>{doctor?.isVerified ? '✓ Verified Practitioner' : 'Verification Pending'}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Career Summary</h3>
+                    <div className="space-y-2 text-sm text-gray-800">
+                      <p className="flex"><span className="w-28 text-gray-500 font-medium">Hospital/Clinic:</span> <span className="font-semibold">{doctor?.hospital || "-"}</span></p>
+                      <p className="flex"><span className="w-28 text-gray-500 font-medium">City:</span> <span className="font-semibold">{doctor?.city || "-"}</span></p>
+                      <p className="flex"><span className="w-28 text-gray-500 font-medium">Experience:</span> <span className="font-semibold">{doctor?.experienceYears ? `${doctor.experienceYears} Years` : "-"}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Qualifications</h3>
+                    <div className="space-y-2 text-sm text-gray-800">
+                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Highest Cert:</span> <span className="font-semibold">{doctor?.qualification || "-"}</span></p>
+                      <p className="flex"><span className="w-24 text-gray-500 font-medium">College:</span> <span className="font-semibold">{doctor?.medicalCollege || "-"}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                {doctor?.bio && (
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Bio / Professional Statement</h3>
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{doctor.bio}</p>
+                  </div>
+                )}
+
+                {(doctor?.linkedinUrl || doctor?.websiteUrl) && (
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Links</h3>
+                    <div className="flex gap-4">
+                      {doctor?.linkedinUrl && <a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0H5C2.24 0 0 2.24 0 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM7.5 19H4.5V9h3v10zM6 7.5C4.62 7.5 3.5 6.38 3.5 5S4.62 2.5 6 2.5 8.5 3.62 8.5 5 7.38 7.5 6 7.5zM19.5 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V9h3v1.77c1.4-2.59 7-2.78 7 2.48V19z"/></svg> LinkedIn</a>}
+                      {doctor?.websiteUrl && <a href={doctor.websiteUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9"></path></svg> Website</a>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                    <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Specialization</label>
+                    <input type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Hospital / Clinic</label>
+                    <input type="text" name="hospital" value={formData.hospital} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">City</label>
+                    <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Highest Qualification</label>
+                    <input type="text" name="qualification" value={formData.qualification} onChange={handleInputChange} placeholder="e.g. MBBS, FCPS" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Medical College</label>
+                    <input type="text" name="medicalCollege" value={formData.medicalCollege} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Years of Experience</label>
+                    <input type="number" name="experienceYears" value={formData.experienceYears} onChange={handleInputChange} min="0" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">LinkedIn URL</label>
+                    <input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Website URL</label>
+                    <input type="url" name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
+                  </div>
+                  <div className="md:col-span-2 flex items-center gap-3 py-2">
+                    <input
+                      type="checkbox"
+                      id="isProfilePrivate"
+                      name="isProfilePrivate"
+                      checked={formData.isProfilePrivate}
+                      onChange={(e) => setFormData({ ...formData, isProfilePrivate: e.target.checked })}
+                      className="h-4.5 w-4.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="isProfilePrivate" className="text-sm text-gray-900 font-semibold cursor-pointer">Keep my clinical cases private (visible only to mutual friends)</label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Profile Background (Cover Photo)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                      {COVER_PRESETS.map((preset) => (
+                        <div 
+                          key={preset.name}
+                          onClick={() => setFormData(prev => ({ ...prev, coverImage: preset.url }))}
+                          className={`relative cursor-pointer aspect-[3/1] rounded-lg overflow-hidden border-2 transition ${
+                            formData.coverImage === preset.url ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-1">
+                            <span className="text-[10px] sm:text-xs text-white font-bold text-center">{preset.name}</span>
+                          </div>
+                          {formData.coverImage === preset.url && (
+                            <div className="absolute top-1 right-1 bg-blue-600 text-white rounded-full p-0.5">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2.5 px-4 rounded-lg cursor-pointer shadow-sm transition text-xs font-bold border border-gray-300 inline-block">
+                        <span>Upload Custom Background Image</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} disabled={uploading} />
+                      </label>
+                      {uploading && <span className="text-xs text-gray-500 animate-pulse font-medium">Uploading file...</span>}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Bio (max 500 characters)</label>
+                    <textarea name="bio" value={formData.bio} onChange={handleInputChange} maxLength={500} rows={4} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition"></textarea>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                  <button type="button" onClick={() => setIsEditing(false)} className="px-5 py-2.5 border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                  <button type="submit" disabled={saving || uploading} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-lg shadow-sm transition">
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

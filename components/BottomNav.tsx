@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function BottomNav() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
 
   // Do not show on auth pages or video meeting pages
   if (

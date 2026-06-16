@@ -106,9 +106,10 @@ export async function POST(req: Request) {
       await transporter.sendMail(mailOptions);
       
       // Also send SMS if phone number is available
-      if (doctor.phoneNum) {
+      const sendPhone = doctor.twoFactorPhone || doctor.phoneNumber;
+      if (sendPhone) {
         const { sendSMS } = require("@/lib/sms");
-        await sendSMS(doctor.phoneNum, `Your MedConnect 2FA code is: ${otpCode}`);
+        await sendSMS(sendPhone, `Your MedConnect 2FA code is: ${otpCode}`);
       }
 
       return NextResponse.json({

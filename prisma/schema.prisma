@@ -34,6 +34,7 @@ model Doctor {
   role               String    @default("DOCTOR")
   verificationStatus String    @default("PENDING")
   isTwoFactorEnabled Boolean   @default(false)
+  twoFactorPhone     String?
   otpCode            String?
   otpExpiry          DateTime?
   resetToken         String?

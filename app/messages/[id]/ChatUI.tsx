@@ -32,6 +32,94 @@ export default function ChatUI({ id }: { id: string }) {
   const socketRef = useRef<Socket | null>(null);
   const currentUserRef = useRef<any>(null);
 
+  const socketInit = useCallback(async () => {
+    try {
+      await fetch("/api/socket");
+    } catch (err) {
+      console.error("Failed to initialize socket route:", err);
+    }
+
+    const socket = io({ path: "/api/socket" });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      // Join the conversation room using the conversationId
+      socket.emit("join_room", id);
+
+      // Register this user as online (use currentUserRef for latest value)
+      const user = currentUserRef.current;
+      if (user?.id) {
+        socket.emit("user_online", user.id);
+      }
+    });
+
+    socket.on("receive_message", (data: any) => {
+      setMessages((prev) => {
+        if (prev.find(m => m.id === data.id)) return prev;
+        return [...prev, data];
+      });
+      // Auto mark as read using ref for latest user data
+      const user = currentUserRef.current;
+      if (user && data.senderId !== user.id) {
+        socket.emit("mark_read", { roomId: id, messageId: data.id });
+      }
+    });
+
+    socket.on("user_typing", (data: any) => {
+      const user = currentUserRef.current;
+      if (user && data.doctorId !== user.id) {
+        setIsTyping(data.isTyping);
+      }
+    });
+    
+    socket.on("online_status", (data: any) => {
+      const user = currentUserRef.current;
+      // Only update online status for the other person (not ourselves)
+      if (user && data.doctorId !== user.id) {
+        setIsOnline(data.isOnline);
+      }
+    });
+    
+    socket.on("message_read", (data: any) => {
+      setMessages((prev) => prev.map(m => m.id === data.messageId ? { ...m, isRead: true } : m));
+    });
+  }, [id]);
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUser(data);
+      }
+    } catch (err) {}
+  }, []);
+
+  const fetchMessages = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    try {
+      const res = await fetch(`/api/messages/${id}`);
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          router.push("/messages");
+          return;
+        }
+        const text = await res.text();
+        throw new Error(`Failed to load messages (Status: ${res.status}). Details: ${text.substring(0, 50)}`);
+      }
+      const isMutedHeader = res.headers.get("X-Chat-Muted");
+      if (isMutedHeader !== null) {
+        setIsChatMuted(isMutedHeader === "true");
+      }
+      const data = await res.json();
+      setMessages(data);
+    } catch (err: any) {
+      if (showLoading) setError(err.message);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [id, router]);
+
   // Keep the ref in sync with state so socket handlers have latest value
   useEffect(() => {
     currentUserRef.current = currentUser;
@@ -138,58 +226,7 @@ export default function ChatUI({ id }: { id: string }) {
     };
   }, []);
 
-  const socketInit = useCallback(async () => {
-    try {
-      await fetch("/api/socket");
-    } catch (err) {
-      console.error("Failed to initialize socket route:", err);
-    }
-
-    const socket = io({ path: "/api/socket" });
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      // Join the conversation room using the conversationId
-      socket.emit("join_room", id);
-
-      // Register this user as online (use currentUserRef for latest value)
-      const user = currentUserRef.current;
-      if (user?.id) {
-        socket.emit("user_online", user.id);
-      }
-    });
-
-    socket.on("receive_message", (data: any) => {
-      setMessages((prev) => {
-        if (prev.find(m => m.id === data.id)) return prev;
-        return [...prev, data];
-      });
-      // Auto mark as read using ref for latest user data
-      const user = currentUserRef.current;
-      if (user && data.senderId !== user.id) {
-        socket.emit("mark_read", { roomId: id, messageId: data.id });
-      }
-    });
-
-    socket.on("user_typing", (data: any) => {
-      const user = currentUserRef.current;
-      if (user && data.doctorId !== user.id) {
-        setIsTyping(data.isTyping);
-      }
-    });
-    
-    socket.on("online_status", (data: any) => {
-      const user = currentUserRef.current;
-      // Only update online status for the other person (not ourselves)
-      if (user && data.doctorId !== user.id) {
-        setIsOnline(data.isOnline);
-      }
-    });
-    
-    socket.on("message_read", (data: any) => {
-      setMessages((prev) => prev.map(m => m.id === data.messageId ? { ...m, isRead: true } : m));
-    });
-  }, [id]);
+  // socketInit removed from here and moved to the top
 
   // Once we have currentUser, register online status
   useEffect(() => {
@@ -204,40 +241,7 @@ export default function ChatUI({ id }: { id: string }) {
     }
   };
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      const res = await fetch("/api/profile");
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentUser(data);
-      }
-    } catch (err) {}
-  }, []);
-
-  const fetchMessages = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    try {
-      const res = await fetch(`/api/messages/${id}`);
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          router.push("/messages");
-          return;
-        }
-        const text = await res.text();
-        throw new Error(`Failed to load messages (Status: ${res.status}). Details: ${text.substring(0, 50)}`);
-      }
-      const isMutedHeader = res.headers.get("X-Chat-Muted");
-      if (isMutedHeader !== null) {
-        setIsChatMuted(isMutedHeader === "true");
-      }
-      const data = await res.json();
-      setMessages(data);
-    } catch (err: any) {
-      if (showLoading) setError(err.message);
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  }, [id, router]);
+  // fetchProfile and fetchMessages removed from here and moved to the top
 
   const handleTouchStart = (msgId: string) => {
     if (touchTimerRef.current) clearTimeout(touchTimerRef.current);

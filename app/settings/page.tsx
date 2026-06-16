@@ -16,6 +16,14 @@ export default function SettingsPage() {
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
 
+  // 2FA modal state
+  const [showTwoFactorModal, setShowTwoFactorModal] = useState(false);
+  const [twoFactorPhoneInput, setTwoFactorPhoneInput] = useState("");
+  const [twoFactorOtpInput, setTwoFactorOtpInput] = useState("");
+  const [twoFactorStep, setTwoFactorStep] = useState<"phone" | "otp">("phone");
+  const [twoFactorModalError, setTwoFactorModalError] = useState("");
+  const [twoFactorModalLoading, setTwoFactorModalLoading] = useState(false);
+
   // Change Password state
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -96,6 +104,58 @@ export default function SettingsPage() {
       setError(err.message || "Failed to save settings");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleRequestOtp = async () => {
+    if (!twoFactorPhoneInput.trim()) {
+      setTwoFactorModalError("Phone number is required");
+      return;
+    }
+    setTwoFactorModalError("");
+    setTwoFactorModalLoading(true);
+    try {
+      const res = await fetch("/api/settings/2fa/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: twoFactorPhoneInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to send verification code");
+      }
+      setTwoFactorStep("otp");
+    } catch (err: any) {
+      setTwoFactorModalError(err.message || "Failed to request code");
+    } finally {
+      setTwoFactorModalLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!twoFactorOtpInput.trim() || twoFactorOtpInput.length !== 6) {
+      setTwoFactorModalError("Please enter a valid 6-digit code");
+      return;
+    }
+    setTwoFactorModalError("");
+    setTwoFactorModalLoading(true);
+    try {
+      const res = await fetch("/api/settings/2fa/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: twoFactorPhoneInput, otpCode: twoFactorOtpInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Verification failed");
+      }
+      setIsTwoFactorEnabled(true);
+      setShowTwoFactorModal(false);
+      setSuccess("Two-Factor Authentication has been enabled successfully!");
+    } catch (err: any) {
+      setTwoFactorModalError(err.message || "Failed to verify code");
+    } finally {
+      setTwoFactorModalLoading(false);
     }
   };
 
@@ -280,7 +340,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition mt-2">
                   <div className="flex-1 pr-4">
                     <h4 className="font-semibold text-gray-900">Two-Factor Authentication (2FA)</h4>
-                    <p className="text-sm text-gray-500 mt-1">We&apos;ll ask for a login code via email if we notice a login from an unrecognized device.</p>
+                    <p className="text-sm text-gray-500 mt-1">We&apos;ll ask for a login code via SMS to your verified phone number (or email) to secure unrecognized logins.</p>
                   </div>
                   <div className="mt-2 sm:mt-0">
                     <button
@@ -288,9 +348,18 @@ export default function SettingsPage() {
                       role="switch"
                       aria-checked={isTwoFactorEnabled}
                       onClick={() => {
-                        const newValue = !isTwoFactorEnabled;
-                        setIsTwoFactorEnabled(newValue);
-                        handleSave(newValue);
+                        if (isTwoFactorEnabled) {
+                          if (confirm("Are you sure you want to disable Two-Factor Authentication? This will make your account less secure.")) {
+                            setIsTwoFactorEnabled(false);
+                            handleSave(false);
+                          }
+                        } else {
+                          setTwoFactorPhoneInput("");
+                          setTwoFactorOtpInput("");
+                          setTwoFactorStep("phone");
+                          setTwoFactorModalError("");
+                          setShowTwoFactorModal(true);
+                        }
                       }}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
                         isTwoFactorEnabled ? 'bg-blue-600' : 'bg-gray-300'
@@ -439,30 +508,95 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Delete Account Confirmation Modal */}
-      {showDeleteConfirm && (
+      {/* 2FA Setup Modal */}
+      {showTwoFactorModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center">
-            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-900">Set Up Two-Factor Authentication</h3>
+              <button 
+                onClick={() => setShowTwoFactorModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Account?</h3>
-            <p className="text-gray-600 mb-6">Are you sure? This cannot be undone. All your data will be permanently deleted.</p>
+            
+            <div className="p-6">
+              {twoFactorModalError && (
+                <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
+                  {twoFactorModalError}
+                </div>
+              )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteLoading}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition disabled:opacity-70"
-              >
-                {deleteLoading ? "Deleting..." : "Delete Account"}
-              </button>
+              {twoFactorStep === "phone" ? (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    Select a phone number where we should send your 6-digit verification code when logging in from unrecognized devices.
+                  </p>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                  <input 
+                    type="tel"
+                    placeholder="e.g. +923001234567"
+                    value={twoFactorPhoneInput}
+                    onChange={(e) => setTwoFactorPhoneInput(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-black text-lg mb-6"
+                  />
+                  <div className="flex justify-end gap-3">
+                    <button 
+                      onClick={() => setShowTwoFactorModal(false)}
+                      className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={handleRequestOtp}
+                      disabled={twoFactorModalLoading || !twoFactorPhoneInput.trim()}
+                      className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow hover:bg-blue-700 transition disabled:opacity-50"
+                    >
+                      {twoFactorModalLoading ? "Sending..." : "Send Code"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    We've sent a 6-digit verification code to <strong>{twoFactorPhoneInput}</strong> (and your registered email). Enter the code below to complete the setup.
+                  </p>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Verification Code</label>
+                  <input 
+                    type="text"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={twoFactorOtpInput}
+                    onChange={(e) => setTwoFactorOtpInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-center text-black font-mono text-3xl tracking-[0.5em] mb-6"
+                  />
+                  <div className="flex justify-between items-center">
+                    <button 
+                      onClick={() => setTwoFactorStep("phone")}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium transition"
+                    >
+                      ← Back to edit phone
+                    </button>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => setShowTwoFactorModal(false)}
+                        className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={handleVerifyOtp}
+                        disabled={twoFactorModalLoading || twoFactorOtpInput.length !== 6}
+                        className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow hover:bg-blue-700 transition disabled:opacity-50"
+                      >
+                        {twoFactorModalLoading ? "Verifying..." : "Verify & Enable"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
