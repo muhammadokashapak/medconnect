@@ -82,12 +82,7 @@ export default function ChatPage() {
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
-      const { scrollHeight, clientHeight } = chatContainerRef.current;
-      if (scrollHeight > clientHeight) {
-        chatContainerRef.current.scrollTop = scrollHeight;
-      }
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   };
 
