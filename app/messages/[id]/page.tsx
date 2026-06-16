@@ -49,6 +49,18 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        document.documentElement.style.setProperty('--vh', `${window.visualViewport.height}px`);
+        window.scrollTo(0, 0);
+      }
+    };
+    window.visualViewport?.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+  }, []);
+
   const socketInit = async () => {
     await fetch("/api/socket"); // ensure socket route is hit
     socket = io({ path: "/api/socket" });
@@ -270,7 +282,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 h-[100dvh] z-[100] flex flex-col bg-gray-50 overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col bg-gray-50 overflow-hidden" style={{ height: 'var(--vh, 100dvh)' }}>
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
