@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 type DoctorSummary = {
@@ -64,7 +64,7 @@ export default function CaseDetailsPage() {
   const [commentError, setCommentError] = useState("");
   const [followActionMsg, setFollowActionMsg] = useState("");
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
     try {
       const res = await fetch("/api/profile");
       if (res.ok) {
@@ -74,9 +74,9 @@ export default function CaseDetailsPage() {
     } catch {
       // ignore
     }
-  };
+  }, []);
 
-  const fetchCaseDetails = async () => {
+  const fetchCaseDetails = useCallback(async () => {
     try {
       const res = await fetch(`/api/cases/${params?.id}`);
       if (!res.ok) {
@@ -100,7 +100,7 @@ export default function CaseDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params?.id, router, editMode]);
 
   useEffect(() => {
     const load = async () => {
@@ -117,7 +117,7 @@ export default function CaseDetailsPage() {
       } catch {}
     };
     load();
-  }, [params?.id]);
+  }, [params?.id, fetchCaseDetails, fetchCurrentUser]);
 
   const handleReact = async () => {
     try {

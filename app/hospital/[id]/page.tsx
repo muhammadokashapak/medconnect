@@ -46,6 +46,7 @@ export default function HospitalProfilePage() {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!hospital) return <div className="min-h-screen flex items-center justify-center text-gray-500">Hospital profile not found.</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">

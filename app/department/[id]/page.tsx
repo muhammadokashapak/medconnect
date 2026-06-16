@@ -24,6 +24,7 @@ export default function DepartmentProfilePage() {
   }, [id, router]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!department) return <div className="min-h-screen flex items-center justify-center text-gray-500">Department not found.</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
