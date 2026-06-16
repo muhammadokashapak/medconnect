@@ -94,7 +94,12 @@ export default function AppointmentsPage() {
     setAcceptingApptId(null);
   };
 
-  const startVideoCall = (roomId: string) => {
+  const startVideoCall = async (roomId: string) => {
+    try {
+      await fetch(`/api/appointments/${roomId}/notify`, { method: "POST" });
+    } catch (err) {
+      console.error("Error notifying participant:", err);
+    }
     router.push(`/video/${roomId}`);
   };
 
