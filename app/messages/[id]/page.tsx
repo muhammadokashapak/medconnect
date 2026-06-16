@@ -24,6 +24,7 @@ export default function ChatPage() {
   const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -31,7 +32,12 @@ export default function ChatPage() {
     fetchMessages();
     socketInit();
 
+    const pollInterval = setInterval(() => {
+      fetchMessages(false);
+    }, 10000); // Poll every 10 seconds for read/delivered receipts
+
     return () => {
+      clearInterval(pollInterval);
       if (socket) {
         socket.emit("leave_room", params?.id);
         socket.disconnect();
@@ -75,7 +81,14 @@ export default function ChatPage() {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      const { scrollHeight, clientHeight } = chatContainerRef.current;
+      if (scrollHeight > clientHeight) {
+        chatContainerRef.current.scrollTop = scrollHeight;
+      }
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const fetchProfile = async () => {
@@ -301,7 +314,7 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-6">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-6">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">No messages yet. Send a message to start the consultation.</div>
         ) : (
