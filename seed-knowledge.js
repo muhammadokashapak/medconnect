@@ -1,12 +1,70 @@
 require('dotenv').config({ path: '.env.local' });
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { PrismaPg } = require('@prisma/adapter-pg');
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("Seeding Knowledge Hub...");
   
   await prisma.guideline.createMany({
     data: [
+      {
+        title: 'Management of Acute Coronary Syndrome',
+        specialty: 'Cardiology',
+        description: 'Protocols for diagnosing and managing ACS, including NSTEMI and STEMI.',
+        content: '1. Immediate ECG and cardiac biomarkers. 2. Administer Aspirin, Nitroglycerin. 3. Consider reperfusion therapy for STEMI.',
+        version: 'v3.1'
+      },
+      {
+        title: 'Stroke (Ischemic) Acute Management',
+        specialty: 'Neurology',
+        description: 'Guidelines for early assessment and intervention in acute ischemic stroke.',
+        content: '1. Non-contrast CT to rule out hemorrhage. 2. Thrombolysis (rtPA) if within 4.5 hours. 3. BP management.',
+        version: 'v4.0'
+      },
+      {
+        title: 'Asthma Exacerbation Management in Pediatrics',
+        specialty: 'Pediatrics',
+        description: 'Stepwise approach to acute asthma in children.',
+        content: '1. Assess severity (mild/mod/severe). 2. SABA nebulization. 3. Systemic corticosteroids for moderate to severe cases.',
+        version: 'v2.5'
+      },
+      {
+        title: 'Sepsis Surviving Campaign 2026',
+        specialty: 'General Surgery',
+        description: 'Updated guidelines for sepsis and septic shock.',
+        content: '1. Measure lactate. 2. Obtain blood cultures prior to antibiotics. 3. Administer broad-spectrum antibiotics. 4. Rapid administration of 30 mL/kg crystalloid for hypotension.',
+        version: 'v5.0'
+      },
+      {
+        title: 'Major Depressive Disorder Treatment',
+        specialty: 'Psychiatry',
+        description: 'Clinical guidelines for pharmacological and psychological treatment of MDD.',
+        content: '1. First-line SSRIs or SNRIs. 2. Cognitive Behavioral Therapy (CBT). 3. Monitor for suicidal ideation closely.',
+        version: 'v1.8'
+      },
+      {
+        title: 'Osteoarthritis Management in Knee and Hip',
+        specialty: 'Orthopedics',
+        description: 'Non-surgical and surgical management options for OA.',
+        content: '1. Weight loss and physical therapy. 2. Oral or topical NSAIDs. 3. Intra-articular corticosteroid injections. 4. Total joint replacement for advanced cases.',
+        version: 'v3.2'
+      },
+      {
+        title: 'Acne Vulgaris Treatment Protocol',
+        specialty: 'Dermatology',
+        description: 'Step-by-step treatment algorithm for varying severities of acne.',
+        content: '1. Mild: Topical retinoids, Benzoyl Peroxide. 2. Moderate: Add oral antibiotics (e.g., Doxycycline). 3. Severe: Consider oral Isotretinoin.',
+        version: 'v2.0'
+      },
+      {
+        title: 'Breast Cancer Screening Guidelines',
+        specialty: 'Oncology',
+        description: 'Recommendations for mammography and genetic testing.',
+        content: '1. Annual mammogram starting at age 40 for average risk. 2. Earlier screening for BRCA mutation carriers. 3. Clinical breast exam not recommended for average risk screening.',
+        version: 'v4.1'
+      },
       {
         title: 'Hypertension Management 2026',
         specialty: 'Cardiology',

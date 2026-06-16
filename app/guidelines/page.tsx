@@ -21,6 +21,15 @@ export default function GuidelinesPage() {
     fetchData();
   }, [specialty]);
 
+  const shuffleArray = (array: any[]) => {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  };
+
   const fetchData = async () => {
     setLoading(true);
     let url = "/api/guidelines?";
@@ -30,7 +39,11 @@ export default function GuidelinesPage() {
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error("Unauthorized");
-      setGuidelines(await res.json());
+      let data = await res.json();
+      if (!specialty || specialty === "All") {
+        data = shuffleArray(data);
+      }
+      setGuidelines(data);
     } catch (err) {
       router.push("/login");
     } finally {

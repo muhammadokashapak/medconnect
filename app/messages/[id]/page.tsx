@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState, useRef, use } from "react";
+import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 let socket: Socket;
 
-export default function ChatPage() {
+export default function ChatPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const params = useParams();
+  const { id } = use(props.params);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -44,11 +44,11 @@ export default function ChatPage() {
     return () => {
       clearInterval(pollInterval);
       if (socket) {
-        socket.emit("leave_room", params?.id);
+        socket.emit("leave_room", id);
         socket.disconnect();
       }
     };
-  }, [params?.id]);
+  }, [id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -84,7 +84,7 @@ export default function ChatPage() {
     socket = io({ path: "/api/socket" });
 
     socket.on("connect", () => {
-      socket.emit("join_room", params?.id);
+      socket.emit("join_room", id);
       
       // Determine the recipient ID. 
       // If we don't have it yet, we can't check, but we can check if messages are loaded.
@@ -101,7 +101,7 @@ export default function ChatPage() {
       });
       // automatically mark read when receiving
       if (currentUser && data.senderId !== currentUser.id) {
-        socket.emit("mark_read", { roomId: params?.id, messageId: data.id });
+        socket.emit("mark_read", { roomId: id, messageId: data.id });
       }
     });
 
@@ -112,7 +112,7 @@ export default function ChatPage() {
     });
     
     socket.on("online_status", (data: any) => {
-      if (data.doctorId === params?.id || data.doctorId !== currentUser?.id) {
+      if (data.doctorId === id || data.doctorId !== currentUser?.id) {
         setIsOnline(data.isOnline);
       }
     });
@@ -141,7 +141,7 @@ export default function ChatPage() {
   const fetchMessages = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const res = await fetch(`/api/messages/${params?.id}`);
+      const res = await fetch(`/api/messages/${id}`);
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) router.push("/messages");
         throw new Error("Failed to load messages");
@@ -170,12 +170,12 @@ export default function ChatPage() {
     setNewMessage(e.target.value);
     
     if (socket && currentUser) {
-      socket.emit("typing", { roomId: params?.id, doctorId: currentUser.id, isTyping: true });
+      socket.emit("typing", { roomId: id, doctorId: currentUser.id, isTyping: true });
       
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       
       typingTimeoutRef.current = setTimeout(() => {
-        socket.emit("typing", { roomId: params?.id, doctorId: currentUser.id, isTyping: false });
+        socket.emit("typing", { roomId: id, doctorId: currentUser.id, isTyping: false });
       }, 2000);
     }
   };
@@ -216,14 +216,14 @@ export default function ChatPage() {
   };
 
   const sendActualMessage = async (contentStr: string, attachmentUrl?: string, attachmentType?: string) => {
-    if (socket && currentUser) socket.emit("typing", { roomId: params?.id, doctorId: currentUser.id, isTyping: false });
+    if (socket && currentUser) socket.emit("typing", { roomId: id, doctorId: currentUser.id, isTyping: false });
 
     try {
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          conversationId: params?.id, 
+          conversationId: id, 
           content: contentStr, 
           replyToId: replyToMessage?.id,
           attachmentUrl,
@@ -261,7 +261,7 @@ export default function ChatPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              conversationId: params?.id,
+              conversationId: id,
               userMessage: contentStr,
               aiBotId,
               doctorName: currentUser.fullName
@@ -323,7 +323,7 @@ export default function ChatPage() {
       await fetch('/api/messages/mute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId: params?.id, isMuted: newMuteStatus })
+        body: JSON.stringify({ conversationId: id, isMuted: newMuteStatus })
       });
     } catch (err) {
       setIsChatMuted(!newMuteStatus); // revert on error

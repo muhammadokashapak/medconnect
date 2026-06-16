@@ -31,17 +31,31 @@ export default function AppointmentsPage() {
     }
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: string, newDate?: string) => {
     try {
+      const payload: any = { appointmentId: id, status };
+      if (newDate) payload.scheduledAt = newDate;
+
       await fetch("/api/appointments", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appointmentId: id, status })
+        body: JSON.stringify(payload)
       });
       fetchData();
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handlePostpone = (id: string) => {
+    const newDate = prompt("Enter a new proposed date and time (e.g., YYYY-MM-DD HH:MM AM/PM):");
+    if (!newDate) return;
+    const parsedDate = new Date(newDate);
+    if (isNaN(parsedDate.getTime())) {
+      alert("Invalid date format. Please try again.");
+      return;
+    }
+    updateStatus(id, "POSTPONED", parsedDate.toISOString());
   };
 
   const deleteAppointment = async (id: string) => {
@@ -109,6 +123,7 @@ export default function AppointmentsPage() {
                         <>
                           <button onClick={() => updateStatus(app.id, "ACCEPTED")} className="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">Accept</button>
                           <button onClick={() => updateStatus(app.id, "CANCELLED")} className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">Reject</button>
+                          <button onClick={() => handlePostpone(app.id)} className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600">Postpone</button>
                         </>
                       )}
 
@@ -117,10 +132,13 @@ export default function AppointmentsPage() {
                       )}
 
                       {app.status === "ACCEPTED" && (
-                        <button onClick={() => startVideoCall(app.id)} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                          Join Call
-                        </button>
+                        <>
+                          <button onClick={() => startVideoCall(app.id)} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Join Call
+                          </button>
+                          <button onClick={() => handlePostpone(app.id)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200">Postpone</button>
+                        </>
                       )}
                     </div>
                   </li>

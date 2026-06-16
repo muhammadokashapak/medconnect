@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { sendPushNotification } from "@/lib/push-helper";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!";
 
@@ -54,8 +55,27 @@ export async function POST(req: Request) {
         consultantId,
         scheduledAt: new Date(scheduledAt),
         notes
-      }
+      },
+      include: { doctor: { select: { fullName: true } } }
     });
+
+    if (consultantId) {
+      await prisma.notification.create({
+        data: {
+          title: "Appointment Request",
+          message: `You received an appointment request from Dr. ${appointment.doctor.fullName}. If you are free and willing, you should join.`,
+          type: "SYSTEM",
+          actionUrl: "/appointments",
+          doctorId: consultantId
+        }
+      });
+      
+      await sendPushNotification(consultantId, {
+        title: "Appointment Request",
+        body: `You received an appointment request from Dr. ${appointment.doctor.fullName}.`,
+        url: "/appointments"
+      });
+    }
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error) {
@@ -68,11 +88,16 @@ export async function PUT(req: Request) {
     const userId = getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { appointmentId, status } = await req.json();
+    const { appointmentId, status, scheduledAt } = await req.json();
+
+    const data: any = { status };
+    if (scheduledAt) {
+      data.scheduledAt = new Date(scheduledAt);
+    }
 
     const appointment = await prisma.appointment.update({
       where: { id: appointmentId },
-      data: { status }
+      data
     });
 
     return NextResponse.json(appointment, { status: 200 });
