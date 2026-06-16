@@ -47,6 +47,11 @@ export default function ProfilePage() {
   const [showAvatarLightbox, setShowAvatarLightbox] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showCoverMenu, setShowCoverMenu] = useState(false);
+  const [showCoverLightbox, setShowCoverLightbox] = useState(false);
+  const [showCoverPresetsModal, setShowCoverPresetsModal] = useState(false);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
+
   const [doctor, setDoctor] = useState<DoctorProfileData | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -283,18 +288,35 @@ export default function ProfilePage() {
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-[1100px] mx-auto">
           {/* Cover Photo */}
-          <div className="h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative group overflow-hidden sm:rounded-b-2xl">
+          <div 
+            onClick={() => setShowCoverMenu(true)}
+            className="h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative group overflow-hidden sm:rounded-b-2xl cursor-pointer hover:brightness-95 transition"
+          >
             {(doctor?.coverImage) ? (
               <img src={doctor.coverImage || undefined} alt="Cover" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-r from-indigo-500 via-blue-500 to-teal-500"></div>
             )}
             
-            <label className="absolute bottom-4 right-4 bg-black/60 hover:bg-black/80 text-white py-2 px-4 rounded-lg cursor-pointer shadow-md transition flex items-center gap-2 text-sm font-semibold backdrop-blur-sm">
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCoverMenu(true);
+              }}
+              className="absolute bottom-4 right-4 bg-black/60 hover:bg-black/80 text-white py-2 px-4 rounded-lg cursor-pointer shadow-md transition flex items-center gap-2 text-sm font-semibold backdrop-blur-sm z-10"
+            >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
               <span>{uploading ? "Uploading..." : "Edit Cover Photo"}</span>
-              <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} disabled={uploading} />
-            </label>
+            </button>
+            <input 
+              type="file" 
+              ref={coverFileInputRef}
+              className="hidden" 
+              accept="image/*" 
+              onChange={handleCoverUpload} 
+              disabled={uploading} 
+            />
           </div>
 
           {/* Profile Name & Primary Actions */}
@@ -1060,6 +1082,194 @@ export default function ProfilePage() {
           <div className="absolute bottom-6 left-0 right-0 text-center">
             <h4 className="text-white text-lg font-bold">Dr. {doctor?.fullName}</h4>
             <p className="text-gray-400 text-sm">{doctor?.specialization || "General Medicine"}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Facebook-style Cover Photo Options Modal */}
+      {showCoverMenu && (
+        <div className="fixed inset-0 bg-black/60 z-[999] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+          <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900 text-lg">Cover Photo</h3>
+              <button 
+                type="button"
+                onClick={() => setShowCoverMenu(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-1.5 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-3 space-y-1">
+              {doctor?.coverImage && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCoverMenu(false);
+                    setShowCoverLightbox(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 rounded-xl transition text-gray-700 font-semibold text-sm"
+                >
+                  <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900">View Cover Photo</div>
+                    <div className="text-xs text-gray-500 font-normal">See your cover background image in full size</div>
+                  </div>
+                </button>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCoverMenu(false);
+                  coverFileInputRef.current?.click();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 rounded-xl transition text-gray-700 font-semibold text-sm"
+              >
+                <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-bold text-gray-900">Upload New Photo</div>
+                  <div className="text-xs text-gray-500 font-normal">Upload a background image from your device</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCoverMenu(false);
+                  setShowCoverPresetsModal(true);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 rounded-xl transition text-gray-700 font-semibold text-sm"
+              >
+                <div className="bg-purple-50 text-purple-600 p-2 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-bold text-gray-900">Choose from Presets</div>
+                  <div className="text-xs text-gray-500 font-normal">Select from premium default background designs</div>
+                </div>
+              </button>
+            </div>
+            
+            <div className="p-3 bg-gray-50 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowCoverMenu(false)}
+                className="w-full py-2.5 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl text-center transition text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cover Photo Lightbox */}
+      {showCoverLightbox && (
+        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col items-center justify-center p-4 transition-opacity duration-300 animate-in fade-in">
+          {/* Close button top right */}
+          <button
+            type="button"
+            onClick={() => setShowCoverLightbox(false)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition backdrop-blur-md z-[10000]"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          
+          {/* Image */}
+          <div className="relative max-w-5xl max-h-[80vh] w-full flex items-center justify-center">
+            <img 
+              src={doctor?.coverImage || undefined} 
+              alt="Cover" 
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+            />
+          </div>
+          
+          {/* Footer details */}
+          <div className="absolute bottom-6 left-0 right-0 text-center">
+            <h4 className="text-white text-lg font-bold">Dr. {doctor?.fullName} — Cover Photo</h4>
+          </div>
+        </div>
+      )}
+
+      {/* Cover Presets Modal Dialog (Facebook style selection) */}
+      {showCoverPresetsModal && (
+        <div className="fixed inset-0 bg-black/60 z-[999] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+          <div className="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900 text-lg">Select Cover Preset</h3>
+              <button 
+                type="button"
+                onClick={() => setShowCoverPresetsModal(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-1.5 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {COVER_PRESETS.map((preset) => (
+                  <div 
+                    key={preset.name}
+                    onClick={async () => {
+                      setShowCoverPresetsModal(false);
+                      setUploading(true);
+                      try {
+                        setFormData(prev => ({ ...prev, coverImage: preset.url }));
+                        await fetch("/api/profile", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ ...formData, coverImage: preset.url }),
+                        });
+                        setDoctor(prev => prev ? { ...prev, coverImage: preset.url } : null);
+                        setSuccess("Cover photo updated successfully!");
+                      } catch (err) {
+                        console.error(err);
+                      } finally {
+                        setUploading(false);
+                      }
+                    }}
+                    className={`relative cursor-pointer aspect-[3/1.8] rounded-xl overflow-hidden border-2 transition ${
+                      doctor?.coverImage === preset.url ? "border-blue-600 ring-4 ring-blue-100" : "border-gray-200 hover:border-blue-400"
+                    }`}
+                  >
+                    <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2">
+                      <span className="text-xs text-white font-bold text-center">{preset.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowCoverPresetsModal(false)}
+                className="py-2 px-5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl text-center transition text-sm"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

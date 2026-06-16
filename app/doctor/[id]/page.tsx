@@ -65,6 +65,7 @@ export default function DoctorProfilePage() {
   const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
   const [friendsSearchQuery, setFriendsSearchQuery] = useState("");
   const [showAvatarLightbox, setShowAvatarLightbox] = useState(false);
+  const [showCoverLightbox, setShowCoverLightbox] = useState(false);
 
   const loadDoctorProfile = async () => {
     try {
@@ -311,7 +312,12 @@ export default function DoctorProfilePage() {
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-[1100px] mx-auto">
           {/* Cover Photo */}
-          <div className="h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden sm:rounded-b-2xl">
+          <div 
+            onClick={() => doctor.coverImage && setShowCoverLightbox(true)}
+            className={`h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden sm:rounded-b-2xl ${
+              doctor.coverImage ? "cursor-pointer hover:brightness-95 transition" : ""
+            }`}
+          >
             {doctor.coverImage ? (
               <img src={doctor.coverImage || undefined} alt="Cover" className="w-full h-full object-cover" />
             ) : (
@@ -866,6 +872,36 @@ export default function DoctorProfilePage() {
           <div className="absolute bottom-6 left-0 right-0 text-center">
             <h4 className="text-white text-lg font-bold">Dr. {doctor.fullName}</h4>
             <p className="text-gray-400 text-sm">{doctor.specialization || "General Medicine"}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Cover Photo Lightbox */}
+      {showCoverLightbox && (
+        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col items-center justify-center p-4 transition-opacity duration-300 animate-in fade-in">
+          {/* Close button top right */}
+          <button
+            type="button"
+            onClick={() => setShowCoverLightbox(false)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition backdrop-blur-md z-[10000]"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          
+          {/* Image */}
+          <div className="relative max-w-5xl max-h-[80vh] w-full flex items-center justify-center">
+            <img 
+              src={doctor.coverImage || undefined} 
+              alt="Cover" 
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+            />
+          </div>
+          
+          {/* Footer details */}
+          <div className="absolute bottom-6 left-0 right-0 text-center">
+            <h4 className="text-white text-lg font-bold">Dr. {doctor.fullName} — Cover Photo</h4>
           </div>
         </div>
       )}
