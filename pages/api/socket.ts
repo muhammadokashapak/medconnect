@@ -43,47 +43,13 @@ export default function SocketHandler(req: NextApiRequest, res: NextApiResponse 
         socket.to(data.roomId).emit('user_typing', data);
       });
 
-      socket.on("sendMessage", async ({ conversationId, senderId, content, replyToId, attachmentUrl, attachmentType }) => {
-        try {
-          const message = await prisma.message.create({
-            data: {
-              conversationId,
-              senderId,
-              content,
-              replyToId,
-              attachmentUrl,
-              attachmentType,
-            },
-            include: {
-              sender: { select: { id: true, fullName: true, profileImage: true } },
-              replyTo: { select: { id: true, content: true, sender: { select: { fullName: true } } } },
-            },
-          });
-
-          // Update participants' unread status
-          await prisma.conversationParticipant.updateMany({
-            where: { conversationId, doctorId: { not: senderId } },
-            data: { hasUnread: true },
-          });
-
-          io.to(`conversation_${conversationId}`).emit("newMessage", message);
-
-          // Also emit to user's general room to update conversation list previews
-          const participants = await prisma.conversationParticipant.findMany({
-            where: { conversationId },
-            select: { doctorId: true },
-          });
-
-          participants.forEach(p => {
-            io.to(`user_${p.doctorId}`).emit("conversationUpdated", { conversationId, message });
-          });
-        } catch (error) {
-          console.error("Socket: Error sending message", error);
-        }
-      });
-
       socket.on('send_message', (data: any) => {
-        io.to(data.roomId).emit('receive_message', data);
+        // data.roomId is the conversationId from the client
+        if (data.roomId) {
+          socket.to(data.roomId).emit('receive_message', data);
+        } else if (data.conversationId) {
+          socket.to(data.conversationId).emit('receive_message', data);
+        }
       });
       
       socket.on('mark_read', (data: { roomId: string, messageId: string }) => {
@@ -136,7 +102,13 @@ export default function SocketHandler(req: NextApiRequest, res: NextApiResponse 
           onlineUsers.delete(doctorId);
           io.emit('online_status', { doctorId, isOnline: false });
         }
-        socket.broadcast.emit('call_ended'); // generic catch-all for disconnects during calls
+        // Only notify rooms this socket was in about call ending, not everyone
+        const rooms = Array.from(socket.rooms);
+        rooms.forEach(room => {
+          if (room !== socket.id) {
+            socket.to(room).emit('call_ended');
+          }
+        });
       });
     });
   }

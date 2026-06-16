@@ -65,10 +65,16 @@ export default function AppointmentsPage() {
     setShowAcceptModal(true);
   };
 
-  const deleteAppointment = async (id: string) => {
-    if (!confirm("Are you sure you want to cancel this appointment request?")) return;
+  const deleteAppointment = async (appt: any) => {
+    const otherParty = currentUser?.id === appt.consultantId ? appt.doctor : appt.consultant;
+    const otherName = otherParty?.fullName || "the other doctor";
+    const dateStr = new Date(appt.scheduledAt).toLocaleString("en-US", {
+      weekday: "short", month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+    if (!confirm(`Are you sure you want to cancel your meeting with Dr. ${otherName} on ${dateStr}? They will be notified.`)) return;
     try {
-      await fetch(`/api/appointments?id=${id}`, { method: "DELETE" });
+      await fetch(`/api/appointments?id=${appt.id}`, { method: "DELETE" });
       fetchData();
     } catch (err) {
       console.error(err);
@@ -242,12 +248,12 @@ export default function AppointmentsPage() {
                     {isPendingForMe && (
                       <div className="flex flex-wrap gap-2 justify-end w-full">
                         <button onClick={() => updateStatus(app.id, "ACCEPTED")} className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 hover:shadow transition-all">Accept</button>
-                        <button onClick={() => deleteAppointment(app.id)} className="flex-1 md:flex-none px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">Delete</button>
+                        <button onClick={() => deleteAppointment(app)} className="flex-1 md:flex-none px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">Delete</button>
                       </div>
                     )}
 
                     {!isPendingForMe && !isConsultant && (
-                      <button onClick={() => deleteAppointment(app.id)} className="w-full md:w-auto px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">
+                      <button onClick={() => deleteAppointment(app)} className="w-full md:w-auto px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">
                         {app.status === "ACCEPTED" ? "Delete Meeting" : "Cancel Request"}
                       </button>
                     )}

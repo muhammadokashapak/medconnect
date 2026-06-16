@@ -157,13 +157,26 @@ export default function MessagesListPage() {
                             e.stopPropagation(); 
                             if(confirm("Clear all messages in this chat?")) {
                               await fetch(`/api/messages/${conv.id}`, { method: 'DELETE' });
-                              alert("Chat cleared successfully!"); 
+                              fetchConversations();
                             }
                             setActiveMenu(null); 
                           }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Clear Chat
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); alert("Chat muted successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          <button onClick={async (e) => { 
+                            e.stopPropagation(); 
+                            try {
+                              await fetch('/api/messages/mute', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ conversationId: conv.id, isMuted: true })
+                              });
+                              alert("Chat muted successfully!");
+                            } catch (err) {
+                              alert("Failed to mute chat");
+                            }
+                            setActiveMenu(null); 
+                          }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Mute Chat
                           </button>
                           <button onClick={async (e) => { 

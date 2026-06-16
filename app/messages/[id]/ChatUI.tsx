@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-let socket: Socket;
 
 export default function ChatUI({ id }: { id: string }) {
   const router = useRouter();
@@ -26,10 +24,29 @@ export default function ChatUI({ id }: { id: string }) {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const currentUserRef = useRef<any>(null);
+
+  // Keep the ref in sync with state so socket handlers have latest value
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
+  // Recipient derived from messages
+  const recipientMsg = messages.find(m => m.senderId !== currentUser?.id);
+  const recipientId = recipientMsg?.senderId;
+  const recipientName = recipientMsg?.sender?.fullName || "Doctor";
+  const recipientAvatar = recipientMsg?.sender?.profileImage || null;
+
+  // Emit check_online_status when we know the recipient
+  useEffect(() => {
+    if (socketRef.current?.connected && recipientId) {
+      socketRef.current.emit('check_online_status', recipientId);
+    }
+  }, [recipientId]);
 
   useEffect(() => {
     fetchProfile();
@@ -38,13 +55,14 @@ export default function ChatUI({ id }: { id: string }) {
 
     const pollInterval = setInterval(() => {
       fetchMessages(false);
-    }, 10000); // Poll every 10 seconds for read/delivered receipts
+    }, 10000);
 
     return () => {
       clearInterval(pollInterval);
-      if (socket) {
-        socket.emit("leave_room", id);
-        socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.emit("leave_room", id);
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
     };
   }, [id]);
@@ -63,7 +81,6 @@ export default function ChatUI({ id }: { id: string }) {
     window.visualViewport?.addEventListener('resize', handleResize);
     handleResize();
     
-    // Lock body scroll to prevent iOS safari from pushing the page up
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
@@ -79,39 +96,49 @@ export default function ChatUI({ id }: { id: string }) {
   }, []);
 
   const socketInit = async () => {
-    await fetch("/api/socket"); // ensure socket route is hit
-    socket = io({ path: "/api/socket" });
+    try {
+      await fetch("/api/socket");
+    } catch (err) {
+      console.error("Failed to initialize socket route:", err);
+    }
+
+    const socket = io({ path: "/api/socket" });
+    socketRef.current = socket;
 
     socket.on("connect", () => {
+      // Join the conversation room using the conversationId
       socket.emit("join_room", id);
-      
-      // Determine the recipient ID. 
-      // If we don't have it yet, we can't check, but we can check if messages are loaded.
-      // Usually params.id is the conversationId, not the doctorId.
-      // The other doctor ID is recipientMsg?.senderId. Wait, this function runs early.
-      // We'll emit check_online_status inside a useEffect once recipient is known.
+
+      // Register this user as online (use currentUserRef for latest value)
+      const user = currentUserRef.current;
+      if (user?.id) {
+        socket.emit("user_online", user.id);
+      }
     });
 
     socket.on("receive_message", (data: any) => {
       setMessages((prev) => {
-        // Prevent duplicate appending
         if (prev.find(m => m.id === data.id)) return prev;
         return [...prev, data];
       });
-      // automatically mark read when receiving
-      if (currentUser && data.senderId !== currentUser.id) {
+      // Auto mark as read using ref for latest user data
+      const user = currentUserRef.current;
+      if (user && data.senderId !== user.id) {
         socket.emit("mark_read", { roomId: id, messageId: data.id });
       }
     });
 
     socket.on("user_typing", (data: any) => {
-      if (currentUser && data.doctorId !== currentUser.id) {
+      const user = currentUserRef.current;
+      if (user && data.doctorId !== user.id) {
         setIsTyping(data.isTyping);
       }
     });
     
     socket.on("online_status", (data: any) => {
-      if (data.doctorId === id || data.doctorId !== currentUser?.id) {
+      const user = currentUserRef.current;
+      // Only update online status for the other person (not ourselves)
+      if (user && data.doctorId !== user.id) {
         setIsOnline(data.isOnline);
       }
     });
@@ -120,6 +147,13 @@ export default function ChatUI({ id }: { id: string }) {
       setMessages((prev) => prev.map(m => m.id === data.messageId ? { ...m, isRead: true } : m));
     });
   };
+
+  // Once we have currentUser, register online status
+  useEffect(() => {
+    if (currentUser?.id && socketRef.current?.connected) {
+      socketRef.current.emit("user_online", currentUser.id);
+    }
+  }, [currentUser]);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -162,7 +196,7 @@ export default function ChatUI({ id }: { id: string }) {
     if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
     touchTimerRef.current = setTimeout(() => {
       setActiveMenu(msgId);
-    }, 500); // 500ms long press
+    }, 500);
   };
 
   const handleTouchEnd = () => {
@@ -172,6 +206,7 @@ export default function ChatUI({ id }: { id: string }) {
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     
+    const socket = socketRef.current;
     if (socket && currentUser) {
       socket.emit("typing", { roomId: id, doctorId: currentUser.id, isTyping: true });
       
@@ -202,12 +237,8 @@ export default function ChatUI({ id }: { id: string }) {
       if (!res.ok) throw new Error("Upload failed");
       
       const { url } = await res.json();
-      
-      // Determine type
       const isImage = file.type.startsWith('image/');
       const attachmentType = isImage ? 'IMAGE' : 'DOCUMENT';
-
-      // Automatically send the attachment as a message
       await sendActualMessage("", url, attachmentType);
       
     } catch (err: any) {
@@ -219,6 +250,7 @@ export default function ChatUI({ id }: { id: string }) {
   };
 
   const sendActualMessage = async (contentStr: string, attachmentUrl?: string, attachmentType?: string) => {
+    const socket = socketRef.current;
     if (socket && currentUser) socket.emit("typing", { roomId: id, doctorId: currentUser.id, isTyping: false });
 
     try {
@@ -239,10 +271,11 @@ export default function ChatUI({ id }: { id: string }) {
       setMessages(prev => [...prev, savedMessage]);
       setReplyToMessage(null);
       
-      // Emit via socket
+      // Emit via socket with the conversationId as roomId (FIXED)
       if (socket) {
         const payload = {
           ...savedMessage,
+          roomId: id, // FIX: Include the roomId so socket server can broadcast correctly
           sender: {
             fullName: currentUser.fullName,
             profileImage: currentUser.profileImage
@@ -256,7 +289,7 @@ export default function ChatUI({ id }: { id: string }) {
         socket.emit("send_message", payload);
       }
       
-      // AI handling (optional for attachments, maybe skip if just an attachment)
+      // AI handling
       if (isAiConversation && aiBotId && contentStr) {
         setIsTyping(true);
         try {
@@ -329,9 +362,19 @@ export default function ChatUI({ id }: { id: string }) {
         body: JSON.stringify({ conversationId: id, isMuted: newMuteStatus })
       });
     } catch (err) {
-      setIsChatMuted(!newMuteStatus); // revert on error
+      setIsChatMuted(!newMuteStatus);
     }
     setActiveMenu(null);
+  };
+
+  const handleDeleteChat = async () => {
+    if (!confirm("Delete entire chat? This will remove all messages permanently.")) return;
+    try {
+      await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      router.push("/messages");
+    } catch (err) {
+      alert("Failed to delete chat");
+    }
   };
 
   const handlePinToggle = async (msg: any) => {
@@ -352,24 +395,22 @@ export default function ChatUI({ id }: { id: string }) {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading chat...</div>;
+    return <div className="min-h-screen flex items-center justify-center"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><span className="text-gray-500 font-medium">Loading chat...</span></div></div>;
   }
 
   if (error) {
-    return <div className="min-h-screen flex items-center justify-center text-red-600">{error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm mx-4 text-center">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+          </div>
+          <p className="text-red-600 font-medium mb-4">{error}</p>
+          <button onClick={() => router.push("/messages")} className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition">Back to Messages</button>
+        </div>
+      </div>
+    );
   }
-
-  // Find recipient info from messages
-  const recipientMsg = messages.find(m => m.senderId !== currentUser?.id);
-  const recipientId = recipientMsg?.senderId;
-  const recipientName = recipientMsg?.sender?.fullName || "Doctor";
-  const recipientAvatar = recipientMsg?.sender?.profileImage || null;
-
-  useEffect(() => {
-    if (socket && socket.connected && recipientId) {
-      socket.emit('check_online_status', recipientId);
-    }
-  }, [recipientId]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col bg-[#efeae2] overflow-hidden" style={{ height: 'var(--vh, 100dvh)' }}>
@@ -409,7 +450,7 @@ export default function ChatUI({ id }: { id: string }) {
               <svg className="w-5 h-5 hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
             )}
           </button>
-          <button onClick={() => confirm("Delete entire chat?") && router.push("/messages")} className="hover:text-red-600" title="Delete Chat">
+          <button onClick={handleDeleteChat} className="hover:text-red-600" title="Delete Chat">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
         </div>
@@ -487,7 +528,7 @@ export default function ChatUI({ id }: { id: string }) {
                         </div>
                       )}
 
-                      {/* Timestamp & Ticks (Floating Bottom Right) */}
+                      {/* Timestamp & Ticks */}
                       <div className="absolute bottom-1 right-1.5 flex items-center gap-1">
                         <span className="text-[11px] text-gray-500 font-medium">
                           {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -510,7 +551,7 @@ export default function ChatUI({ id }: { id: string }) {
                   {/* Dropdown Menu */}
                   {activeMenu === msg.id && (
                     <div className={`absolute top-full mt-1 z-[100] w-48 bg-white rounded-lg shadow-[0_2px_15px_rgba(0,0,0,0.15)] py-1 border border-gray-100 ${isMine ? "right-0" : "left-0"}`}>
-                      <button onClick={() => setReplyToMessage(msg)} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Reply</button>
+                      <button onClick={() => { setReplyToMessage(msg); setActiveMenu(null); }} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Reply</button>
                       <button onClick={() => handleCopyMessage(msg.content)} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Copy</button>
                       <button onClick={() => { setActiveMenu(null); alert(`Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}`); }} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Info</button>
                       {isMine && (
@@ -576,7 +617,7 @@ export default function ChatUI({ id }: { id: string }) {
 
               <div className="flex-1 bg-white rounded-3xl flex items-center min-h-[44px] shadow-sm overflow-hidden">
                 <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} className={`p-2 ml-1 transition ${showAttachMenu ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
-                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.13 0-12.13 0zm11.363-1.108s1.18-.312 1.724 1.088c.277.71.597 2.026 2.378 3.227 1.483 1.002 3.002.828 3.002.828.073-.028.143-.058.215-.093.315-.153.625-.333.918-.543.16-.115.313-.244.453-.385.12-.12.235-.255.335-.398.083-.11.16-.233.223-.363.048-.098.085-.205.115-.315.023-.083.04-.173.05-.265.01-.083.015-.17.013-.258-.008-.198-.035-.398-.08-.593-.05-.228-.125-.453-.223-.668-.113-.248-.25-.483-.41-.7-.18-.248-.388-.475-.625-.678-.26-.228-.545-.43-.848-.603-.33-.188-.683-.343-1.05-.465-.4-.135-.815-.233-1.24-.298-.458-.07-1.025-.098-1.5-.098z" opacity=".4"></path></svg>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                 </button>
                 <input
                   type="text"
@@ -586,23 +627,13 @@ export default function ChatUI({ id }: { id: string }) {
                   disabled={uploading}
                   className="flex-1 bg-transparent border-none py-2.5 px-2 focus:outline-none focus:ring-0 text-[15px] text-gray-900 leading-tight disabled:opacity-50"
                 />
-                <button type="button" className="text-gray-400 p-2 hover:text-gray-600">
-                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path></svg>
-                </button>
-                <button type="button" className="text-gray-400 p-2 mr-1 hover:text-gray-600">
-                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M11.832 23.498a10.428 10.428 0 0 1-8.525-4.482A10.375 10.375 0 0 1 1.464 13.1c.07-2.67.994-5.188 2.673-7.288s3.945-3.415 6.452-3.722a10.354 10.354 0 0 1 7.29 1.83 10.44 10.44 0 0 1 3.947 5.753c.488 1.821.574 3.737.251 5.61-.318 1.821-1.114 3.49-2.329 4.881a10.334 10.334 0 0 1-4.717 3.018 10.224 10.224 0 0 1-3.2.516zm1.144-1.218a8.966 8.966 0 0 0 2.802-.45 9.074 9.074 0 0 0 4.14-2.651c1.074-1.229 1.776-2.705 2.056-4.316.284-1.656.208-3.349-.224-4.96A9.155 9.155 0 0 0 18.28 4.845a9.07 9.07 0 0 0-6.396-1.605c-2.217.272-4.225 1.436-5.711 3.292-1.485 1.857-2.302 4.088-2.363 6.451a9.074 9.074 0 0 0 1.616 5.188 9.13 9.13 0 0 0 7.481 3.931l.069-.022zM12 9.475a2.525 2.525 0 1 1 0 5.05 2.525 2.525 0 0 1 0-5.05z"></path></svg>
-                </button>
               </div>
               <button
                 type="submit"
                 disabled={sending || uploading || !newMessage.trim()}
                 className="bg-indigo-600 text-white w-[44px] h-[44px] rounded-full shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center flex-shrink-0"
               >
-                {newMessage.trim() || uploading ? (
-                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current ml-1"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M11.999 14.942c2.001 0 3.531-1.53 3.531-3.531V4.35c0-2.001-1.53-3.531-3.531-3.531S8.468 2.349 8.468 4.35v7.061c0 2.001 1.53 3.531 3.531 3.531zm6.238-3.531c0 3.531-2.942 6.002-6.238 6.002s-6.238-2.471-6.238-6.002H3.761c0 4.001 3.178 7.297 7.061 7.885v3.884h2.354v-3.884c3.884-.588 7.061-3.884 7.061-7.885h-2.001z"></path></svg>
-                )}
+                <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current ml-1"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
               </button>
             </form>
           )}

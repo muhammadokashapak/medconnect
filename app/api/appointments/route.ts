@@ -149,10 +149,59 @@ export async function DELETE(req: Request) {
 
     if (!id) return NextResponse.json({ message: "Missing id" }, { status: 400 });
 
+    // Fetch the appointment with doctor and consultant info before deleting
+    const appointment = await prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        doctor: { select: { id: true, fullName: true } },
+        consultant: { select: { id: true, fullName: true } }
+      }
+    });
+
+    if (!appointment) return NextResponse.json({ message: "Appointment not found" }, { status: 404 });
+
+    // Authorization: only allow doctor or consultant to delete
+    if (appointment.doctorId !== userId && appointment.consultantId !== userId) {
+      return NextResponse.json({ message: "You are not authorized to cancel this appointment" }, { status: 403 });
+    }
+
+    // Determine who cancelled and who to notify
+    const isDoctor = appointment.doctorId === userId;
+    const cancellerName = isDoctor ? appointment.doctor?.fullName : appointment.consultant?.fullName;
+    const otherUserId = isDoctor ? appointment.consultantId : appointment.doctorId;
+    const scheduledDate = new Date(appointment.scheduledAt).toLocaleString("en-US", {
+      weekday: "short", month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+
+    // Delete any linked consultation first (cascade safety)
+    await prisma.consultation.deleteMany({ where: { appointmentId: id } });
+
+    // Delete the appointment
     await prisma.appointment.delete({ where: { id } });
+
+    // Notify the other party
+    if (otherUserId && cancellerName) {
+      await prisma.notification.create({
+        data: {
+          title: "Meeting Cancelled",
+          message: `Dr. ${cancellerName} has cancelled the meeting scheduled for ${scheduledDate}. It has been removed from your schedule.`,
+          type: "SYSTEM",
+          actionUrl: "/appointments",
+          doctorId: otherUserId
+        }
+      });
+
+      await sendPushNotification(otherUserId, {
+        title: "Meeting Cancelled",
+        body: `Dr. ${cancellerName} has cancelled the meeting scheduled for ${scheduledDate}. It has been removed from your schedule.`,
+        url: "/appointments"
+      });
+    }
 
     return NextResponse.json({ message: "Deleted successfully" }, { status: 200 });
   } catch (error) {
+    console.error("Delete appointment error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
