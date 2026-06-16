@@ -45,8 +45,36 @@ export async function GET(req: Request) {
       data: { isDelivered: true }
     });
 
+    let tokenStatus = null;
+    const tokenCookie = req.headers.get("cookie")?.split("; ").find(c => c.startsWith("medconnect_token="));
+    if (tokenCookie) {
+      const token = tokenCookie.split("=")[1];
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        tokenStatus = decoded.verificationStatus;
+      } catch(e) {}
+    }
+
     const { password, ...safeDoctor } = doctor;
-    return NextResponse.json(safeDoctor, { status: 200 });
+    const response = NextResponse.json(safeDoctor, { status: 200 });
+
+    if (doctor.verificationStatus === 'VERIFIED' && tokenStatus !== 'VERIFIED') {
+      const isLegacyUser = new Date(doctor.createdAt) < new Date("2026-06-16T00:00:00Z");
+      const newToken = jwt.sign(
+        { id: doctor.id, email: doctor.email, role: doctor.role, verificationStatus: "VERIFIED", isLegacyUser },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+      response.cookies.set("medconnect_token", newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+        path: "/",
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error("Profile GET Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
