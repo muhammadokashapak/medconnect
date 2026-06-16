@@ -54,6 +54,10 @@ export default function ProfilePage() {
   const [myVideos, setMyVideos] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">("posts");
 
+  const [friends, setFriends] = useState<any[]>([]);
+  const [friendCount, setFriendCount] = useState(0);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -99,6 +103,14 @@ export default function ProfilePage() {
               if (Array.isArray(videosData)) {
                 setMyVideos(videosData);
               }
+            }).catch(console.error);
+
+          // Fetch friends
+          fetch('/api/friends')
+            .then(r => r.json())
+            .then(friendsData => {
+              setFriends(friendsData.friends || []);
+              setFriendCount(friendsData.friendCount || 0);
             }).catch(console.error);
         }
 
@@ -293,6 +305,16 @@ export default function ProfilePage() {
               </h2>
               <p className="text-gray-500">{doctor?.specialization || "Specialization not specified"}</p>
               <p className="text-sm text-gray-500 mt-1">PMDC: {doctor?.pmdcNumber} • {doctor?.isVerified ? "Verified" : "Verification Pending"}</p>
+              <div className="flex items-center gap-3 mt-2">
+                <button onClick={() => setShowFriendsModal(true)} className="flex items-center gap-1.5 text-gray-600 hover:text-indigo-600 transition">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                  <span className="font-bold text-gray-900">{friendCount}</span>
+                  <span className="text-gray-500">Friends</span>
+                </button>
+                <button onClick={() => setShowFriendsModal(true)} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition">
+                  See All Friends
+                </button>
+              </div>
             </div>
           </div>
 
@@ -558,6 +580,40 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Friends List Modal */}
+      {showFriendsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center flex-shrink-0">
+              <h3 className="text-xl font-bold text-white">{friendCount} Friends</h3>
+              <button onClick={() => setShowFriendsModal(false)} className="text-white hover:text-gray-200">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              {friends.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No friends yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {friends.map(f => (
+                    <div key={f.id} onClick={() => { setShowFriendsModal(false); router.push(`/doctor/${f.id}`); }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                        {f.profileImage ? <img src={f.profileImage} alt="" className="w-full h-full object-cover" /> : <svg className="w-full h-full text-gray-400 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">Dr. {f.fullName}</p>
+                        <p className="text-sm text-gray-500 truncate">{f.specialization || 'Doctor'}{f.hospital ? ` • ${f.hospital}` : ''}</p>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -121,6 +121,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: `Request ${action}ed` }, { status: 200 });
     }
 
+    if (action === "unfriend") {
+      if (!targetId || targetId === userId) {
+        return NextResponse.json({ message: "Invalid target" }, { status: 400 });
+      }
+
+      // Delete the FriendRequest record (could be in either direction)
+      await prisma.friendRequest.deleteMany({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: targetId },
+            { senderId: targetId, receiverId: userId },
+          ],
+        },
+      });
+
+      // Delete bi-directional Follow records
+      await prisma.follow.deleteMany({
+        where: {
+          OR: [
+            { followerId: userId, followingId: targetId },
+            { followerId: targetId, followingId: userId },
+          ],
+        },
+      });
+
+      return NextResponse.json({ message: "Unfriended successfully" }, { status: 200 });
+    }
+
     return NextResponse.json({ message: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("Friend Request Error:", error);

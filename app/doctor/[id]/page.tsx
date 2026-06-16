@@ -56,6 +56,12 @@ export default function DoctorProfilePage() {
   const [proposedTime, setProposedTime] = useState("");
   const [notes, setNotes] = useState("");
 
+  const [friends, setFriends] = useState<any[]>([]);
+  const [friendCount, setFriendCount] = useState(0);
+  const [mutualFriends, setMutualFriends] = useState<any[]>([]);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -67,6 +73,15 @@ export default function DoctorProfilePage() {
         if (profileRes.ok) {
           const profileData = await profileRes.json();
           setCurrentDoctorId(profileData.id);
+
+          // Fetch mutual friends (only if viewing another doctor's profile)
+          if (profileData.id !== String(params?.id)) {
+            const mutualRes = await fetch(`/api/friends/mutual?doctorId=${params?.id}`);
+            if (mutualRes.ok) {
+              const mutualData = await mutualRes.json();
+              setMutualFriends(mutualData.mutualFriends || []);
+            }
+          }
         }
 
         if (!doctorRes.ok) {
@@ -80,6 +95,14 @@ export default function DoctorProfilePage() {
 
         const doctorData = await doctorRes.json();
         setDoctor(doctorData);
+
+        // Fetch friends
+        const friendsRes = await fetch(`/api/friends?doctorId=${params?.id}`);
+        if (friendsRes.ok) {
+          const friendsData = await friendsRes.json();
+          setFriends(friendsData.friends || []);
+          setFriendCount(friendsData.friendCount || 0);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to load doctor profile";
         setError(message);
@@ -203,9 +226,34 @@ export default function DoctorProfilePage() {
   const renderFriendButton = () => {
     if (doctor.isFriend) {
       return (
-        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-green-600 text-white">
-          Friends
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowUnfriendConfirm(!showUnfriendConfirm)} 
+            className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-green-600 text-white hover:bg-green-700"
+          >
+            ✓ Friends
+          </button>
+          {showUnfriendConfirm && (
+            <div className="absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-gray-200 p-2 z-50 w-48">
+              <button 
+                onClick={async () => {
+                  setShowUnfriendConfirm(false);
+                  setFriendUpdating(true);
+                  try {
+                    await fetch('/api/friend-request', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'unfriend', targetId: doctor.id }) });
+                    await loadDoctorProfile();
+                    const friendsRes = await fetch(`/api/friends?doctorId=${params?.id}`);
+                    if (friendsRes.ok) { const d = await friendsRes.json(); setFriends(d.friends||[]); setFriendCount(d.friendCount||0); }
+                  } catch(e) { alert('Failed to unfriend'); }
+                  setFriendUpdating(false);
+                }}
+                className="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-medium text-sm"
+              >
+                Unfriend
+              </button>
+            </div>
+          )}
+        </div>
       );
     } else if (doctor.friendRequestStatus === "PENDING") {
       return (
@@ -257,7 +305,31 @@ export default function DoctorProfilePage() {
                   )}
                 </h1>
                 <p className="text-lg md:text-xl text-indigo-600 font-medium mt-1">{doctor.specialization || "General Medicine"}</p>
-                
+
+                {/* Friend Count */}
+                <div className="flex items-center gap-4 mt-2">
+                  <button onClick={() => setShowFriendsModal(true)} className="text-gray-600 hover:text-indigo-600 transition">
+                    <span className="font-bold text-gray-900">{friendCount}</span> <span className="text-gray-500">Friends</span>
+                  </button>
+                </div>
+
+                {/* Mutual Friends (only show when viewing another doctor) */}
+                {currentDoctorId && currentDoctorId !== doctor.id && mutualFriends.length > 0 && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex -space-x-2">
+                      {mutualFriends.slice(0, 3).map(mf => (
+                        <div key={mf.id} className="w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+                          {mf.profileImage ? <img src={mf.profileImage} alt="" className="w-full h-full object-cover" /> : <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-gray-700">{mutualFriends.length} mutual friend{mutualFriends.length !== 1 ? 's' : ''}</span>
+                      {mutualFriends.length > 0 && <> including <span className="font-medium text-gray-700">Dr. {mutualFriends[0].fullName}</span>{mutualFriends.length > 1 && <> and <span className="font-medium text-gray-700">Dr. {mutualFriends[1].fullName}</span></>}</>}
+                    </p>
+                  </div>
+                )}
+
                 {/* Buttons Row */}
                 <div className="flex flex-row justify-center md:justify-start gap-3 mt-4 w-full sm:w-auto">
                   <button
@@ -271,6 +343,32 @@ export default function DoctorProfilePage() {
                   
                   {currentDoctorId && currentDoctorId !== doctor.id && (
                     <>
+                      {/* Voice Call */}
+                      <button
+                        onClick={() => {
+                          const roomId = `call_${[currentDoctorId, doctor.id].sort().join('_')}`;
+                          fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'AUDIO', roomId }) });
+                          router.push(`/video/${roomId}`);
+                        }}
+                        className="px-4 py-2.5 rounded-lg shadow font-bold transition text-sm flex items-center justify-center bg-green-600 text-white hover:bg-green-700"
+                        title="Voice Call"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                      </button>
+
+                      {/* Video Call */}
+                      <button
+                        onClick={() => {
+                          const roomId = `call_${[currentDoctorId, doctor.id].sort().join('_')}`;
+                          fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'VIDEO', roomId }) });
+                          router.push(`/video/${roomId}`);
+                        }}
+                        className="px-4 py-2.5 rounded-lg shadow font-bold transition text-sm flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
+                        title="Video Call"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                      </button>
+
                       {doctor.appointment ? (
                         <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-gray-200 text-gray-600">
                           {doctor.appointment.status === "PENDING" ? "Pending Appointment" : "Appointment Scheduled"}
@@ -447,6 +545,43 @@ export default function DoctorProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Friends List Modal */}
+      {showFriendsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center flex-shrink-0">
+              <h3 className="text-xl font-bold text-white">{friendCount} Friends</h3>
+              <button onClick={() => setShowFriendsModal(false)} className="text-white hover:text-gray-200">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              {friends.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No friends yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {friends.map(f => (
+                    <div key={f.id} onClick={() => { setShowFriendsModal(false); router.push(`/doctor/${f.id}`); }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                        {f.profileImage ? <img src={f.profileImage} alt="" className="w-full h-full object-cover" /> : <svg className="w-full h-full text-gray-400 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">Dr. {f.fullName}</p>
+                        <p className="text-sm text-gray-500 truncate">{f.specialization || 'Doctor'}{f.hospital ? ` • ${f.hospital}` : ''}</p>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unfriend Confirm Overlay - close when clicking outside */}
+      {showUnfriendConfirm && <div className="fixed inset-0 z-40" onClick={() => setShowUnfriendConfirm(false)}></div>}
 
       {/* Appointment Modal */}
       {showAppointmentModal && (

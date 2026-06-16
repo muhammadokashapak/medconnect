@@ -21,29 +21,74 @@ export async function GET(req: Request) {
     const userId = getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+    const { searchParams } = new URL(req.url);
+    const doctorId = searchParams.get("doctorId");
+
+    // Determine whose friends to fetch
+    const targetId = doctorId || userId;
+    const isOwnProfile = targetId === userId;
+
+    // Get all friend requests involving the target doctor
     const requests = await prisma.friendRequest.findMany({
       where: {
         OR: [
-          { senderId: userId },
-          { receiverId: userId }
-        ]
+          { senderId: targetId },
+          { receiverId: targetId },
+        ],
+      },
+    });
+
+    // Collect friend IDs (ACCEPTED) and pending IDs (only for own profile)
+    const friendIds: string[] = [];
+    const pendingIds: string[] = [];
+
+    requests.forEach((fr) => {
+      const otherId = fr.senderId === targetId ? fr.receiverId : fr.senderId;
+      if (fr.status === "ACCEPTED") {
+        friendIds.push(otherId);
+      } else if (fr.status === "PENDING" && isOwnProfile) {
+        pendingIds.push(otherId);
       }
     });
 
-    const friends = new Set<string>();
-    const pending = new Set<string>();
-
-    requests.forEach(req => {
-      const otherId = req.senderId === userId ? req.receiverId : req.senderId;
-      if (req.status === "ACCEPTED") {
-        friends.add(otherId);
-      } else if (req.status === "PENDING") {
-        pending.add(otherId);
-      }
+    // Fetch full details for friends
+    const friends = await prisma.doctor.findMany({
+      where: { id: { in: friendIds } },
+      select: {
+        id: true,
+        fullName: true,
+        profileImage: true,
+        specialization: true,
+        hospital: true,
+        city: true,
+      },
     });
 
-    return NextResponse.json({ friends: Array.from(friends), pending: Array.from(pending) }, { status: 200 });
+    // Fetch full details for pending (only own profile)
+    const pending = isOwnProfile
+      ? await prisma.doctor.findMany({
+          where: { id: { in: pendingIds } },
+          select: {
+            id: true,
+            fullName: true,
+            profileImage: true,
+            specialization: true,
+            hospital: true,
+            city: true,
+          },
+        })
+      : [];
+
+    return NextResponse.json(
+      {
+        friends,
+        friendCount: friends.length,
+        ...(isOwnProfile ? { pending } : {}),
+      },
+      { status: 200 }
+    );
   } catch (error) {
+    console.error("Friends Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
