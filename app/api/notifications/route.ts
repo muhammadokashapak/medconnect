@@ -34,3 +34,35 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const userId = getUserIdFromToken(req);
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const all = searchParams.get("all");
+
+    if (all === "true") {
+      await prisma.notification.deleteMany({
+        where: { doctorId: userId }
+      });
+      return NextResponse.json({ message: "All notifications deleted" }, { status: 200 });
+    }
+
+    if (id) {
+      await prisma.notification.delete({
+        where: { id, doctorId: userId }
+      });
+      return NextResponse.json({ message: "Notification deleted" }, { status: 200 });
+    }
+
+    return NextResponse.json({ message: "Invalid request" }, { status: 400 });
+  } catch (error) {
+    console.error("Delete Notifications Error:", error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+  }
+}

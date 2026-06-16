@@ -9,6 +9,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -23,7 +24,8 @@ export default function NotificationsPage() {
       
       if (notifRes.ok) {
         const notifData = await notifRes.json();
-        setNotifications(notifData);
+        const muted = JSON.parse(localStorage.getItem("muted_notification_types") || "[]");
+        setNotifications(notifData.filter((n: any) => !muted.includes(n.type)));
       }
       
       if (freqRes.ok) {
@@ -53,6 +55,33 @@ export default function NotificationsPage() {
     } catch (error) {}
   };
 
+  const deleteAll = async () => {
+    if (!confirm("Are you sure you want to delete all notifications?")) return;
+    try {
+      await fetch("/api/notifications?all=true", { method: "DELETE" });
+      setNotifications([]);
+    } catch (error) {}
+  };
+
+  const deleteSingle = async (id: string) => {
+    try {
+      await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setSelectedNotification(null);
+    } catch (error) {}
+  };
+
+  const muteType = (type: string) => {
+    const muted = JSON.parse(localStorage.getItem("muted_notification_types") || "[]");
+    if (!muted.includes(type)) {
+      muted.push(type);
+      localStorage.setItem("muted_notification_types", JSON.stringify(muted));
+    }
+    setNotifications(prev => prev.filter(n => n.type !== type));
+    setSelectedNotification(null);
+    alert(`Notifications of type '${type}' have been muted.`);
+  };
+
   const handleFriendRequest = async (requestId: string, action: 'accept' | 'decline') => {
     try {
       const res = await fetch("/api/friend-request", {
@@ -66,12 +95,24 @@ export default function NotificationsPage() {
     } catch (error) {}
   };
 
+  const openNotificationOptions = (n: any) => {
+    if (!n.isRead) markSingleRead(n.id);
+    setSelectedNotification(n);
+  };
+
+  const handleOpenAction = (n: any) => {
+    setSelectedNotification(null);
+    if (n.actionUrl) {
+      router.push(n.actionUrl);
+    }
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading notifications...</div>;
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-10 px-4 relative">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
@@ -79,13 +120,18 @@ export default function NotificationsPage() {
             Notifications
             {unreadCount > 0 && <span className="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">{unreadCount}</span>}
           </h1>
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            {notifications.length > 0 && (
+              <button onClick={deleteAll} className="text-sm font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-3 py-2 rounded-lg transition">
+                Delete All
+              </button>
+            )}
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+              <button onClick={markAllRead} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-2 rounded-lg transition">
                 Mark all as read
               </button>
             )}
-            <button onClick={() => router.push("/feed")} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium w-full sm:w-auto text-center">Back to Homepage</button>
+            <button onClick={() => router.push("/feed")} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium w-full sm:w-auto text-center">Back</button>
           </div>
         </div>
 
@@ -118,40 +164,35 @@ export default function NotificationsPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
           {notifications.length === 0 ? (
             <div className="p-8 text-center text-gray-500">You have no notifications.</div>
           ) : (
             <ul className="divide-y divide-gray-200">
               {notifications.map((n) => {
-                const NotificationContent = (
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 mt-1">
-                      {n.type === 'MESSAGE' && <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"></path></svg></div>}
-                      {n.type === 'FOLLOW' && <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg></div>}
-                      {n.type === 'SYSTEM' && <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg></div>}
-                      {!['MESSAGE','FOLLOW','SYSTEM'].includes(n.type) && <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg></div>}
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <p className="text-sm font-bold text-gray-900">{n.title}</p>
-                      <p className="text-sm text-gray-600 mt-1">{n.message}</p>
-                      <p className="text-xs text-gray-400 mt-2">{new Date(n.createdAt).toLocaleString()}</p>
-                    </div>
-                    {!n.isRead && <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>}
-                  </div>
-                );
-
                 return (
-                  <li key={n.id} className={`hover:bg-gray-50 transition ${!n.isRead ? 'bg-indigo-50/50' : ''}`}>
-                    {n.actionUrl ? (
-                      <Link href={n.actionUrl} onClick={() => { if (!n.isRead) markSingleRead(n.id); }} className="p-4 block w-full h-full">
-                        {NotificationContent}
-                      </Link>
-                    ) : (
-                      <div onClick={() => { if (!n.isRead) markSingleRead(n.id); }} className="p-4 block w-full h-full cursor-pointer">
-                        {NotificationContent}
+                  <li key={n.id} className={`hover:bg-gray-50 transition cursor-pointer ${!n.isRead ? 'bg-indigo-50/50' : ''}`} onClick={() => openNotificationOptions(n)}>
+                    <div className="p-4 flex items-start justify-between w-full">
+                      <div className="flex items-start flex-1 pr-4">
+                        <div className="flex-shrink-0 mt-1">
+                          {n.type === 'MESSAGE' && <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"></path></svg></div>}
+                          {n.type === 'FOLLOW' && <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg></div>}
+                          {n.type === 'SYSTEM' && <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg></div>}
+                          {!['MESSAGE','FOLLOW','SYSTEM'].includes(n.type) && <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg></div>}
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-bold text-gray-900">{n.title}</p>
+                          <p className="text-sm text-gray-600 mt-1">{n.message}</p>
+                          <p className="text-xs text-gray-400 mt-2">{new Date(n.createdAt).toLocaleString()}</p>
+                        </div>
                       </div>
-                    )}
+                      <div className="flex flex-col items-end justify-center">
+                        {!n.isRead && <div className="w-2 h-2 bg-red-500 rounded-full mb-2"></div>}
+                        <button className="text-gray-400 hover:text-gray-600 p-2" onClick={(e) => { e.stopPropagation(); openNotificationOptions(n); }}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                        </button>
+                      </div>
+                    </div>
                   </li>
                 );
               })}
@@ -159,6 +200,36 @@ export default function NotificationsPage() {
           )}
         </div>
       </div>
+
+      {/* Options Modal */}
+      {selectedNotification && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4 sm:p-0" onClick={() => setSelectedNotification(null)}>
+          <div className="bg-white rounded-2xl w-full sm:w-96 shadow-2xl transform transition-all overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">Notification Options</h3>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => setSelectedNotification(null)}>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="p-2 flex flex-col gap-1">
+              {selectedNotification.actionUrl && (
+                <button onClick={() => handleOpenAction(selectedNotification)} className="w-full text-left px-4 py-3 text-indigo-600 hover:bg-indigo-50 font-bold rounded-lg flex items-center gap-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                  Open Notification
+                </button>
+              )}
+              <button onClick={() => muteType(selectedNotification.type)} className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100 font-bold rounded-lg flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+                Mute Similar Alerts
+              </button>
+              <button onClick={() => deleteSingle(selectedNotification.id)} className="w-full text-left px-4 py-3 text-rose-600 hover:bg-rose-50 font-bold rounded-lg flex items-center gap-3 mt-1 border-t border-gray-100">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Delete Notification
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
