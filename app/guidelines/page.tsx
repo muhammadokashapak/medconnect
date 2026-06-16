@@ -65,8 +65,7 @@ export default function GuidelinesPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-20">
-        {/* Search Bar */}
-        <div className="bg-white p-2 rounded-2xl shadow-xl border border-gray-100 mb-10 flex flex-col md:flex-row gap-2">
+        <div className="bg-white p-2 rounded-2xl shadow-xl border border-gray-100 mb-6 flex flex-col gap-2 relative z-20">
           <div className="flex-grow flex items-center bg-gray-50 rounded-xl px-4 py-1">
             <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <input 
@@ -77,26 +76,29 @@ export default function GuidelinesPage() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any)}
             />
+            <button onClick={handleSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm ml-2">
+              Search
+            </button>
           </div>
-          <div className="w-full md:w-64">
-            <select 
-              className="w-full border-none bg-gray-50 p-4 rounded-xl focus:ring-0 text-gray-700 font-medium h-full cursor-pointer appearance-none"
-              value={specialty}
-              onChange={(e) => {
-                setSpecialty(e.target.value);
-                // Trigger search immediately on select change
-                setTimeout(fetchData, 0); 
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex overflow-x-auto no-scrollbar gap-2 mb-10 pb-2 relative z-20">
+          {specialties.map(spec => (
+            <button
+              key={spec}
+              onClick={() => {
+                setSpecialty(spec);
               }}
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236B7280\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25rem' }}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                (specialty === spec || (spec === "All" && !specialty))
+                  ? "bg-indigo-600 text-white shadow-md scale-105"
+                  : "bg-white text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 border border-gray-200 shadow-sm"
+              }`}
             >
-              {specialties.map(spec => (
-                <option key={spec} value={spec}>{spec}</option>
-              ))}
-            </select>
-          </div>
-          <button onClick={handleSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl transition-colors shadow-md md:w-auto w-full">
-            Search
-          </button>
+              {spec}
+            </button>
+          ))}
         </div>
 
         {/* Results */}
