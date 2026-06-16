@@ -36,6 +36,7 @@ type DoctorProfile = {
     videoUrl: string;
     createdAt: string;
   }>;
+  appointment?: any;
 };
 
 export default function DoctorProfilePage() {
@@ -48,6 +49,12 @@ export default function DoctorProfilePage() {
   const [friendUpdating, setFriendUpdating] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">("posts");
+
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [bookingAppointment, setBookingAppointment] = useState(false);
+  const [proposedDate, setProposedDate] = useState("");
+  const [proposedTime, setProposedTime] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -127,6 +134,39 @@ export default function DoctorProfilePage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load doctor profile";
       setError(message);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    if (!doctor || !proposedDate || !proposedTime) return;
+    setBookingAppointment(true);
+
+    try {
+      const dateTime = new Date(`${proposedDate}T${proposedTime}`);
+      
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultantId: doctor.id,
+          scheduledAt: dateTime.toISOString(),
+          notes: notes
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Unable to book appointment");
+      }
+
+      setShowAppointmentModal(false);
+      await loadDoctorProfile();
+      alert("Appointment request sent successfully!");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to book appointment";
+      alert(message);
+    } finally {
+      setBookingAppointment(false);
     }
   };
 
@@ -229,7 +269,23 @@ export default function DoctorProfilePage() {
                     {messaging ? "Wait..." : "Message"}
                   </button>
                   
-                  {currentDoctorId && currentDoctorId !== doctor.id && renderFriendButton()}
+                  {currentDoctorId && currentDoctorId !== doctor.id && (
+                    <>
+                      {doctor.appointment ? (
+                        <button disabled className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-gray-200 text-gray-600">
+                          {doctor.appointment.status === "PENDING" ? "Pending Appointment" : "Appointment Scheduled"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setShowAppointmentModal(true)}
+                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg shadow font-bold transition text-sm sm:text-base flex items-center justify-center bg-purple-600 text-white hover:bg-purple-700"
+                        >
+                          Book Appointment
+                        </button>
+                      )}
+                      {renderFriendButton()}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -391,6 +447,45 @@ export default function DoctorProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Appointment Modal */}
+      {showAppointmentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-white">Book Appointment</h3>
+              <button onClick={() => setShowAppointmentModal(false)} className="text-white hover:text-gray-200">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">Suggest a date and time for your appointment with Dr. {doctor.fullName}. The exact time will be confirmed when they accept.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Proposed Date</label>
+                  <input type="date" value={proposedDate} onChange={e => setProposedDate(e.target.value)} className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Proposed Time</label>
+                  <input type="time" value={proposedTime} onChange={e => setProposedTime(e.target.value)} className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                  <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Describe your concern briefly..." className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button disabled={bookingAppointment} onClick={() => setShowAppointmentModal(false)} className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">Cancel</button>
+                <button disabled={bookingAppointment || !proposedDate || !proposedTime} onClick={handleBookAppointment} className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold disabled:opacity-50">
+                  {bookingAppointment ? "Sending..." : "Send Request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -111,11 +111,23 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       orderBy: { createdAt: 'desc' }
     });
 
+    const appointment = await prisma.appointment.findFirst({
+      where: {
+        OR: [
+          { doctorId: userId, consultantId: params.id },
+          { doctorId: params.id, consultantId: userId }
+        ],
+        status: { in: ['PENDING', 'SCHEDULED'] }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
     return NextResponse.json({
       ...doctor,
       isFollowing: Boolean(isFollowing),
       isFriend,
       friendRequestStatus: friendRequest?.status || null,
+      appointment: appointment || null,
       posts,
       videos,
     }, { status: 200 });

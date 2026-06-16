@@ -136,6 +136,9 @@ export default function Navbar() {
                     <Link href="/saved-cases" onClick={closeAll} className="block px-4 py-2 hover:bg-gray-50 flex items-center">
                       <span className="text-xl mr-3">🔖</span> <span className="font-medium text-gray-900 text-sm sm:text-base">Saved Cases</span>
                     </Link>
+                    <Link href="/appointments" onClick={closeAll} className="block px-4 py-2 hover:bg-gray-50 flex items-center">
+                      <span className="text-xl mr-3">📅</span> <span className="font-medium text-gray-900 text-sm sm:text-base">My Appointments</span>
+                    </Link>
                     <Link href="/settings" onClick={closeAll} className="block px-4 py-2 hover:bg-gray-50 flex items-center">
                       <span className="text-xl mr-3">⚙️</span> <span className="font-medium text-gray-900 text-sm sm:text-base">Settings</span>
                     </Link>
