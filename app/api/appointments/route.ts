@@ -97,8 +97,34 @@ export async function PUT(req: Request) {
 
     const appointment = await prisma.appointment.update({
       where: { id: appointmentId },
-      data
+      data,
+      include: { doctor: true, consultant: true }
     });
+
+    if (scheduledAt && status === "POSTPONED") {
+      const isDoctor = appointment.doctorId === userId;
+      const otherUserId = isDoctor ? appointment.consultantId : appointment.doctorId;
+      const currentUser = isDoctor ? appointment.doctor : appointment.consultant;
+      const formattedDate = new Date(scheduledAt).toLocaleString();
+
+      if (otherUserId) {
+        await prisma.notification.create({
+          data: {
+            title: "Meeting Rescheduled",
+            message: `aapki meeting reschedule ho gyi hai, aap ki ab meeting iss new date ko iss time p ho gi: ${formattedDate}.`,
+            type: "SYSTEM",
+            actionUrl: "/appointments",
+            doctorId: otherUserId
+          }
+        });
+        
+        await sendPushNotification(otherUserId, {
+          title: "Meeting Rescheduled",
+          body: `Dr. ${currentUser?.fullName} has rescheduled your meeting to ${formattedDate}.`,
+          url: "/appointments"
+        });
+      }
+    }
 
     return NextResponse.json(appointment, { status: 200 });
   } catch (error) {

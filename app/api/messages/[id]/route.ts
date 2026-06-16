@@ -17,9 +17,8 @@ function getUserIdFromToken(req: Request): string | null {
   }
 }
 
-export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const params = await props.params;
     const userId = getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
@@ -78,9 +77,8 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
   }
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
-    const params = await props.params;
     const userId = getUserIdFromToken(req);
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 

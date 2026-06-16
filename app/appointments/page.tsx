@@ -13,6 +13,7 @@ export default function AppointmentsPage() {
   // Modal State for Accepting Appointments
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [acceptingApptId, setAcceptingApptId] = useState<string | null>(null);
+  const [modalAction, setModalAction] = useState<"ACCEPT" | "RESCHEDULE">("ACCEPT");
   const [confirmedDate, setConfirmedDate] = useState("");
   const [confirmedTime, setConfirmedTime] = useState("");
   const [isAccepting, setIsAccepting] = useState(false);
@@ -55,15 +56,13 @@ export default function AppointmentsPage() {
     }
   };
 
-  const handlePostpone = (id: string) => {
-    const newDateStr = prompt("Enter a new proposed date and time (e.g., YYYY-MM-DD HH:MM):");
-    if (!newDateStr) return;
-    const parsedDate = new Date(newDateStr);
-    if (isNaN(parsedDate.getTime())) {
-      alert("Invalid date format. Please try again.");
-      return;
-    }
-    updateStatus(id, "POSTPONED", parsedDate.toISOString());
+  const handlePostpone = (appt: any) => {
+    const dateObj = new Date(appt.scheduledAt);
+    setConfirmedDate(dateObj.toISOString().split("T")[0]);
+    setConfirmedTime(dateObj.toTimeString().substring(0, 5));
+    setAcceptingApptId(appt.id);
+    setModalAction("RESCHEDULE");
+    setShowAcceptModal(true);
   };
 
   const deleteAppointment = async (id: string) => {
@@ -81,6 +80,7 @@ export default function AppointmentsPage() {
     setConfirmedDate(dateObj.toISOString().split("T")[0]);
     setConfirmedTime(dateObj.toTimeString().substring(0, 5));
     setAcceptingApptId(appt.id);
+    setModalAction("ACCEPT");
     setShowAcceptModal(true);
   };
 
@@ -88,7 +88,8 @@ export default function AppointmentsPage() {
     if (!acceptingApptId || !confirmedDate || !confirmedTime) return;
     setIsAccepting(true);
     const dateTime = new Date(`${confirmedDate}T${confirmedTime}`);
-    await updateStatus(acceptingApptId, "ACCEPTED", dateTime.toISOString());
+    const status = modalAction === "RESCHEDULE" ? "POSTPONED" : "ACCEPTED";
+    await updateStatus(acceptingApptId, status, dateTime.toISOString());
     setIsAccepting(false);
     setShowAcceptModal(false);
     setAcceptingApptId(null);
@@ -248,7 +249,7 @@ export default function AppointmentsPage() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                           Join Meeting
                         </button>
-                        <button onClick={() => handlePostpone(app.id)} className="w-full px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all">Reschedule</button>
+                        <button onClick={() => handlePostpone(app)} className="w-full px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all">Reschedule</button>
                       </div>
                     )}
 
@@ -268,8 +269,12 @@ export default function AppointmentsPage() {
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all">
             <div className="px-6 py-5 border-b border-gray-100">
-              <h3 className="text-xl font-extrabold text-gray-900">Confirm Appointment</h3>
-              <p className="text-sm text-gray-500 mt-1">Set the exact date and time you are available.</p>
+              <h3 className="text-xl font-extrabold text-gray-900">
+                {modalAction === "RESCHEDULE" ? "Reschedule Appointment" : "Confirm Appointment"}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {modalAction === "RESCHEDULE" ? "Select the new date and time." : "Set the exact date and time you are available."}
+              </p>
             </div>
             <div className="p-6 space-y-4">
               <div>
