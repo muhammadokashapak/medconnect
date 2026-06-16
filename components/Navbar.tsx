@@ -110,6 +110,19 @@ export default function Navbar() {
                       <MenuCard icon="🔬" title="Laboratory" href="/erp/lab" onClick={closeAll} />
                       <MenuCard icon="💊" title="Pharmacy" href="/erp/pharmacy" onClick={closeAll} />
                     </div>
+                    <div className="border-t border-gray-100 mt-3 pt-3">
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">More</h4>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                        <MenuCard icon="🏨" title="Hospitals" href="/hospitals" onClick={closeAll} />
+                        <MenuCard icon="📆" title="Events" href="/events" onClick={closeAll} />
+                        <MenuCard icon="🎓" title="CME" href="/cme" onClick={closeAll} />
+                        <MenuCard icon="📚" title="Learning" href="/learning" onClick={closeAll} />
+                        <MenuCard icon="📰" title="News" href="/news" onClick={closeAll} />
+                        <MenuCard icon="🧪" title="Research" href="/research" onClick={closeAll} />
+                        <MenuCard icon="📞" title="Call History" href="/call-history" onClick={closeAll} />
+                        <MenuCard icon="🎥" title="Conference" href="/conference" onClick={closeAll} />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

@@ -9,6 +9,8 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchDoctors();
@@ -42,11 +44,22 @@ export default function AdminDashboardPage() {
       
       // Remove from UI
       setDoctors(doctors.filter(d => d.id !== id));
-      alert("Doctor deleted successfully.");
+      setSuccessMsg("Doctor deleted successfully.");
+      setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err: any) {
       setError(err.message);
     }
   };
+
+  const filteredDoctors = doctors.filter(doc => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      doc.fullName?.toLowerCase().includes(q) ||
+      doc.pmdcNumber?.toLowerCase().includes(q) ||
+      doc.email?.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
@@ -90,13 +103,35 @@ export default function AdminDashboardPage() {
           </button>
         </div>
 
+        {successMsg && (
+          <div className="bg-green-50 text-green-700 p-4 rounded mb-6 border border-green-200 flex items-center gap-2">
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+            <span className="font-semibold">{successMsg}</span>
+          </div>
+        )}
         {error && <div className="bg-red-50 text-red-700 p-4 rounded mb-6 border border-red-200">{error}</div>}
+
+        {/* Search Input */}
+        <div className="mb-6">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, PMDC number, or email..."
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none shadow-sm"
+            />
+          </div>
+        </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {loading ? (
             <div className="p-10 text-center text-gray-500">Loading doctors...</div>
-          ) : doctors.length === 0 ? (
-            <div className="p-10 text-center text-gray-500">No doctors found for this status.</div>
+          ) : filteredDoctors.length === 0 ? (
+            <div className="p-10 text-center text-gray-500">{searchQuery.trim() ? "No doctors match your search." : "No doctors found for this status."}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -110,7 +145,7 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {doctors.map((doc) => (
+                  {filteredDoctors.map((doc) => (
                     <tr key={doc.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">

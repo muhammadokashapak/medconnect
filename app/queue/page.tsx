@@ -56,8 +56,8 @@ export default function QueuePage() {
              Live Patient Queue
           </h1>
           <div className="space-x-4">
-            <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-800">
-              Dashboard
+            <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">
+              Homepage
             </Link>
           </div>
         </div>

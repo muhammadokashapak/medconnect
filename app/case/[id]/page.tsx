@@ -15,6 +15,7 @@ type CaseComment = {
   content: string;
   createdAt: string;
   doctor: DoctorSummary;
+  parent?: { doctor: DoctorSummary };
 };
 
 type CasePost = {
@@ -60,6 +61,8 @@ export default function CaseDetailsPage() {
   const [commentContent, setCommentContent] = useState("");
   const [postingComment, setPostingComment] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [commentError, setCommentError] = useState("");
+  const [friendActionMsg, setFriendActionMsg] = useState("");
 
   const fetchCurrentUser = async () => {
     try {
@@ -152,7 +155,8 @@ export default function CaseDetailsPage() {
       setReplyingTo(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to post comment";
-      alert(message);
+      setCommentError(message);
+      setTimeout(() => setCommentError(""), 4000);
     } finally {
       setPostingComment(false);
     }
@@ -171,7 +175,8 @@ export default function CaseDetailsPage() {
   };
 
   const handleEditChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? (e.target as HTMLInputElement).checked : false;
     setEditData({
       ...editData,
       [name]: type === "checkbox" ? checked : value,
@@ -293,11 +298,17 @@ export default function CaseDetailsPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ followingId: casePost.doctorId })
                       });
-                      alert("Friend request / Follow toggled!");
-                    } catch {}
+                      setFriendActionMsg("Follow toggled successfully!");
+                      setTimeout(() => setFriendActionMsg(""), 3000);
+                    } catch (error) {
+                      console.error('Follow toggle failed:', error);
+                      setFriendActionMsg("Action failed. Try again.");
+                      setTimeout(() => setFriendActionMsg(""), 3000);
+                    }
                   }} className="ml-3 px-3 py-1 rounded-full text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition">
                     Add Friend
                   </button>
+                  {friendActionMsg && <span className="ml-2 text-sm text-green-600 font-medium">{friendActionMsg}</span>}
                 )}
               </h3>
               <p className="text-sm text-gray-500">{new Date(casePost.createdAt).toLocaleString()} • {casePost.specialty}</p>
@@ -383,6 +394,7 @@ export default function CaseDetailsPage() {
             </div>
           ) : (
             <form onSubmit={handleCommentSubmit} className="mt-8 relative">
+              {commentError && <div className="bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 mb-3 text-sm">{commentError}</div>}
               <label className="block text-sm font-medium text-gray-700 mb-2">Add your clinical opinion</label>
               
               {replyingTo && (

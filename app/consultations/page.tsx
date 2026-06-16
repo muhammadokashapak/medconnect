@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ConsultationsPage() {
   const router = useRouter();
@@ -34,6 +35,11 @@ export default function ConsultationsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
+        <div className="mb-6">
+          <Link href="/feed" className="text-indigo-600 font-bold hover:underline flex items-center text-sm">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage
+          </Link>
+        </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Consultation Notes</h1>
 
         {consultations.length === 0 ? (
@@ -53,7 +59,7 @@ export default function ConsultationsPage() {
                     <p className="text-sm text-gray-500">{new Date(cons.createdAt).toLocaleString()}</p>
                   </div>
                   <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">
-                    {cons.duration}s
+                    {(() => { const d = cons.duration; const mins = Math.floor(d / 60); const secs = d % 60; return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`; })()}
                   </span>
                 </div>
                 

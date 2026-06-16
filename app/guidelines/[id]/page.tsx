@@ -22,7 +22,7 @@ export default function GuidelineDetailPage() {
       .then(setGuideline)
       .catch(() => router.push("/guidelines"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   const toggleSave = async () => {
     const action = guideline.isSaved ? "unsave" : "save";

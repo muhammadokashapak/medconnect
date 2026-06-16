@@ -11,6 +11,12 @@ export default function PatientProfilePage() {
 
   const [patient, setPatient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  };
 
   useEffect(() => {
     fetch(`/api/patients/${id}`)
@@ -21,23 +27,38 @@ export default function PatientProfilePage() {
       .then(setPatient)
       .catch(() => router.push("/patients"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   if (loading || !patient) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
-  const age = new Date().getFullYear() - new Date(patient.dob).getFullYear();
+  const calculateAge = () => {
+    const today = new Date();
+    const birth = new Date(patient.dob);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  };
+  const age = calculateAge();
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-pulse">
+          {toast}
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <Link href="/feed" className="text-blue-600 font-bold hover:underline flex items-center text-sm">
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage</Link>
           <div className="space-x-3">
-             <button className="bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm text-sm hover:bg-gray-50">
+             <button onClick={() => showToast("Feature coming soon")} className="bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm text-sm hover:bg-gray-50">
                Edit Demographics
              </button>
-             <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm text-sm">
+             <button onClick={() => showToast("Feature coming soon")} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm text-sm">
                + New Clinical Visit
              </button>
           </div>
@@ -123,7 +144,7 @@ export default function PatientProfilePage() {
             <div className="bg-white p-6 rounded-xl shadow border border-gray-100">
               <h3 className="font-bold text-gray-900 border-b pb-2 mb-4 flex items-center justify-between">
                 Current Medications
-                <button className="text-blue-600 hover:underline text-xs">+ Add</button>
+                <button onClick={() => showToast("Feature coming soon")} className="text-blue-600 hover:underline text-xs">+ Add</button>
               </h3>
               {patient.medications.length === 0 ? (
                  <p className="text-sm text-gray-500">No active medications.</p>
@@ -207,8 +228,8 @@ export default function PatientProfilePage() {
                            )}
                          </div>
                          <div className="mt-4 pt-3 border-t border-gray-200 flex gap-3">
-                           <button className="text-blue-600 hover:text-blue-800 text-xs font-bold">View Full Record</button>
-                           <button className="text-blue-600 hover:text-blue-800 text-xs font-bold">Print Summary</button>
+                           <button onClick={() => showToast("Feature coming soon")} className="text-blue-600 hover:text-blue-800 text-xs font-bold">View Full Record</button>
+                           <button onClick={() => showToast("Feature coming soon")} className="text-blue-600 hover:text-blue-800 text-xs font-bold">Print Summary</button>
                          </div>
                       </div>
                     </div>

@@ -12,6 +12,7 @@ export default function AdminDoctorReviewPage() {
   const [error, setError] = useState("");
   const [notes, setNotes] = useState("");
   const [showRejectBox, setShowRejectBox] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     fetchDoctor();
@@ -46,17 +47,18 @@ export default function AdminDoctorReviewPage() {
 
       if (!res.ok) throw new Error("Failed to approve");
       
-      alert("Doctor approved successfully.");
-      router.push("/admin");
+      setFeedback({ type: "success", message: "Doctor approved successfully." });
+      setTimeout(() => router.push("/admin"), 1500);
     } catch (err: any) {
-      alert(err.message);
+      setFeedback({ type: "error", message: err.message });
       setProcessing(false);
     }
   };
 
   const handleReject = async () => {
     if (!notes.trim()) {
-      alert("Rejection notes are required.");
+      setFeedback({ type: "error", message: "Rejection notes are required." });
+      setTimeout(() => setFeedback(null), 3000);
       return;
     }
     
@@ -70,10 +72,10 @@ export default function AdminDoctorReviewPage() {
 
       if (!res.ok) throw new Error("Failed to reject");
       
-      alert("Doctor rejected successfully.");
-      router.push("/admin");
+      setFeedback({ type: "success", message: "Doctor rejected successfully." });
+      setTimeout(() => router.push("/admin"), 1500);
     } catch (err: any) {
-      alert(err.message);
+      setFeedback({ type: "error", message: err.message });
       setProcessing(false);
     }
   };
@@ -93,7 +95,14 @@ export default function AdminDoctorReviewPage() {
           onClick={() => router.push("/admin")}
           className="mb-6 flex items-center text-indigo-600 hover:text-indigo-800 transition"
         >
-          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage</button>
+          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Admin Panel</button>
+
+        {feedback && (
+          <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 ${feedback.type === "success" ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d={feedback.type === "success" ? "M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" : "M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"} clipRule="evenodd"></path></svg>
+            <span className="font-semibold">{feedback.message}</span>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8 mb-8">
           <div className="flex justify-between items-start mb-6 border-b pb-6">

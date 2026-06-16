@@ -7,6 +7,12 @@ export default function AISOAP() {
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [result, setResult] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const showFeedback = (msg: string) => {
+    setFeedback(msg);
+    setTimeout(() => setFeedback(null), 2500);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +38,30 @@ export default function AISOAP() {
     }
   };
 
+  const handleCopy = async () => {
+    if (result) {
+      try {
+        await navigator.clipboard.writeText(result);
+        showFeedback("Copied to clipboard!");
+      } catch {
+        showFeedback("Failed to copy.");
+      }
+    }
+  };
+
+  const handleSave = () => {
+    showFeedback("Saved to EHR (feature coming soon)");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
+      {/* Feedback Toast */}
+      {feedback && (
+        <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-pulse">
+          {feedback}
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
@@ -81,8 +109,8 @@ export default function AISOAP() {
             </div>
             {result && (
               <div className="mt-4 flex gap-2">
-                 <button className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Save to EHR</button>
-                 <button className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Copy</button>
+                 <button onClick={handleSave} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Save to EHR</button>
+                 <button onClick={handleCopy} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Copy</button>
               </div>
             )}
           </div>

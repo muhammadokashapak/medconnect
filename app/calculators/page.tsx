@@ -67,13 +67,25 @@ function BMICalculator() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [result, setResult] = useState<number | null>(null);
+  const [error, setError] = useState("");
 
   const calculate = () => {
     const w = parseFloat(weight);
     const h = parseFloat(height) / 100; // cm to m
-    if (w > 0 && h > 0) {
-      setResult(w / (h * h));
+    if (!w || !h || w <= 0 || h <= 0) {
+      setError("Please enter valid positive values for weight and height.");
+      setResult(null);
+      return;
     }
+    setError("");
+    setResult(w / (h * h));
+  };
+
+  const getBmiCategory = (bmi: number) => {
+    if (bmi < 18.5) return { label: "Underweight", color: "text-blue-600" };
+    if (bmi < 25) return { label: "Normal weight", color: "text-green-600" };
+    if (bmi < 30) return { label: "Overweight", color: "text-yellow-600" };
+    return { label: "Obese", color: "text-red-600" };
   };
 
   return (
@@ -82,21 +94,21 @@ function BMICalculator() {
       <div className="space-y-4 max-w-sm mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-          <input type="number" className="w-full border p-2 rounded" value={weight} onChange={e => setWeight(e.target.value)} />
+          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={weight} onChange={e => setWeight(e.target.value)} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-          <input type="number" className="w-full border p-2 rounded" value={height} onChange={e => setHeight(e.target.value)} />
+          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={height} onChange={e => setHeight(e.target.value)} />
         </div>
         <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-2 rounded hover:bg-purple-700">Calculate BMI</button>
       </div>
+      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {result !== null && (
         <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
           <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Result</p>
           <p className="text-3xl font-bold text-purple-900">{result.toFixed(1)} kg/m²</p>
-          <p className="text-gray-700 mt-2 font-medium">
-            Category: 
-            {result < 18.5 ? " Underweight" : result < 25 ? " Normal weight" : result < 30 ? " Overweight" : " Obese"}
+          <p className={`mt-2 font-bold ${getBmiCategory(result).color}`}>
+            Category: {getBmiCategory(result).label}
           </p>
         </div>
       )}
@@ -110,17 +122,22 @@ function GFRCalculator() {
   const [isFemale, setIsFemale] = useState(false);
   const [isBlack, setIsBlack] = useState(false);
   const [result, setResult] = useState<number | null>(null);
+  const [error, setError] = useState("");
 
   const calculate = () => {
     // MDRD Formula (simplified for demonstration)
     const a = parseFloat(age);
     const scr = parseFloat(creatinine);
-    if (a > 0 && scr > 0) {
-      let gfr = 175 * Math.pow(scr, -1.154) * Math.pow(a, -0.203);
-      if (isFemale) gfr *= 0.742;
-      if (isBlack) gfr *= 1.212;
-      setResult(gfr);
+    if (!a || !scr || a <= 0 || scr <= 0) {
+      setError("Please enter valid positive values for age and creatinine.");
+      setResult(null);
+      return;
     }
+    setError("");
+    let gfr = 175 * Math.pow(scr, -1.154) * Math.pow(a, -0.203);
+    if (isFemale) gfr *= 0.742;
+    if (isBlack) gfr *= 1.212;
+    setResult(gfr);
   };
 
   return (
@@ -129,11 +146,11 @@ function GFRCalculator() {
       <div className="space-y-4 max-w-sm mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Age (years)</label>
-          <input type="number" className="w-full border p-2 rounded" value={age} onChange={e => setAge(e.target.value)} />
+          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={age} onChange={e => setAge(e.target.value)} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Serum Creatinine (mg/dL)</label>
-          <input type="number" className="w-full border p-2 rounded" value={creatinine} onChange={e => setCreatinine(e.target.value)} />
+          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={creatinine} onChange={e => setCreatinine(e.target.value)} />
         </div>
         <div className="flex items-center gap-4">
           <label className="flex items-center text-sm font-medium text-gray-700">
@@ -145,6 +162,7 @@ function GFRCalculator() {
         </div>
         <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-2 rounded hover:bg-purple-700">Calculate eGFR</button>
       </div>
+      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {result !== null && (
         <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
           <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Result</p>
@@ -211,7 +229,72 @@ function CURB65Calculator() {
 }
 
 function APGARCalculator() {
-  return <div className="text-gray-500 italic">APGAR Calculator coming soon. Interactive multi-choice inputs required.</div>;
+  const [appearance, setAppearance] = useState(0);
+  const [pulse, setPulse] = useState(0);
+  const [grimace, setGrimace] = useState(0);
+  const [activity, setActivity] = useState(0);
+  const [respiration, setRespiration] = useState(0);
+
+  const total = appearance + pulse + grimace + activity + respiration;
+
+  const getInterpretation = (score: number) => {
+    if (score >= 7) return { text: "Normal — No immediate intervention needed", color: "text-green-700" };
+    if (score >= 4) return { text: "Moderately depressed — May require some resuscitative measures", color: "text-yellow-700" };
+    return { text: "Severely depressed — Requires immediate resuscitation", color: "text-red-700" };
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">APGAR Score for Newborn Assessment</h2>
+      <div className="space-y-4 max-w-xl mb-6">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Appearance (Skin Color)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={appearance} onChange={e => setAppearance(Number(e.target.value))}>
+            <option value={0}>0 — Blue/Pale all over</option>
+            <option value={1}>1 — Blue extremities, body pink (Acrocyanosis)</option>
+            <option value={2}>2 — Completely pink</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Pulse (Heart Rate)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={pulse} onChange={e => setPulse(Number(e.target.value))}>
+            <option value={0}>0 — Absent</option>
+            <option value={1}>1 — Below 100 bpm</option>
+            <option value={2}>2 — Above 100 bpm</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Grimace (Reflex Irritability)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={grimace} onChange={e => setGrimace(Number(e.target.value))}>
+            <option value={0}>0 — No response</option>
+            <option value={1}>1 — Grimace/feeble cry when stimulated</option>
+            <option value={2}>2 — Cry, cough, or sneeze on stimulation</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Activity (Muscle Tone)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={activity} onChange={e => setActivity(Number(e.target.value))}>
+            <option value={0}>0 — Limp / None</option>
+            <option value={1}>1 — Some flexion of extremities</option>
+            <option value={2}>2 — Active motion, well-flexed</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Respiration (Breathing Effort)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={respiration} onChange={e => setRespiration(Number(e.target.value))}>
+            <option value={0}>0 — Absent</option>
+            <option value={1}>1 — Weak, irregular, gasping</option>
+            <option value={2}>2 — Strong cry, good breathing</option>
+          </select>
+        </div>
+      </div>
+      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+        <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Total APGAR Score</p>
+        <p className="text-3xl font-bold text-purple-900">{total} / 10</p>
+        <p className={`mt-2 font-medium ${getInterpretation(total).color}`}>{getInterpretation(total).text}</p>
+      </div>
+    </div>
+  );
 }
 
 function WellsCalculator() {
@@ -232,7 +315,61 @@ function WellsCalculator() {
 }
 
 function GCSCalculator() {
-  return <div className="text-gray-500 italic">Glasgow Coma Scale Calculator coming soon. Interactive multi-choice inputs required.</div>;
+  const [eye, setEye] = useState(1);
+  const [verbal, setVerbal] = useState(1);
+  const [motor, setMotor] = useState(1);
+
+  const total = eye + verbal + motor;
+
+  const getInterpretation = (score: number) => {
+    if (score <= 8) return { text: "Severe brain injury — Coma (intubation likely needed)", color: "text-red-700" };
+    if (score <= 12) return { text: "Moderate brain injury", color: "text-yellow-700" };
+    return { text: "Mild brain injury", color: "text-green-700" };
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Glasgow Coma Scale (GCS)</h2>
+      <div className="space-y-4 max-w-xl mb-6">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Eye Opening (E)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={eye} onChange={e => setEye(Number(e.target.value))}>
+            <option value={1}>1 — No eye opening</option>
+            <option value={2}>2 — Eye opening to pain</option>
+            <option value={3}>3 — Eye opening to voice</option>
+            <option value={4}>4 — Eyes open spontaneously</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Verbal Response (V)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={verbal} onChange={e => setVerbal(Number(e.target.value))}>
+            <option value={1}>1 — No verbal response</option>
+            <option value={2}>2 — Incomprehensible sounds</option>
+            <option value={3}>3 — Inappropriate words</option>
+            <option value={4}>4 — Confused</option>
+            <option value={5}>5 — Oriented</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Motor Response (M)</label>
+          <select className="w-full border p-2 rounded text-gray-800" value={motor} onChange={e => setMotor(Number(e.target.value))}>
+            <option value={1}>1 — No motor response</option>
+            <option value={2}>2 — Extension to pain (decerebrate)</option>
+            <option value={3}>3 — Abnormal flexion to pain (decorticate)</option>
+            <option value={4}>4 — Withdrawal from pain</option>
+            <option value={5}>5 — Localizing pain</option>
+            <option value={6}>6 — Obeys commands</option>
+          </select>
+        </div>
+      </div>
+      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+        <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Total GCS Score</p>
+        <p className="text-3xl font-bold text-purple-900">{total} / 15</p>
+        <p className="text-sm text-gray-600 mt-1">E{eye} + V{verbal} + M{motor}</p>
+        <p className={`mt-2 font-medium ${getInterpretation(total).color}`}>{getInterpretation(total).text}</p>
+      </div>
+    </div>
+  );
 }
 
 // Generic component for checkbox-based scores

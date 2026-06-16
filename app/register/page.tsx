@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function RegisterContent() {
   const router = useRouter();
@@ -12,6 +13,16 @@ function RegisterContent() {
   const [success, setSuccess] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Resend OTP cooldown
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (searchParams.get("error") === "account_not_found") {
@@ -35,9 +46,26 @@ function RegisterContent() {
     }));
   };
 
+  // Password strength logic
+  const getPasswordStrength = (pw: string): { label: string; color: string; width: string } => {
+    if (!pw) return { label: "", color: "bg-gray-200", width: "w-0" };
+    if (pw.length < 6) return { label: "Weak", color: "bg-red-500", width: "w-1/3" };
+    if (pw.length >= 8 && /[^A-Za-z0-9]/.test(pw)) return { label: "Strong", color: "bg-green-500", width: "w-full" };
+    return { label: "Medium", color: "bg-yellow-500", width: "w-2/3" };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
   const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
+    // Confirm password validation
+    if (formData.password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -101,6 +129,21 @@ function RegisterContent() {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setError("");
+    setResendCooldown(60);
+    try {
+      await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+    } catch {
+      setError("Failed to resend OTP.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
@@ -136,7 +179,7 @@ function RegisterContent() {
                 onChange={handleChange}
                 placeholder="Dr. Ahmed Khan"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-black"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-400"
               />
             </div>
 
@@ -153,7 +196,7 @@ function RegisterContent() {
                 onChange={handleChange}
                 placeholder="e.g. 12345"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-black"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-400"
               />
             </div>
 
@@ -170,7 +213,7 @@ function RegisterContent() {
                 onChange={handleChange}
                 placeholder="doctor@example.com"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-black"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-400"
               />
             </div>
 
@@ -187,7 +230,7 @@ function RegisterContent() {
                 onChange={handleChange}
                 placeholder="+923001234567"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-black"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-400"
               />
             </div>
 
@@ -204,8 +247,42 @@ function RegisterContent() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-black"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-400"
               />
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div className={`h-full ${passwordStrength.color} ${passwordStrength.width} rounded-full transition-all duration-300`} />
+                  </div>
+                  <p className={`text-xs mt-1 font-medium ${
+                    passwordStrength.label === "Weak" ? "text-red-500" :
+                    passwordStrength.label === "Medium" ? "text-yellow-600" :
+                    "text-green-600"
+                  }`}>
+                    {passwordStrength.label}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password *
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-400"
+              />
+              {confirmPassword && formData.password !== confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+              )}
             </div>
 
             {/* Register Button */}
@@ -220,9 +297,9 @@ function RegisterContent() {
             {/* Login Link */}
             <p className="text-center text-gray-600 text-sm mt-6">
               Already have an account?{" "}
-              <a href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+              <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
                 Login here
-              </a>
+              </Link>
             </p>
           </form>
         ) : (
@@ -260,6 +337,18 @@ function RegisterContent() {
             >
               {loading ? "Verifying..." : "Verify & Login"}
             </button>
+
+            {/* Resend OTP */}
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={resendCooldown > 0}
+                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium disabled:text-gray-400 disabled:cursor-not-allowed transition"
+              >
+                {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : "Resend OTP"}
+              </button>
+            </div>
             
             <button
               type="button"

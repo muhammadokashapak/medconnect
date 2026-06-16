@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -18,7 +17,8 @@ export default function AnalyticsPage() {
       .then(setStats)
       .catch(() => router.push("/login"))
       .finally(() => setLoading(false));
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 

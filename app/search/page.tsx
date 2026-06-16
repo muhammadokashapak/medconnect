@@ -33,7 +33,8 @@ function SearchContent() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [query]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
@@ -63,6 +64,8 @@ function SearchContent() {
             <button onClick={() => router.push('/search')} className="text-blue-600 font-medium hover:underline">Clear Search</button>
           </div>
         ) : (
+          <>
+          <p className="text-sm text-gray-600 mb-4 font-medium">{results.length} result{results.length !== 1 ? 's' : ''} found</p>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
             {results.map((doctor) => (
               <Link key={doctor.id} href={`/doctor/${doctor.id}`} className="block p-6 hover:bg-gray-50 transition group">
@@ -92,6 +95,7 @@ function SearchContent() {
               </Link>
             ))}
           </div>
+          </>
         )}
       </div>
     </div>

@@ -14,6 +14,7 @@ function DrugInteractionContent() {
   const [loading, setLoading] = useState(true);
   const [interactions, setInteractions] = useState<any[] | null>(null);
   const [checking, setChecking] = useState(false);
+  const [drugSearch, setDrugSearch] = useState("");
 
   useEffect(() => {
     fetch("/api/drugs")
@@ -24,7 +25,7 @@ function DrugInteractionContent() {
       .then(setDrugs)
       .catch(() => router.push("/login"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   const toggleDrug = (id: string) => {
     if (selectedDrugs.includes(id)) {
@@ -73,8 +74,16 @@ function DrugInteractionContent() {
             <h2 className="text-lg font-bold text-gray-900 mb-4">Select Drugs to Check</h2>
             <p className="text-sm text-gray-500 mb-4">Choose at least two drugs from the database below.</p>
             
+            <input
+              type="text"
+              placeholder="Search drugs..."
+              className="w-full border border-gray-300 rounded-lg p-2 mb-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              value={drugSearch}
+              onChange={(e) => setDrugSearch(e.target.value)}
+            />
+
             <div className="space-y-2">
-              {drugs.map(drug => (
+              {drugs.filter(drug => drug.name.toLowerCase().includes(drugSearch.toLowerCase())).map(drug => (
                 <label key={drug.id} className={`flex items-center p-3 rounded border cursor-pointer transition ${selectedDrugs.includes(drug.id) ? 'bg-indigo-50 border-indigo-200' : 'hover:bg-gray-50 border-gray-100'}`}>
                   <input 
                     type="checkbox" 

@@ -130,11 +130,11 @@ export default function AIChatPage() {
                     </button>
                     {msg.role !== "user" && (
                       <>
-                        <button onClick={() => { alert("Muted AI successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          Mute
+                        <button onClick={() => { setMessages([{ role: "ai", content: "Hello Doctor. I am your MedConnect AI Clinical Assistant. How can I help you today?" }]); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          Clear Chat
                         </button>
-                        <button onClick={() => { alert("Blocked AI successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          Block
+                        <button onClick={() => { const text = messages.map(m => `${m.role === "ai" ? "AI" : "You"}: ${m.content}`).join("\n\n"); navigator.clipboard.writeText(text); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          Export Chat
                         </button>
                       </>
                     )}

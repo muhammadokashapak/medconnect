@@ -63,7 +63,8 @@ export default function FeedPage() {
             return next;
           });
         }
-      } catch {
+      } catch (error) {
+        console.error('Follow toggle failed:', error);
       }
     };
 
@@ -75,7 +76,8 @@ export default function FeedPage() {
   }
 
   function FriendButton({ doctorId }: { doctorId: string }) {
-    const [status, setStatus] = useState<string>("Add Friend");
+    const initialStatus = friendsSet.has(doctorId) ? "Friends" : pendingFriendsSet.has(doctorId) ? "Request Sent" : "Add Friend";
+    const [status, setStatus] = useState<string>(initialStatus);
     
     const sendRequest = async (e: MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
@@ -92,7 +94,9 @@ export default function FeedPage() {
         } else {
           setStatus("Error");
         }
-      } catch {}
+      } catch (error) {
+        console.error('Friend request failed:', error);
+      }
     };
 
     return (
@@ -192,8 +196,8 @@ export default function FeedPage() {
         });
         setSavedCaseIds(prev => new Set(prev).add(caseId));
       }
-    } catch {
-      // ignore save errors
+    } catch (error) {
+      console.error('Save toggle failed:', error);
     }
   };
 
@@ -324,8 +328,9 @@ export default function FeedPage() {
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ casePostId: c.id, type: "LIKE" })
                         });
-                        fetchData(); // Simplest way to refresh counts for now
-                      } catch {
+                        setCases(prev => prev.map(cs => cs.id === c.id ? {...cs, _count: {...cs._count, reactions: (cs._count?.reactions || 0) + 1}} : cs));
+                      } catch (error) {
+                        console.error('Like failed:', error);
                       }
                     }} className="flex items-center hover:text-blue-600 transition">
                       <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
@@ -368,7 +373,7 @@ export default function FeedPage() {
                 {trending.map((t, idx) => (
                   <div key={t.id} onClick={() => router.push(`/case/${t.id}`)} className="cursor-pointer group">
                     <h3 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 line-clamp-2 transition">{idx + 1}. {t.title}</h3>
-                    <p className="text-xs text-gray-500 mt-1">Dr. {t.doctor.fullName} • {t._count.comments} Comments</p>
+                    <p className="text-xs text-gray-500 mt-1">Dr. {t.doctor.fullName} • {t._count?.comments || 0} Comments</p>
                   </div>
                 ))}
               </div>

@@ -12,6 +12,8 @@ export default function HospitalProfilePage() {
   const [hospital, setHospital] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [showAllMembers, setShowAllMembers] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     fetch(`/api/hospitals/${id}`)
@@ -30,15 +32,16 @@ export default function HospitalProfilePage() {
       const res = await fetch(`/api/hospitals/${id}/join`, { method: "POST" });
       if (res.ok) {
         setHospital((prev: any) => ({ ...prev, userMembership: "PENDING" }));
-        alert("Join request sent successfully!");
+        setFeedback({ type: "success", message: "Join request sent successfully!" });
       } else {
         const data = await res.json();
-        alert(data.message || "Failed to send request.");
+        setFeedback({ type: "error", message: data.message || "Failed to send request." });
       }
     } catch (error) {
-      alert("Error sending request");
+      setFeedback({ type: "error", message: "Error sending request" });
     } finally {
       setJoining(false);
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
@@ -51,6 +54,12 @@ export default function HospitalProfilePage() {
           <Link href="/feed" className="text-blue-600 font-bold hover:underline flex items-center text-sm">
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Homepage</Link>
         </div>
+
+        {feedback && (
+          <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 ${feedback.type === "success" ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
+            <span className="font-semibold">{feedback.message}</span>
+          </div>
+        )}
 
         {/* Header Profile */}
         <div className="bg-white p-8 rounded-xl shadow border border-gray-100 mb-8">
@@ -186,7 +195,7 @@ export default function HospitalProfilePage() {
                 <p className="text-gray-500 text-sm">No verified members yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {hospital.memberships.slice(0, 5).map((mem: any) => (
+                  {(showAllMembers ? hospital.memberships : hospital.memberships.slice(0, 5)).map((mem: any) => (
                     <Link key={mem.id} href={`/doctor/${mem.doctor.id}`} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded transition">
                       <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold font-mono">
                          {mem.doctor.fullName.charAt(0)}
@@ -199,7 +208,7 @@ export default function HospitalProfilePage() {
                   ))}
                   {hospital.memberships.length > 5 && (
                     <div className="text-center pt-2">
-                      <button className="text-xs font-bold text-purple-600 hover:underline">View All Members</button>
+                      <button onClick={() => setShowAllMembers(!showAllMembers)} className="text-xs font-bold text-purple-600 hover:underline">{showAllMembers ? "Show Less" : "View All Members"}</button>
                     </div>
                   )}
                 </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function CallHistoryPage() {
   const router = useRouter();
@@ -80,9 +81,21 @@ export default function CallHistoryPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-gray-700">{formatDuration(call.duration)}</p>
-                      <p className="text-xs text-gray-400">{new Date(call.startedAt).toLocaleString()}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-700">{formatDuration(call.duration)}</p>
+                        <p className="text-xs text-gray-400">{new Date(call.startedAt).toLocaleString()}</p>
+                      </div>
+                      {otherParty && (
+                        <Link
+                          href={`/video/${otherParty.id}`}
+                          className="flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm font-bold transition flex-shrink-0"
+                          title="Call Again"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                          Call
+                        </Link>
+                      )}
                     </div>
                   </li>
                 );

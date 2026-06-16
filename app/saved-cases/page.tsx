@@ -8,6 +8,7 @@ export default function SavedCasesPage() {
   const router = useRouter();
   const [cases, setCases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unsaveError, setUnsaveError] = useState("");
 
   useEffect(() => {
     fetchSavedCases();
@@ -20,16 +21,24 @@ export default function SavedCasesPage() {
         const data = await res.json();
         setCases(data);
       }
-    } catch (error) {} finally {
+    } catch (error) {
+      console.error('Failed to fetch saved cases:', error);
+    } finally {
       setLoading(false);
     }
   };
 
   const unsaveCase = async (caseId: string) => {
+    if (!confirm('Remove from saved?')) return;
     try {
       await fetch(`/api/save-case?casePostId=${caseId}`, { method: "DELETE" });
       setCases(prev => prev.filter(c => c.casePostId !== caseId));
-    } catch (error) {}
+      setUnsaveError("");
+    } catch (error) {
+      console.error('Failed to unsave case:', error);
+      setUnsaveError('Failed to remove case. Please try again.');
+      setTimeout(() => setUnsaveError(""), 4000);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -44,6 +53,8 @@ export default function SavedCasesPage() {
           </h1>
           <button onClick={() => router.push("/feed")} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium w-full sm:w-auto text-center">Back to Homepage</button>
         </div>
+
+        {unsaveError && <div className="bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 mb-4 text-sm">{unsaveError}</div>}
 
         <div className="grid grid-cols-1 gap-6">
           {cases.length === 0 ? (

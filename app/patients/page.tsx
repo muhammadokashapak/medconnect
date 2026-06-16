@@ -9,6 +9,7 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -19,7 +20,8 @@ export default function PatientsPage() {
     try {
       const res = await fetch(`/api/patients?query=${encodeURIComponent(searchQuery)}`);
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) router.push("/login");
+        if (res.status === 401) router.push("/login");
+        if (res.status === 403) { setAccessDenied(true); setLoading(false); return; }
         throw new Error("Unauthorized");
       }
       setPatients(await res.json());
@@ -38,6 +40,17 @@ export default function PatientsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-6xl mx-auto">
+        {accessDenied ? (
+          <div className="bg-white p-10 text-center rounded-xl shadow border border-red-200 mt-10">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 className="text-2xl font-bold text-red-700 mb-2">Access Denied</h2>
+            <p className="text-gray-600 mb-4">You do not have permission to view patient records.</p>
+            <Link href="/feed" className="text-blue-600 hover:underline font-medium">Back to Homepage</Link>
+          </div>
+        ) : (
+        <>
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
             <svg className="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -95,7 +108,11 @@ export default function PatientsPage() {
                 </thead>
                 <tbody>
                   {patients.map((patient: any) => {
-                     const age = new Date().getFullYear() - new Date(patient.dob).getFullYear();
+                     const today = new Date();
+                     const birth = new Date(patient.dob);
+                     let age = today.getFullYear() - birth.getFullYear();
+                     const m = today.getMonth() - birth.getMonth();
+                     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
                      const lastVisit = patient.clinicalVisits && patient.clinicalVisits.length > 0 
                         ? new Date(patient.clinicalVisits[0].visitedAt).toLocaleDateString()
                         : "No visits";
@@ -130,6 +147,8 @@ export default function PatientsPage() {
               </table>
             )}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

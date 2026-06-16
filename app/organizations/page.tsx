@@ -8,10 +8,16 @@ export default function OrganizationsPage() {
   const router = useRouter();
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const showFeedback = (type: "success" | "error", message: string) => {
+    setFeedback({ type, message });
+    setTimeout(() => setFeedback(null), 3000);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -30,14 +36,14 @@ export default function OrganizationsPage() {
     try {
       const res = await fetch(`/api/organizations/${id}/join`, { method: "POST" });
       if (res.ok) {
-        alert("Joined successfully!");
+        showFeedback("success", "Joined successfully!");
         fetchData();
       } else {
         const data = await res.json();
-        alert(data.message || "Failed to join.");
+        showFeedback("error", data.message || "Failed to join.");
       }
     } catch (error) {
-      alert("Error joining organization");
+      showFeedback("error", "Error joining organization");
     }
   };
 
@@ -51,6 +57,12 @@ export default function OrganizationsPage() {
           </h1>
           <Link href="/feed" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium w-full sm:w-auto text-center">Back to Homepage</Link>
         </div>
+
+        {feedback && (
+          <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 transition-all ${feedback.type === "success" ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
+            <span className="font-semibold">{feedback.message}</span>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div></div>

@@ -4,9 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+type Announcement = {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  createdAt: string;
+  hospital: { name: string };
+};
+
 export default function AnnouncementsPage() {
   const router = useRouter();
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

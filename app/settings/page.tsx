@@ -16,6 +16,17 @@ export default function SettingsPage() {
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
 
+  // Change Password state
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
+
+  // Delete Account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   function urlBase64ToUint8Array(base64String: string) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
@@ -61,16 +72,18 @@ export default function SettingsPage() {
     loadSettings();
   }, [router]);
 
-  const handleSave = async () => {
+  const handleSave = async (twoFactorValue?: boolean) => {
     setSaving(true);
     setError("");
     setSuccess("");
+
+    const valueToSave = twoFactorValue !== undefined ? twoFactorValue : isTwoFactorEnabled;
 
     try {
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isTwoFactorEnabled }),
+        body: JSON.stringify({ isTwoFactorEnabled: valueToSave }),
       });
 
       const data = await res.json();
@@ -83,6 +96,62 @@ export default function SettingsPage() {
       setError(err.message || "Failed to save settings");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setError("");
+    setSuccess("");
+
+    if (newPassword !== confirmNewPassword) {
+      setError("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("New password must be at least 6 characters.");
+      return;
+    }
+
+    setChangePasswordLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to change password.");
+      }
+      setSuccess("Password changed successfully!");
+      setShowChangePassword(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err: any) {
+      setError(err.message || "Failed to change password.");
+    } finally {
+      setChangePasswordLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setError("");
+    setSuccess("");
+    setDeleteLoading(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to delete account.");
+      }
+      router.push("/login");
+    } catch (err: any) {
+      setError(err.message || "Failed to delete account.");
+      setDeleteLoading(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -197,10 +266,13 @@ export default function SettingsPage() {
               
               <div className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Login & recovery</h3>
-                <div className="flex items-center justify-between py-4 border-b border-gray-100 hover:bg-gray-50 px-2 rounded-lg cursor-pointer transition">
+                <div
+                  onClick={() => setShowChangePassword(true)}
+                  className="flex items-center justify-between py-4 border-b border-gray-100 hover:bg-gray-50 px-2 rounded-lg cursor-pointer transition"
+                >
                   <div>
                     <h4 className="font-semibold text-gray-900">Change password</h4>
-                    <p className="text-sm text-gray-500">It's a good idea to use a strong password.</p>
+                    <p className="text-sm text-gray-500">It&apos;s a good idea to use a strong password.</p>
                   </div>
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
@@ -208,7 +280,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition mt-2">
                   <div className="flex-1 pr-4">
                     <h4 className="font-semibold text-gray-900">Two-Factor Authentication (2FA)</h4>
-                    <p className="text-sm text-gray-500 mt-1">We'll ask for a login code via email if we notice a login from an unrecognized device.</p>
+                    <p className="text-sm text-gray-500 mt-1">We&apos;ll ask for a login code via email if we notice a login from an unrecognized device.</p>
                   </div>
                   <div className="mt-2 sm:mt-0">
                     <button
@@ -216,9 +288,9 @@ export default function SettingsPage() {
                       role="switch"
                       aria-checked={isTwoFactorEnabled}
                       onClick={() => {
-                        setIsTwoFactorEnabled(!isTwoFactorEnabled);
-                        // Auto-save when toggled
-                        setTimeout(() => handleSave(), 100);
+                        const newValue = !isTwoFactorEnabled;
+                        setIsTwoFactorEnabled(newValue);
+                        handleSave(newValue);
                       }}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
                         isTwoFactorEnabled ? 'bg-blue-600' : 'bg-gray-300'
@@ -233,11 +305,23 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* Delete Account */}
+                <div
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center justify-between py-4 border-t border-gray-100 hover:bg-red-50 px-2 rounded-lg cursor-pointer transition mt-2"
+                >
+                  <div>
+                    <h4 className="font-semibold text-red-600">Delete Account</h4>
+                    <p className="text-sm text-gray-500">Permanently delete your account and all associated data.</p>
+                  </div>
+                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </div>
               </div>
               
               <div className="bg-gray-50 p-6 border-t border-gray-200 flex justify-end">
                 <button
-                  onClick={handleSave}
+                  onClick={() => handleSave()}
                   disabled={saving}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-lg shadow-sm transition disabled:opacity-70"
                 >
@@ -288,6 +372,101 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Change Password</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-black"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-black"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-black"
+                />
+                {confirmNewPassword && newPassword !== confirmNewPassword && (
+                  <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowChangePassword(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmNewPassword("");
+                }}
+                className="flex-1 bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleChangePassword}
+                disabled={changePasswordLoading || !currentPassword || !newPassword || !confirmNewPassword}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition disabled:opacity-70"
+              >
+                {changePasswordLoading ? "Saving..." : "Save Password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center">
+            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Account?</h3>
+            <p className="text-gray-600 mb-6">Are you sure? This cannot be undone. All your data will be permanently deleted.</p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition disabled:opacity-70"
+              >
+                {deleteLoading ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
