@@ -4,9 +4,7 @@
 import { MouseEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function FeedPage() {
-  const router = useRouter();
-  type DoctorPreview = {
+type DoctorPreview = {
     id: string;
     fullName: string;
     profileImage?: string;
@@ -33,15 +31,13 @@ export default function FeedPage() {
 
   type SavedCase = { casePostId: string };
 
-  const [cases, setCases] = useState<CasePost[]>([]);
-  const [trending, setTrending] = useState<TrendingCase[]>([]);
-  const [savedCaseIds, setSavedCaseIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [followingSet, setFollowingSet] = useState<Set<string>>(new Set());
+  interface FollowButtonProps {
+    doctorId: string;
+    followingSet: Set<string>;
+    setFollowingSet: React.Dispatch<React.SetStateAction<Set<string>>>;
+  }
 
-  // FollowButton component local to feed
-  function FollowButton({ doctorId }: { doctorId: string }) {
+  function FollowButton({ doctorId, followingSet, setFollowingSet }: FollowButtonProps) {
     const isFollowing = followingSet.has(doctorId);
 
     const toggleFollow = async (e: MouseEvent<HTMLButtonElement>) => {
@@ -75,9 +71,19 @@ export default function FeedPage() {
     );
   }
 
-  function FriendButton({ doctorId }: { doctorId: string }) {
+  interface FriendButtonProps {
+    doctorId: string;
+    friendsSet: Set<string>;
+    pendingFriendsSet: Set<string>;
+  }
+
+  function FriendButton({ doctorId, friendsSet, pendingFriendsSet }: FriendButtonProps) {
     const initialStatus = friendsSet.has(doctorId) ? "Friends" : pendingFriendsSet.has(doctorId) ? "Request Sent" : "Add Friend";
     const [status, setStatus] = useState<string>(initialStatus);
+
+    useEffect(() => {
+      setStatus(friendsSet.has(doctorId) ? "Friends" : pendingFriendsSet.has(doctorId) ? "Request Sent" : "Add Friend");
+    }, [doctorId, friendsSet, pendingFriendsSet]);
     
     const sendRequest = async (e: MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
@@ -105,6 +111,15 @@ export default function FeedPage() {
       </button>
     );
   }
+
+export default function FeedPage() {
+  const router = useRouter();
+  const [cases, setCases] = useState<CasePost[]>([]);
+  const [trending, setTrending] = useState<TrendingCase[]>([]);
+  const [savedCaseIds, setSavedCaseIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [followingSet, setFollowingSet] = useState<Set<string>>(new Set());
 
   const fetchFollowings = async () => {
     try {
@@ -299,9 +314,9 @@ export default function FeedPage() {
                         {c.doctor.isVerified && <svg className="w-4 h-4 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
                         {currentUser?.id !== c.doctor.id && (
                           <>
-                            <FollowButton doctorId={c.doctor.id} />
+                            <FollowButton doctorId={c.doctor.id} followingSet={followingSet} setFollowingSet={setFollowingSet} />
                             {!friendsSet.has(c.doctor.id) && !pendingFriendsSet.has(c.doctor.id) && (
-                              <FriendButton doctorId={c.doctor.id} />
+                              <FriendButton doctorId={c.doctor.id} friendsSet={friendsSet} pendingFriendsSet={pendingFriendsSet} />
                             )}
                           </>
                         )}
@@ -323,12 +338,16 @@ export default function FeedPage() {
                     <button onClick={async (e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       try {
-                        await fetch("/api/cases/react", {
+                        const res = await fetch("/api/cases/react", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ casePostId: c.id, type: "LIKE" })
                         });
-                        setCases(prev => prev.map(cs => cs.id === c.id ? {...cs, _count: {...cs._count, reactions: (cs._count?.reactions || 0) + 1}} : cs));
+                        if (res.ok) {
+                          const data = await res.json();
+                          const change = data.reacted ? 1 : -1;
+                          setCases(prev => prev.map(cs => cs.id === c.id ? {...cs, _count: {...cs._count, reactions: Math.max(0, (cs._count?.reactions || 0) + change)}} : cs));
+                        }
                       } catch (error) {
                         console.error('Like failed:', error);
                       }

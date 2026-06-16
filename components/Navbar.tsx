@@ -89,9 +89,9 @@ export default function Navbar() {
             <div className="flex items-center space-x-1 sm:space-x-3 relative z-50">
               {/* Search Mobile */}
               <Link href="/search" onClick={closeAll} className="md:hidden">
-                <button className={`w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm ${pathname === "/search" ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm ${pathname === "/search" ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
+                </div>
               </Link>
 
               {/* Menu Grid (9-dot) */}
@@ -129,17 +129,17 @@ export default function Navbar() {
 
               {/* Messages */}
               <Link href="/messages" onClick={closeAll}>
-                <button className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition shadow-sm ${pathname.startsWith("/messages") ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition shadow-sm ${pathname.startsWith("/messages") ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd"></path></svg>
-                </button>
+                </div>
               </Link>
 
               {/* Notifications */}
               <Link href="/notifications" onClick={closeAll}>
-                <button className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition relative shadow-sm ${pathname === "/notifications" ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition relative shadow-sm ${pathname === "/notifications" ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
                   <span className="absolute top-0 right-0 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
+                </div>
               </Link>
 
               {/* Profile Dropdown */}

@@ -67,7 +67,7 @@ export default function ChatUI({ id }: { id: string }) {
         socketRef.current = null;
       }
     };
-  }, [id]);
+  }, [id, fetchProfile, fetchMessages, socketInit]);
 
   useEffect(() => {
     if (isAtBottom) {
@@ -75,7 +75,7 @@ export default function ChatUI({ id }: { id: string }) {
     } else {
       setShowNewMsgIndicator(true);
     }
-  }, [messages]);
+  }, [messages, isAtBottom]);
 
   // Track scroll position to show/hide new message indicator
   const handleScroll = () => {
@@ -138,7 +138,7 @@ export default function ChatUI({ id }: { id: string }) {
     };
   }, []);
 
-  const socketInit = async () => {
+  const socketInit = useCallback(async () => {
     try {
       await fetch("/api/socket");
     } catch (err) {
@@ -189,7 +189,7 @@ export default function ChatUI({ id }: { id: string }) {
     socket.on("message_read", (data: any) => {
       setMessages((prev) => prev.map(m => m.id === data.messageId ? { ...m, isRead: true } : m));
     });
-  };
+  }, [id]);
 
   // Once we have currentUser, register online status
   useEffect(() => {
@@ -204,7 +204,7 @@ export default function ChatUI({ id }: { id: string }) {
     }
   };
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch("/api/profile");
       if (res.ok) {
@@ -212,9 +212,9 @@ export default function ChatUI({ id }: { id: string }) {
         setCurrentUser(data);
       }
     } catch (err) {}
-  };
+  }, []);
 
-  const fetchMessages = async (showLoading = true) => {
+  const fetchMessages = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/messages/${id}`);
@@ -226,6 +226,10 @@ export default function ChatUI({ id }: { id: string }) {
         const text = await res.text();
         throw new Error(`Failed to load messages (Status: ${res.status}). Details: ${text.substring(0, 50)}`);
       }
+      const isMutedHeader = res.headers.get("X-Chat-Muted");
+      if (isMutedHeader !== null) {
+        setIsChatMuted(isMutedHeader === "true");
+      }
       const data = await res.json();
       setMessages(data);
     } catch (err: any) {
@@ -233,7 +237,7 @@ export default function ChatUI({ id }: { id: string }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [id, router]);
 
   const handleTouchStart = (msgId: string) => {
     if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
@@ -623,7 +627,6 @@ export default function ChatUI({ id }: { id: string }) {
                     </div>
                   )}
                 </div>
-              </div>
               </div>
             </div>);
           })

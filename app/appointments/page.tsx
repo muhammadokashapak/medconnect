@@ -247,7 +247,7 @@ export default function AppointmentsPage() {
                   <div className="flex flex-row md:flex-col items-center md:items-end justify-end gap-2 md:w-1/3 mt-4 md:mt-0">
                     {isPendingForMe && (
                       <div className="flex flex-wrap gap-2 justify-end w-full">
-                        <button onClick={() => updateStatus(app.id, "ACCEPTED")} className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 hover:shadow transition-all">Accept</button>
+                        <button onClick={() => handleAcceptClick(app)} className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 hover:shadow transition-all">Accept</button>
                         <button onClick={() => deleteAppointment(app)} className="flex-1 md:flex-none px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">Delete</button>
                       </div>
                     )}

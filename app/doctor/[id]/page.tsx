@@ -26,6 +26,7 @@ type DoctorProfile = {
     title: string;
     specialty: string;
     description: string;
+    imageUrl?: string | null;
     createdAt: string;
     _count: { reactions: number; comments: number; views: number };
   }>;

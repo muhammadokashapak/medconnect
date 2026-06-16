@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -10,11 +10,7 @@ export default function CallHistoryPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const profileRes = await fetch("/api/profile");
       if (profileRes.ok) setCurrentUser(await profileRes.json());
@@ -30,7 +26,11 @@ export default function CallHistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return "0s";

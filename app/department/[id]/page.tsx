@@ -21,7 +21,7 @@ export default function DepartmentProfilePage() {
       .then(setDepartment)
       .catch(() => router.push("/hospitals"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 

@@ -24,7 +24,7 @@ export default function HospitalProfilePage() {
       .then(setHospital)
       .catch(() => router.push("/hospitals"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   const handleJoin = async () => {
     setJoining(true);

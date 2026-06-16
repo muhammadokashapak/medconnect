@@ -22,6 +22,7 @@ type DoctorProfileData = {
   phoneNumber?: string;
   pmdcNumber?: string;
   isVerified?: boolean;
+  linkedinUrl?: string;
 };
 
 export default function ProfilePage() {

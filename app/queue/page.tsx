@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -9,7 +9,7 @@ export default function QueuePage() {
   const [queue, setQueue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchQueue = async () => {
+  const fetchQueue = useCallback(async () => {
     try {
       const res = await fetch("/api/queue");
       if (!res.ok) {
@@ -22,14 +22,14 @@ export default function QueuePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchQueue();
     // Refresh every 30 seconds for live updates
     const interval = setInterval(fetchQueue, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchQueue]);
 
   const updateStatus = async (tokenId: string, status: string) => {
     try {

@@ -57,7 +57,7 @@ export default function NotificationsPage() {
     } catch (error) {}
   };
 
-  const markSingleRead = async (id: string) => {
+  const markSingleRead = useCallback(async (id: string) => {
     try {
       await fetch("/api/notifications/read", {
         method: "PUT",
@@ -66,7 +66,7 @@ export default function NotificationsPage() {
       });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     } catch (error) {}
-  };
+  }, []);
 
   const deleteAll = async () => {
     if (!confirm("Are you sure you want to delete all notifications?")) return;
@@ -136,13 +136,13 @@ export default function NotificationsPage() {
       // No actionUrl — just mark as read, show brief feedback
       setToast("Notification marked as read");
     }
-  }, [router]);
+  }, [router, markSingleRead]);
 
   // Open options modal (for long-press or 3-dots)
   const openOptionsModal = useCallback((n: any) => {
     if (!n.isRead) markSingleRead(n.id);
     setSelectedNotification(n);
-  }, []);
+  }, [markSingleRead]);
 
   // Long-press handlers
   const handlePressStart = useCallback((n: any) => {
@@ -175,7 +175,7 @@ export default function NotificationsPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><span className="text-gray-500 font-medium">Loading notifications...</span></div></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><span className="text-gray-500 font-medium">Loading notifications...</span></div></div>;
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 

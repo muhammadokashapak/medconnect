@@ -71,7 +71,9 @@ export async function GET(req: Request, props: { params: any }) {
       }
     });
 
-    return NextResponse.json(messages, { status: 200 });
+    const response = NextResponse.json(messages, { status: 200 });
+    response.headers.set("X-Chat-Muted", participation.isMuted ? "true" : "false");
+    return response;
   } catch (error) {
     console.error("Fetch Messages Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

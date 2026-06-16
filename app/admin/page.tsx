@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
       if (!res.ok) throw new Error("Failed to delete doctor");
       
       // Remove from UI
-      setDoctors(doctors.filter(d => d.id !== id));
+      setDoctors(prev => prev.filter(d => d.id !== id));
       setSuccessMsg("Doctor deleted successfully.");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err: any) {

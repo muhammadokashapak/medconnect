@@ -60,9 +60,9 @@ export default function CaseDetailsPage() {
   const [deletingPost, setDeletingPost] = useState(false);
   const [commentContent, setCommentContent] = useState("");
   const [postingComment, setPostingComment] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [replyingTo, setReplyingTo] = useState<CaseComment | null>(null);
   const [commentError, setCommentError] = useState("");
-  const [friendActionMsg, setFriendActionMsg] = useState("");
+  const [followActionMsg, setFollowActionMsg] = useState("");
 
   const fetchCurrentUser = async () => {
     try {
@@ -298,18 +298,18 @@ export default function CaseDetailsPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ followingId: casePost.doctorId })
                       });
-                      setFriendActionMsg("Follow toggled successfully!");
-                      setTimeout(() => setFriendActionMsg(""), 3000);
+                      setFollowActionMsg("Follow status updated!");
+                      setTimeout(() => setFollowActionMsg(""), 3000);
                     } catch (error) {
                       console.error('Follow toggle failed:', error);
-                      setFriendActionMsg("Action failed. Try again.");
-                      setTimeout(() => setFriendActionMsg(""), 3000);
+                      setFollowActionMsg("Action failed. Try again.");
+                      setTimeout(() => setFollowActionMsg(""), 3000);
                     }
                   }} className="ml-3 px-3 py-1 rounded-full text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition">
-                    Add Friend
+                    Follow
                   </button>
-                  {friendActionMsg && <span className="ml-2 text-sm text-green-600 font-medium">{friendActionMsg}</span>}
                 )}
+                {followActionMsg && <span className="ml-2 text-sm text-green-600 font-medium">{followActionMsg}</span>}
               </h3>
               <p className="text-sm text-gray-500">{new Date(casePost.createdAt).toLocaleString()} • {casePost.specialty}</p>
             </div>
