@@ -76,6 +76,7 @@ export default function ChatUI({ id }: { id: string }) {
       if (window.visualViewport) {
         document.documentElement.style.setProperty('--vh', `${window.visualViewport.height}px`);
         window.scrollTo(0, 0);
+        scrollToBottom();
       }
     };
     window.visualViewport?.addEventListener('resize', handleResize);
@@ -625,6 +626,7 @@ export default function ChatUI({ id }: { id: string }) {
                   onChange={handleTyping}
                   placeholder={uploading ? "Uploading..." : "Message"}
                   disabled={uploading}
+                  autoFocus
                   className="flex-1 bg-transparent border-none py-2.5 px-2 focus:outline-none focus:ring-0 text-[15px] text-gray-900 leading-tight disabled:opacity-50"
                 />
               </div>
