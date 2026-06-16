@@ -112,7 +112,7 @@ export default function AppointmentsPage() {
 
   // Categories
   const upcoming = appointments.filter(a => a.status === "ACCEPTED" && new Date(a.scheduledAt) >= now);
-  const pending = appointments.filter(a => a.status === "PENDING" || a.status === "POSTPONED");
+  const pending = appointments.filter(a => a.status === "PENDING" || a.status.startsWith("POSTPONED"));
   const past = appointments.filter(a => a.status === "COMPLETED" || (a.status === "ACCEPTED" && new Date(a.scheduledAt) < now));
   const cancelled = appointments.filter(a => a.status === "CANCELLED");
 
@@ -173,15 +173,22 @@ export default function AppointmentsPage() {
               const isConsultant = currentUser?.id === app.consultantId;
               const otherParty = isConsultant ? app.doctor : app.consultant;
               const apptDate = new Date(app.scheduledAt);
+              
+              const isPendingForMe = 
+                (app.status === "PENDING" && isConsultant) || 
+                (app.status === "POSTPONED_BY_DOCTOR" && isConsultant) || 
+                (app.status === "POSTPONED_BY_CONSULTANT" && !isConsultant);
+                
+              const displayStatus = app.status.startsWith("POSTPONED") ? "POSTPONED" : app.status;
 
               return (
                 <div key={app.id} className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col md:flex-row gap-6 md:items-center justify-between group relative overflow-hidden">
                   
                   {/* Left accent border */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                    app.status === "PENDING" ? "bg-yellow-400" :
-                    app.status === "ACCEPTED" ? "bg-emerald-500" :
-                    app.status === "CANCELLED" ? "bg-rose-500" : "bg-gray-300"
+                    displayStatus === "PENDING" || displayStatus === "POSTPONED" ? "bg-yellow-400" :
+                    displayStatus === "ACCEPTED" ? "bg-emerald-500" :
+                    displayStatus === "CANCELLED" ? "bg-rose-500" : "bg-gray-300"
                   }`}></div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-5 md:w-2/3">
@@ -194,12 +201,12 @@ export default function AppointmentsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${
-                          app.status === "PENDING" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" :
-                          app.status === "ACCEPTED" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
-                          app.status === "CANCELLED" ? "bg-rose-100 text-rose-800 border border-rose-200" :
+                          displayStatus === "PENDING" || displayStatus === "POSTPONED" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" :
+                          displayStatus === "ACCEPTED" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
+                          displayStatus === "CANCELLED" ? "bg-rose-100 text-rose-800 border border-rose-200" :
                           "bg-gray-100 text-gray-800 border border-gray-200"
                         }`}>
-                          {app.status}
+                          {displayStatus}
                         </span>
                         <span className="text-sm font-medium text-gray-500 flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -218,8 +225,8 @@ export default function AppointmentsPage() {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900 leading-tight">Dr. {otherParty?.fullName}</h3>
-                          <p className="text-sm text-gray-500 font-medium">{otherParty?.specialization || "General Medicine"}</p>
+                           <h3 className="text-lg font-bold text-gray-900 leading-tight">Dr. {otherParty?.fullName}</h3>
+                           <p className="text-sm text-gray-500 font-medium">{otherParty?.specialization || "General Medicine"}</p>
                         </div>
                       </div>
 
@@ -232,14 +239,14 @@ export default function AppointmentsPage() {
                   </div>
 
                   <div className="flex flex-row md:flex-col items-center md:items-end justify-end gap-2 md:w-1/3 mt-4 md:mt-0">
-                    {isConsultant && app.status === "PENDING" && (
+                    {isPendingForMe && (
                       <div className="flex flex-wrap gap-2 justify-end w-full">
-                        <button onClick={() => handleAcceptClick(app)} className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 hover:shadow transition-all">Accept</button>
+                        <button onClick={() => updateStatus(app.id, "ACCEPTED")} className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 hover:shadow transition-all">Accept</button>
                         <button onClick={() => updateStatus(app.id, "CANCELLED")} className="flex-1 md:flex-none px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">Reject</button>
                       </div>
                     )}
 
-                    {!isConsultant && app.status === "PENDING" && (
+                    {!isPendingForMe && (app.status === "PENDING" || app.status.startsWith("POSTPONED")) && (
                       <button onClick={() => deleteAppointment(app.id)} className="w-full md:w-auto px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">Cancel Request</button>
                     )}
 

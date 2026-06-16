@@ -103,6 +103,13 @@ export async function PUT(req: Request) {
 
     if (scheduledAt && status === "POSTPONED") {
       const isDoctor = appointment.doctorId === userId;
+      
+      // Update status to reflect who postponed
+      await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: { status: isDoctor ? "POSTPONED_BY_DOCTOR" : "POSTPONED_BY_CONSULTANT" }
+      });
+
       const otherUserId = isDoctor ? appointment.consultantId : appointment.doctorId;
       const currentUser = isDoctor ? appointment.doctor : appointment.consultant;
       const formattedDate = new Date(scheduledAt).toLocaleString();
