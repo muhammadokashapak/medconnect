@@ -142,8 +142,12 @@ export default function ChatUI({ id }: { id: string }) {
     try {
       const res = await fetch(`/api/messages/${id}`);
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) router.push("/messages");
-        throw new Error("Failed to load messages");
+        if (res.status === 401 || res.status === 403) {
+          router.push("/messages");
+          return;
+        }
+        const text = await res.text();
+        throw new Error(`Failed to load messages (Status: ${res.status}). Details: ${text.substring(0, 50)}`);
       }
       const data = await res.json();
       setMessages(data);
