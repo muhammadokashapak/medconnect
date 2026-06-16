@@ -44,75 +44,100 @@ export default function GuidelinesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <svg className="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Clinical Guidelines Library
-          </h1>
-          <button onClick={() => router.push("/feed")} className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</button>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white p-6 rounded-xl shadow border border-gray-100 mb-8">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-grow">
-              <input 
-                type="text" 
-                placeholder="Search guidelines by title or description..." 
-                className="w-full border-gray-300 border p-3 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-            <div className="w-full md:w-64">
-              <select 
-                className="w-full border-gray-300 border p-3 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
-              >
-                {specialties.map(spec => (
-                  <option key={spec} value={spec}>{spec}</option>
-                ))}
-              </select>
-            </div>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition">
-              Search
+    <div className="min-h-screen bg-gray-50 pb-16">
+      {/* Premium Hero Section */}
+      <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-800 pt-16 pb-24 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
+        <div className="max-w-5xl mx-auto relative z-10">
+          <div className="flex justify-between items-start mb-6">
+            <button onClick={() => router.push("/feed")} className="text-sm font-medium text-indigo-200 hover:text-white flex items-center transition">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Back to Home
             </button>
-          </form>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+            Clinical Guidelines
+          </h1>
+          <p className="text-lg md:text-xl text-indigo-200 max-w-2xl">
+            Evidence-based medical protocols and standard operating procedures for healthcare professionals.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-20">
+        {/* Search Bar */}
+        <div className="bg-white p-2 rounded-2xl shadow-xl border border-gray-100 mb-10 flex flex-col md:flex-row gap-2">
+          <div className="flex-grow flex items-center bg-gray-50 rounded-xl px-4 py-1">
+            <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input 
+              type="text" 
+              placeholder="Search by keyword, disease, or protocol..." 
+              className="w-full bg-transparent border-none py-3 focus:ring-0 text-gray-800 placeholder-gray-400"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any)}
+            />
+          </div>
+          <div className="w-full md:w-64">
+            <select 
+              className="w-full border-none bg-gray-50 p-4 rounded-xl focus:ring-0 text-gray-700 font-medium h-full cursor-pointer appearance-none"
+              value={specialty}
+              onChange={(e) => {
+                setSpecialty(e.target.value);
+                // Trigger search immediately on select change
+                setTimeout(fetchData, 0); 
+              }}
+              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236B7280\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25rem' }}
+            >
+              {specialties.map(spec => (
+                <option key={spec} value={spec}>{spec}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={handleSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl transition-colors shadow-md md:w-auto w-full">
+            Search
+          </button>
         </div>
 
         {/* Results */}
         {loading ? (
-          <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {guidelines.length === 0 ? (
-              <div className="col-span-full text-center py-10 bg-white rounded-xl shadow border border-gray-100">
-                <p className="text-gray-500 text-lg">No guidelines found matching your criteria.</p>
+              <div className="col-span-full text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
+                <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-10 h-10 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">No Guidelines Found</h3>
+                <p className="text-gray-500">We couldn't find any guidelines matching your criteria.</p>
               </div>
             ) : (
               guidelines.map(g => (
-                <div key={g.id} className="bg-white p-6 rounded-xl shadow border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
+                <Link href={`/guidelines/${g.id}`} key={g.id} className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                   <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">
+                    <div className="flex justify-between items-start mb-4">
+                      <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">
                         {g.specialty}
                       </span>
-                      <span className="text-gray-400 text-xs font-mono">v{g.version}</span>
+                      <span className="text-gray-400 text-xs font-medium bg-gray-50 px-2 py-1 rounded-md">v{g.version}</span>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-1 leading-tight">{g.title}</h2>
-                    <p className="text-xs text-gray-500 mb-3 flex items-center">
-                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                      {g.doctor ? `Dr. ${g.doctor.fullName}` : "System Verified"}
-                    </p>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{g.description}</p>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors">{g.title}</h2>
+                    <p className="text-gray-500 text-[15px] mb-6 line-clamp-3 leading-relaxed">{g.description}</p>
                   </div>
-                  <Link href={`/guidelines/${g.id}`} className="text-blue-600 font-bold text-sm hover:underline flex items-center">
-                    Read Guideline <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                  </Link>
-                </div>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto">
+                    <p className="text-[13px] text-gray-500 flex items-center font-medium">
+                      <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                      {g.doctor ? `Verified by Dr. ${g.doctor.fullName}` : "MedConnect Verified"}
+                    </p>
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+                      <svg className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                  </div>
+                </Link>
               ))
             )}
           </div>
