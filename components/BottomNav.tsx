@@ -6,8 +6,12 @@ import { usePathname } from "next/navigation";
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // Do not show on auth pages or very specific pages if needed
-  if (["/login", "/register", "/signup", "/"].includes(pathname)) {
+  // Do not show on auth pages or video meeting pages
+  if (
+    ["/login", "/register", "/signup", "/"].includes(pathname) ||
+    pathname.startsWith("/video") ||
+    pathname.startsWith("/conference")
+  ) {
     return null;
   }
 

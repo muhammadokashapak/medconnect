@@ -37,8 +37,14 @@ export default function ProfileBanner() {
       });
   }, [pathname]);
 
-  if (pathname === "/login" || pathname === "/register" || pathname.startsWith("/admin")) {
-    return null; // Force hide on auth/admin pages
+  if (
+    pathname === "/login" || 
+    pathname === "/register" || 
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/video") ||
+    pathname.startsWith("/conference")
+  ) {
+    return null; // Force hide
   }
 
   if (loading || !profile) {

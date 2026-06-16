@@ -10,8 +10,14 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Hide Navbar on auth pages and admin pages
-  if (pathname === "/login" || pathname === "/register" || pathname.startsWith("/admin")) {
+  // Hide Navbar on auth pages, admin pages, and video meeting pages
+  if (
+    pathname === "/login" || 
+    pathname === "/register" || 
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/video") ||
+    pathname.startsWith("/conference")
+  ) {
     return null;
   }
 
