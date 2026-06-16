@@ -193,6 +193,8 @@ model ConversationParticipant {
 model Message {
   id             String       @id @default(cuid())
   content        String
+  attachmentUrl  String?      @db.Text
+  attachmentType String?      // 'IMAGE', 'DOCUMENT'
   createdAt      DateTime     @default(now())
   
   isDelivered    Boolean      @default(false)

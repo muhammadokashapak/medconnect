@@ -26,8 +26,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "You must be VERIFIED to send messages" }, { status: 403 });
     }
 
-    const { conversationId, content, replyToId } = await req.json();
-    if (!conversationId || !content.trim()) {
+    const { conversationId, content, replyToId, attachmentUrl, attachmentType } = await req.json();
+    if (!conversationId || (!content?.trim() && !attachmentUrl)) {
       return NextResponse.json({ message: "Invalid message data" }, { status: 400 });
     }
 
@@ -48,10 +48,12 @@ export async function POST(req: Request) {
     // Create message
     const message = await prisma.message.create({
       data: {
-        content,
+        content: content || "",
         conversationId,
         senderId: userId,
         replyToId: replyToId || null,
+        attachmentUrl: attachmentUrl || null,
+        attachmentType: attachmentType || null,
       },
       include: {
         replyTo: true

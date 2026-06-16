@@ -21,6 +21,11 @@ export default function ChatPage() {
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isChatMuted, setIsChatMuted] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -80,6 +85,12 @@ export default function ChatPage() {
 
     socket.on("connect", () => {
       socket.emit("join_room", params?.id);
+      
+      // Determine the recipient ID. 
+      // If we don't have it yet, we can't check, but we can check if messages are loaded.
+      // Usually params.id is the conversationId, not the doctorId.
+      // The other doctor ID is recipientMsg?.senderId. Wait, this function runs early.
+      // We'll emit check_online_status inside a useEffect once recipient is known.
     });
 
     socket.on("receive_message", (data: any) => {
@@ -97,6 +108,12 @@ export default function ChatPage() {
     socket.on("user_typing", (data: any) => {
       if (currentUser && data.doctorId !== currentUser.id) {
         setIsTyping(data.isTyping);
+      }
+    });
+    
+    socket.on("online_status", (data: any) => {
+      if (data.doctorId === params?.id || data.doctorId !== currentUser?.id) {
+        setIsOnline(data.isOnline);
       }
     });
     
@@ -163,20 +180,55 @@ export default function ChatPage() {
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || sending) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setSending(true);
-    const content = newMessage;
-    setNewMessage("");
+    setShowAttachMenu(false);
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      
+      const { url } = await res.json();
+      
+      // Determine type
+      const isImage = file.type.startsWith('image/');
+      const attachmentType = isImage ? 'IMAGE' : 'DOCUMENT';
+
+      // Automatically send the attachment as a message
+      await sendActualMessage("", url, attachmentType);
+      
+    } catch (err: any) {
+      alert("Error uploading file: " + err.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const sendActualMessage = async (contentStr: string, attachmentUrl?: string, attachmentType?: string) => {
     if (socket && currentUser) socket.emit("typing", { roomId: params?.id, doctorId: currentUser.id, isTyping: false });
 
     try {
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: params?.id, content, replyToId: replyToMessage?.id }),
+        body: JSON.stringify({ 
+          conversationId: params?.id, 
+          content: contentStr, 
+          replyToId: replyToMessage?.id,
+          attachmentUrl,
+          attachmentType
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to send message");
@@ -186,7 +238,6 @@ export default function ChatPage() {
       
       // Emit via socket
       if (socket) {
-        // Need to add fake sender data to mimic full payload
         const payload = {
           ...savedMessage,
           sender: {
@@ -202,7 +253,8 @@ export default function ChatPage() {
         socket.emit("send_message", payload);
       }
       
-      if (isAiConversation && aiBotId) {
+      // AI handling (optional for attachments, maybe skip if just an attachment)
+      if (isAiConversation && aiBotId && contentStr) {
         setIsTyping(true);
         try {
           const aiRes = await fetch("/api/messages/ai-reply", {
@@ -210,7 +262,7 @@ export default function ChatPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               conversationId: params?.id,
-              userMessage: content,
+              userMessage: contentStr,
               aiBotId,
               doctorName: currentUser.fullName
             })
@@ -228,9 +280,19 @@ export default function ChatPage() {
       
     } catch (err: any) {
       alert(err.message);
-    } finally {
-      setSending(false);
     }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || sending) return;
+
+    setSending(true);
+    const content = newMessage;
+    setNewMessage("");
+    
+    await sendActualMessage(content);
+    setSending(false);
   };
 
   const handleDeleteMessage = async (messageId: string) => {
@@ -296,8 +358,15 @@ export default function ChatPage() {
 
   // Find recipient info from messages
   const recipientMsg = messages.find(m => m.senderId !== currentUser?.id);
+  const recipientId = recipientMsg?.senderId;
   const recipientName = recipientMsg?.sender?.fullName || "Doctor";
   const recipientAvatar = recipientMsg?.sender?.profileImage || null;
+
+  useEffect(() => {
+    if (socket && socket.connected && recipientId) {
+      socket.emit('check_online_status', recipientId);
+    }
+  }, [recipientId]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col bg-[#efeae2] overflow-hidden" style={{ height: 'var(--vh, 100dvh)' }}>
@@ -323,8 +392,8 @@ export default function ChatPage() {
             </div>
             <div className="flex flex-col">
               <h2 className="text-[16px] font-semibold text-gray-900 leading-tight">Dr. {recipientName}</h2>
-              <p className="text-[13px] text-indigo-600 font-medium">
-                {isTyping ? "typing..." : "online"}
+              <p className={`text-[13px] font-medium ${isOnline || isTyping ? 'text-indigo-600' : 'text-gray-500'}`}>
+                {isTyping ? "typing..." : (isOnline ? "online" : "offline")}
               </p>
             </div>
           </div>
@@ -394,11 +463,26 @@ export default function ChatPage() {
                         </div>
                       )}
                       
-                      <div className="markdown-body text-[15px] pb-3 pr-8 space-y-1 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4 leading-snug">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
+                      {msg.attachmentUrl && msg.attachmentType === 'IMAGE' && (
+                        <div className="mb-2 mt-1 rounded-lg overflow-hidden border border-black/5 max-w-[240px]">
+                          <img src={msg.attachmentUrl} alt="attachment" className="w-full h-auto object-cover" />
+                        </div>
+                      )}
+
+                      {msg.attachmentUrl && msg.attachmentType !== 'IMAGE' && (
+                        <div className="mb-2 mt-1 flex items-center gap-2 bg-black/5 p-2 rounded-lg">
+                          <svg className="w-6 h-6 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                          <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline truncate">View Attachment</a>
+                        </div>
+                      )}
+
+                      {msg.content && (
+                        <div className="markdown-body text-[15px] pb-3 pr-8 space-y-1 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4 leading-snug">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
 
                       {/* Timestamp & Ticks (Floating Bottom Right) */}
                       <div className="absolute bottom-1 right-1.5 flex items-center gap-1">
@@ -461,17 +545,43 @@ export default function ChatPage() {
               You must complete PMDC verification to send messages. <button onClick={() => router.push("/verification")} className="font-bold hover:underline">Verify</button>
             </div>
           ) : (
-            <form onSubmit={handleSendMessage} className="flex items-end gap-2 w-full">
+            <form onSubmit={handleSendMessage} className="flex items-end gap-2 w-full relative">
+              {showAttachMenu && (
+                <div className="absolute bottom-[60px] left-0 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 flex flex-col gap-3 w-48 z-50 animate-fade-in-up">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-3 w-full p-2 hover:bg-gray-50 rounded-xl transition">
+                    <div className="bg-purple-100 p-2.5 rounded-full text-purple-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <span className="text-gray-700 font-medium text-[15px]">Gallery</span>
+                  </button>
+                  <button type="button" onClick={() => { alert('Document upload coming soon!'); setShowAttachMenu(false); }} className="flex items-center gap-3 w-full p-2 hover:bg-gray-50 rounded-xl transition">
+                    <div className="bg-blue-100 p-2.5 rounded-full text-blue-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <span className="text-gray-700 font-medium text-[15px]">Document</span>
+                  </button>
+                </div>
+              )}
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*,application/pdf"
+                onChange={handleFileUpload}
+              />
+
               <div className="flex-1 bg-white rounded-3xl flex items-center min-h-[44px] shadow-sm overflow-hidden">
-                <button type="button" className="text-gray-400 p-2 ml-1 hover:text-gray-600">
+                <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} className={`p-2 ml-1 transition ${showAttachMenu ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
                   <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.13 0-12.13 0zm11.363-1.108s1.18-.312 1.724 1.088c.277.71.597 2.026 2.378 3.227 1.483 1.002 3.002.828 3.002.828.073-.028.143-.058.215-.093.315-.153.625-.333.918-.543.16-.115.313-.244.453-.385.12-.12.235-.255.335-.398.083-.11.16-.233.223-.363.048-.098.085-.205.115-.315.023-.083.04-.173.05-.265.01-.083.015-.17.013-.258-.008-.198-.035-.398-.08-.593-.05-.228-.125-.453-.223-.668-.113-.248-.25-.483-.41-.7-.18-.248-.388-.475-.625-.678-.26-.228-.545-.43-.848-.603-.33-.188-.683-.343-1.05-.465-.4-.135-.815-.233-1.24-.298-.458-.07-1.025-.098-1.5-.098z" opacity=".4"></path></svg>
                 </button>
                 <input
                   type="text"
                   value={newMessage}
                   onChange={handleTyping}
-                  placeholder="Message"
-                  className="flex-1 bg-transparent border-none py-2.5 px-2 focus:outline-none focus:ring-0 text-[15px] text-gray-900 leading-tight"
+                  placeholder={uploading ? "Uploading..." : "Message"}
+                  disabled={uploading}
+                  className="flex-1 bg-transparent border-none py-2.5 px-2 focus:outline-none focus:ring-0 text-[15px] text-gray-900 leading-tight disabled:opacity-50"
                 />
                 <button type="button" className="text-gray-400 p-2 hover:text-gray-600">
                   <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path></svg>
@@ -482,10 +592,10 @@ export default function ChatPage() {
               </div>
               <button
                 type="submit"
-                disabled={sending || !newMessage.trim()}
+                disabled={sending || uploading || !newMessage.trim()}
                 className="bg-indigo-600 text-white w-[44px] h-[44px] rounded-full shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center flex-shrink-0"
               >
-                {newMessage.trim() ? (
+                {newMessage.trim() || uploading ? (
                   <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current ml-1"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
                 ) : (
                   <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M11.999 14.942c2.001 0 3.531-1.53 3.531-3.531V4.35c0-2.001-1.53-3.531-3.531-3.531S8.468 2.349 8.468 4.35v7.061c0 2.001 1.53 3.531 3.531 3.531zm6.238-3.531c0 3.531-2.942 6.002-6.238 6.002s-6.238-2.471-6.238-6.002H3.761c0 4.001 3.178 7.297 7.061 7.885v3.884h2.354v-3.884c3.884-.588 7.061-3.884 7.061-7.885h-2.001z"></path></svg>
