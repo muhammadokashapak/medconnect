@@ -62,8 +62,8 @@ export async function POST(req: Request) {
     if (consultantId) {
       await prisma.notification.create({
         data: {
-          title: "Appointment Request",
-          message: `You received an appointment request from Dr. ${appointment.doctor.fullName}. If you are free and willing, you should join.`,
+          title: "New Appointment Request",
+          message: `You have received a new appointment request from Dr. ${appointment.doctor.fullName}. Kindly review and confirm the schedule.`,
           type: "SYSTEM",
           actionUrl: "/appointments",
           doctorId: consultantId
@@ -71,8 +71,8 @@ export async function POST(req: Request) {
       });
       
       await sendPushNotification(consultantId, {
-        title: "Appointment Request",
-        body: `You received an appointment request from Dr. ${appointment.doctor.fullName}.`,
+        title: "New Appointment Request",
+        body: `Dr. ${appointment.doctor.fullName} has requested an appointment. Kindly confirm it.`,
         url: "/appointments"
       });
     }
@@ -118,7 +118,7 @@ export async function PUT(req: Request) {
         await prisma.notification.create({
           data: {
             title: "Meeting Rescheduled",
-            message: `aapki meeting reschedule ho gyi hai, aap ki ab meeting iss new date ko iss time p ho gi: ${formattedDate}.`,
+            message: `Your appointment has been rescheduled to ${formattedDate}. Kindly confirm or delete it from the appointments page.`,
             type: "SYSTEM",
             actionUrl: "/appointments",
             doctorId: otherUserId
@@ -127,7 +127,7 @@ export async function PUT(req: Request) {
         
         await sendPushNotification(otherUserId, {
           title: "Meeting Rescheduled",
-          body: `Dr. ${currentUser?.fullName} has rescheduled your meeting to ${formattedDate}.`,
+          body: `Dr. ${currentUser?.fullName} has rescheduled your meeting to ${formattedDate}. Kindly confirm it.`,
           url: "/appointments"
         });
       }
