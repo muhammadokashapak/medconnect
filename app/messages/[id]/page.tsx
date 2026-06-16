@@ -58,7 +58,20 @@ export default function ChatPage() {
     };
     window.visualViewport?.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    
+    // Lock body scroll to prevent iOS safari from pushing the page up
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
   }, []);
 
   const socketInit = async () => {
@@ -281,247 +294,202 @@ export default function ChatPage() {
     return <div className="min-h-screen flex items-center justify-center text-red-600">{error}</div>;
   }
 
+  // Find recipient info from messages
+  const recipientMsg = messages.find(m => m.senderId !== currentUser?.id);
+  const recipientName = recipientMsg?.sender?.fullName || "Doctor";
+  const recipientAvatar = recipientMsg?.sender?.profileImage || null;
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col bg-gray-50 overflow-hidden" style={{ height: 'var(--vh, 100dvh)' }}>
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
+    <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col bg-[#efeae2] overflow-hidden" style={{ height: 'var(--vh, 100dvh)' }}>
+      {/* WhatsApp Background Pattern Overlay */}
+      <div className="absolute inset-0 z-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
+
+      {/* Header */}
+      <div className="bg-[#f0f2f5] px-4 py-2 flex items-center justify-between shadow-sm flex-shrink-0 z-10 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/messages")}
             className="text-gray-500 hover:text-indigo-600 transition"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
           </button>
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-bold text-gray-900">Clinical Consultation</h2>
-            <p className="text-sm text-gray-500">Secure chat with your medical colleagues.</p>
+          <div className="flex items-center gap-3 cursor-pointer">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 flex-shrink-0">
+              {recipientAvatar ? (
+                <img src={recipientAvatar} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <svg className="w-full h-full text-white mt-2" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-[16px] font-semibold text-gray-900 leading-tight">Dr. {recipientName}</h2>
+              <p className="text-[13px] text-indigo-600 font-medium">
+                {isTyping ? "typing..." : "online"}
+              </p>
+            </div>
           </div>
         </div>
-        <button
-          onClick={handleMuteToggle}
-          className={`mr-2 p-2 rounded-full transition ${isChatMuted ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-          title={isChatMuted ? "Unmute Chat" : "Mute Chat"}
-        >
-          {isChatMuted ? (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
-          ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-          )}
-        </button>
-        <button
-          onClick={() => {
-            if (confirm("Are you sure you want to delete this entire conversation?")) {
-              alert("Conversation deleted successfully!");
-              router.push("/messages");
-            }
-          }}
-          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition"
-          title="Delete Chat"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-        </button>
+        <div className="flex gap-4 text-gray-500">
+          <button onClick={handleMuteToggle} title={isChatMuted ? "Unmute Chat" : "Mute Chat"}>
+            {isChatMuted ? (
+              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+            ) : (
+              <svg className="w-5 h-5 hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+            )}
+          </button>
+          <button onClick={() => confirm("Delete entire chat?") && router.push("/messages")} className="hover:text-red-600" title="Delete Chat">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        </div>
       </div>
 
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-6">
+      {/* Messages Area */}
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 sm:px-6 py-4 max-w-5xl mx-auto w-full z-10 flex flex-col">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-10">No messages yet. Send a message to start the consultation.</div>
+          <div className="flex justify-center mt-4">
+            <div className="bg-[#ffeecd] text-gray-700 text-xs py-1.5 px-3 rounded-lg shadow-sm text-center max-w-[85%]">
+              Messages are end-to-end encrypted. No one outside of this chat, not even MedConnect, can read them.
+            </div>
+          </div>
         ) : (
           messages.map((msg, index) => {
             const isMine = msg.senderId === currentUser?.id;
-            const showAvatar = !isMine && (index === messages.length - 1 || messages[index + 1]?.senderId === currentUser?.id);
+            const isFirstInSequence = index === 0 || messages[index - 1].senderId !== msg.senderId;
 
             return (
-              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-4`}>\
-                {!isMine && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 mr-2 flex-shrink-0 mt-auto">
-                    {showAvatar && (
-                      msg.sender?.profileImage ? (
-                        <img src={msg.sender.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                      )
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1.5`}>
+                <div className={`group relative flex flex-col max-w-[85%] md:max-w-[65%]`}>
+                  {/* Bubble */}
+                  <div 
+                    className={`relative px-2.5 py-1.5 rounded-lg shadow-sm text-[15px] break-words whitespace-pre-wrap flex flex-col ${
+                      isMine ? 'bg-[#e0e7ff] text-gray-900' : 'bg-white text-gray-900'
+                    } ${isFirstInSequence && isMine ? 'rounded-tr-none' : ''} ${isFirstInSequence && !isMine ? 'rounded-tl-none' : ''}`}
+                    onTouchStart={() => handleTouchStart(msg.id)}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchEnd}
+                    onMouseDown={() => handleTouchStart(msg.id)}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                  >
+                    {/* Tail */}
+                    {isFirstInSequence && isMine && (
+                      <svg viewBox="0 0 8 13" width="8" height="13" className="absolute top-0 -right-[8px] text-[#e0e7ff]">
+                        <path opacity=".13" fill="#0000000" d="M1.533 3.118L8 12.118V1H2.8z"></path>
+                        <path fill="currentColor" d="M1.533 2.118L8 11.118V0H2.8z"></path>
+                      </svg>
                     )}
-                  </div>
-                )}
-
-                <div className={`max-w-[85%] md:max-w-[65%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                  {!isMine && showAvatar && <span className="text-xs text-gray-500 mb-1 ml-1">Dr. {msg.sender?.fullName}</span>}
-                  
-                  <div className={`group relative flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                    {/* Pinned Indicator */}
-                    {msg.isPinned && (
-                      <div className="absolute -top-3 flex items-center text-xs text-indigo-500 font-bold bg-white px-2 py-0.5 rounded-full border border-indigo-100 shadow-sm z-10">
-                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10zM12 7a1 1 0 00-1 1v4H8a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3V8a1 1 0 00-1-1z" /></svg> Pinned
-                      </div>
+                    {isFirstInSequence && !isMine && (
+                      <svg viewBox="0 0 8 13" width="8" height="13" className="absolute top-0 -left-[8px] text-white">
+                        <path opacity=".13" fill="#0000000" d="M6.467 3.118L0 12.118V1h5.2z"></path>
+                        <path fill="currentColor" d="M6.467 2.118L0 11.118V0h5.2z"></path>
+                      </svg>
                     )}
 
-                    {/* Reply Button (visible on hover) */}
-                    <button 
-                      onClick={() => setReplyToMessage(msg)}
-                      className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition p-1 bg-white rounded-full shadow-sm text-gray-500 hover:text-indigo-600 ${isMine ? '-left-8' : '-right-8'}`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                    </button>
-
-                    <div 
-                      className={`px-4 py-3 rounded-3xl ${
-                        isMine 
-                          ? 'bg-indigo-600 text-white rounded-br-none' 
-                          : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-sm'
-                      } break-words whitespace-pre-wrap max-w-full flex flex-col`}
-                      onTouchStart={() => handleTouchStart(msg.id)}
-                      onTouchEnd={handleTouchEnd}
-                      onTouchMove={handleTouchEnd}
-                      onMouseDown={() => handleTouchStart(msg.id)}
-                      onMouseUp={handleTouchEnd}
-                      onMouseLeave={handleTouchEnd}
-                    >
+                    {/* Content */}
+                    <div className="flex flex-col">
                       {msg.replyTo && (
-                        <div className={`mb-2 pl-3 border-l-2 text-sm rounded py-1 px-2 ${isMine ? 'border-indigo-300 bg-indigo-700 text-indigo-100' : 'border-gray-400 bg-gray-100 text-gray-600'}`}>
-                          <p className="font-bold text-xs mb-1">Replying to {msg.replyTo.sender?.fullName || 'Someone'}</p>
-                          <p className="line-clamp-2 italic">{msg.replyTo.content}</p>
+                        <div className="mb-1 pl-2 border-l-4 border-indigo-400 bg-black/5 rounded-r py-1 px-2 cursor-pointer">
+                          <p className="font-semibold text-xs text-indigo-600 mb-0.5">{msg.replyTo.sender?.fullName || 'Someone'}</p>
+                          <p className="text-sm text-gray-600 line-clamp-1">{msg.replyTo.content}</p>
                         </div>
                       )}
-                      <div className="markdown-body text-sm space-y-2 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4 [&>h1]:font-bold [&>h1]:text-lg [&>h2]:font-bold [&>h2]:text-base">
+                      
+                      <div className="markdown-body text-[15px] pb-3 pr-8 space-y-1 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4 leading-snug">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {msg.content}
                         </ReactMarkdown>
                       </div>
-                    </div>
-                    
-                    {/* 3 Dots Menu Button - Visible mainly on desktop hover */}
-                    <button
-                      onClick={() => setActiveMenu(activeMenu === msg.id ? null : msg.id)}
-                      className={`hidden md:block absolute top-2 text-gray-400 hover:text-gray-700 transition opacity-0 group-hover:opacity-100 ${isMine ? "right-full mr-2" : "left-full ml-2"}`}
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                      </svg>
-                    </button>
 
-                    {/* Dropdown Menu */}
-                    {activeMenu === msg.id && (
-                      <div className={`absolute top-8 z-10 w-48 bg-white rounded-md shadow-xl py-1 border border-gray-200 ${isMine ? "right-0 md:right-full md:mr-2" : "left-0 md:left-full md:ml-2"}`}>
-                        <button onClick={() => handleCopyMessage(msg.content)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          Copy
-                        </button>
+                      {/* Timestamp & Ticks (Floating Bottom Right) */}
+                      <div className="absolute bottom-1 right-1.5 flex items-center gap-1">
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                         {isMine && (
-                          <>
-                            <button onClick={() => handlePinToggle(msg)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                              {msg.isPinned ? "Unpin Message" : "Pin Message"}
-                            </button>
-                            <button onClick={() => {
-                              const newContent = prompt("Edit message:", msg.content);
-                              if (newContent !== null && newContent !== msg.content) {
-                                fetch(`/api/messages/message/${msg.id}`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ content: newContent })
-                                }).then(res => {
-                                  if (res.ok) setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: newContent, isEdited: true } : m));
-                                });
-                              }
-                              setActiveMenu(null);
-                            }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                              Edit
-                            </button>
-                          </>
-                        )}
-                        <button onClick={() => {
-                            alert(`Message Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}\nStatus: ${msg.isRead ? "Read by recipient" : "Delivered (Unread)"}`);
-                            setActiveMenu(null);
-                          }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          Info
-                        </button>
-                        {!isMine && (
-                          <>
-                            <button onClick={() => handlePinToggle(msg)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                              {msg.isPinned ? "Unpin Message" : "Pin Message"}
-                            </button>
-                            <button onClick={() => { alert("User blocked successfully!"); setActiveMenu(null); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                              Block
-                            </button>
-                          </>
-                        )}
-                        {isMine && (
-                          <>
-                            <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                              Delete for me
-                            </button>
-                            <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-bold">
-                              Delete for everyone
-                            </button>
-                          </>
+                          <span className="text-gray-400">
+                            {msg.isRead ? (
+                              <svg viewBox="0 0 16 15" width="16" height="15" className="text-blue-500"><path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"></path></svg>
+                            ) : msg.isDelivered ? (
+                              <svg viewBox="0 0 16 15" width="16" height="15"><path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"></path></svg>
+                            ) : (
+                              <svg viewBox="0 0 11 14" width="11" height="14"><path fill="currentColor" d="M10.426 3.109l-7.79 8.568a.465.465 0 0 1-.684.015L.178 9.94a.435.435 0 0 1-.02-.625l.487-.512a.458.458 0 0 1 .64-.02l1.32 1.282a.229.229 0 0 0 .338-.01L9.18 2.617a.466.466 0 0 1 .684-.015l.582.482a.435.435 0 0 1 .02.625z"></path></svg>
+                            )}
+                          </span>
                         )}
                       </div>
-                    )}
+                    </div>
+                  </div>
 
-                  </div>
-                  <div className="flex items-center mt-1 mx-1 space-x-1 text-xs text-gray-400">
-                    <span>
-                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    {msg.isEdited && <span className="italic text-gray-400 mx-1">(edited)</span>}
-                    {isMine && (
-                      msg.isRead ? (
-                        <svg className="w-4 h-4 text-blue-500 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7m-9 9l4 4L23 7"></path></svg>
-                      ) : msg.isDelivered ? (
-                        <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7m-9 9l4 4L23 7"></path></svg>
-                      ) : (
-                        <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                      )
-                    )}
-                  </div>
+                  {/* Dropdown Menu */}
+                  {activeMenu === msg.id && (
+                    <div className={`absolute top-full mt-1 z-[100] w-48 bg-white rounded-lg shadow-[0_2px_15px_rgba(0,0,0,0.15)] py-1 border border-gray-100 ${isMine ? "right-0" : "left-0"}`}>
+                      <button onClick={() => setReplyToMessage(msg)} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Reply</button>
+                      <button onClick={() => handleCopyMessage(msg.content)} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Copy</button>
+                      <button onClick={() => { setActiveMenu(null); alert(`Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}`); }} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Info</button>
+                      {isMine && (
+                        <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2.5 text-[15px] text-red-500 hover:bg-gray-50">Delete for me</button>
+                      )}
+                      <div className="h-[1px] bg-gray-100 my-1"></div>
+                      <button onClick={() => setActiveMenu(null)} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-500 hover:bg-gray-50">Cancel</button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })
         )}
-
-        {isTyping && (
-          <div className="flex justify-start mb-4 animate-fade-in">
-            <div className="px-4 py-3 rounded-3xl bg-gray-100 text-gray-500 rounded-bl-none shadow-sm flex items-center space-x-1">
-               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-1" />
       </div>
 
-      <div className="bg-white border-t p-4 flex-shrink-0">
-        <div className="max-w-5xl mx-auto w-full relative">
+      {/* Input Area */}
+      <div className="bg-[#f0f2f5] p-2 flex-shrink-0 z-10 w-full relative">
+        <div className="max-w-5xl mx-auto w-full">
           {replyToMessage && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-100 border border-gray-200 rounded-lg p-3 flex justify-between items-center shadow-sm">
-              <div className="flex-1 min-w-0 mr-4">
-                <p className="text-xs font-bold text-indigo-600 mb-1">Replying to Dr. {replyToMessage.sender?.fullName}</p>
-                <p className="text-sm text-gray-600 truncate">{replyToMessage.content}</p>
+            <div className="bg-[#f0f2f5] border-l-4 border-indigo-500 p-2 mb-2 rounded shadow-sm flex justify-between items-center mr-12 ml-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-indigo-500 mb-0.5">{replyToMessage.sender?.fullName}</p>
+                <p className="text-[13px] text-gray-600 truncate">{replyToMessage.content}</p>
               </div>
-              <button onClick={() => setReplyToMessage(null)} className="text-gray-400 hover:text-gray-600 bg-white rounded-full p-1 shadow-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              <button onClick={() => setReplyToMessage(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
               </button>
             </div>
           )}
 
           {currentUser && currentUser.verificationStatus !== "VERIFIED" ? (
-            <div className="bg-amber-50 p-3 rounded text-center text-sm text-amber-800">
+            <div className="bg-amber-50 p-3 rounded-lg text-center text-[15px] text-amber-800 shadow-sm mx-2">
               You must complete PMDC verification to send messages. <button onClick={() => router.push("/verification")} className="font-bold hover:underline">Verify</button>
             </div>
           ) : (
-            <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-gray-100 rounded-full p-1 shadow-inner">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={handleTyping}
-                placeholder="Type a message..."
-                className="flex-1 bg-transparent border-none py-3 px-5 focus:outline-none focus:ring-0 text-gray-800"
-              />
+            <form onSubmit={handleSendMessage} className="flex items-end gap-2 w-full">
+              <div className="flex-1 bg-white rounded-3xl flex items-center min-h-[44px] shadow-sm overflow-hidden">
+                <button type="button" className="text-gray-400 p-2 ml-1 hover:text-gray-600">
+                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.13 0-12.13 0zm11.363-1.108s1.18-.312 1.724 1.088c.277.71.597 2.026 2.378 3.227 1.483 1.002 3.002.828 3.002.828.073-.028.143-.058.215-.093.315-.153.625-.333.918-.543.16-.115.313-.244.453-.385.12-.12.235-.255.335-.398.083-.11.16-.233.223-.363.048-.098.085-.205.115-.315.023-.083.04-.173.05-.265.01-.083.015-.17.013-.258-.008-.198-.035-.398-.08-.593-.05-.228-.125-.453-.223-.668-.113-.248-.25-.483-.41-.7-.18-.248-.388-.475-.625-.678-.26-.228-.545-.43-.848-.603-.33-.188-.683-.343-1.05-.465-.4-.135-.815-.233-1.24-.298-.458-.07-1.025-.098-1.5-.098z" opacity=".4"></path></svg>
+                </button>
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={handleTyping}
+                  placeholder="Message"
+                  className="flex-1 bg-transparent border-none py-2.5 px-2 focus:outline-none focus:ring-0 text-[15px] text-gray-900 leading-tight"
+                />
+                <button type="button" className="text-gray-400 p-2 hover:text-gray-600">
+                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path></svg>
+                </button>
+                <button type="button" className="text-gray-400 p-2 mr-1 hover:text-gray-600">
+                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M11.832 23.498a10.428 10.428 0 0 1-8.525-4.482A10.375 10.375 0 0 1 1.464 13.1c.07-2.67.994-5.188 2.673-7.288s3.945-3.415 6.452-3.722a10.354 10.354 0 0 1 7.29 1.83 10.44 10.44 0 0 1 3.947 5.753c.488 1.821.574 3.737.251 5.61-.318 1.821-1.114 3.49-2.329 4.881a10.334 10.334 0 0 1-4.717 3.018 10.224 10.224 0 0 1-3.2.516zm1.144-1.218a8.966 8.966 0 0 0 2.802-.45 9.074 9.074 0 0 0 4.14-2.651c1.074-1.229 1.776-2.705 2.056-4.316.284-1.656.208-3.349-.224-4.96A9.155 9.155 0 0 0 18.28 4.845a9.07 9.07 0 0 0-6.396-1.605c-2.217.272-4.225 1.436-5.711 3.292-1.485 1.857-2.302 4.088-2.363 6.451a9.074 9.074 0 0 0 1.616 5.188 9.13 9.13 0 0 0 7.481 3.931l.069-.022zM12 9.475a2.525 2.525 0 1 1 0 5.05 2.525 2.525 0 0 1 0-5.05z"></path></svg>
+                </button>
+              </div>
               <button
                 type="submit"
                 disabled={sending || !newMessage.trim()}
-                className="bg-indigo-600 text-white p-3 rounded-full shadow hover:bg-indigo-700 disabled:bg-indigo-300 transition flex items-center justify-center flex-shrink-0"
+                className="bg-indigo-600 text-white w-[44px] h-[44px] rounded-full shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center flex-shrink-0"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                {newMessage.trim() ? (
+                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current ml-1"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="24" height="24" className="fill-current"><path d="M11.999 14.942c2.001 0 3.531-1.53 3.531-3.531V4.35c0-2.001-1.53-3.531-3.531-3.531S8.468 2.349 8.468 4.35v7.061c0 2.001 1.53 3.531 3.531 3.531zm6.238-3.531c0 3.531-2.942 6.002-6.238 6.002s-6.238-2.471-6.238-6.002H3.761c0 4.001 3.178 7.297 7.061 7.885v3.884h2.354v-3.884c3.884-.588 7.061-3.884 7.061-7.885h-2.001z"></path></svg>
+                )}
               </button>
             </form>
           )}
