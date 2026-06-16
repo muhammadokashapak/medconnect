@@ -412,15 +412,14 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={() => {
-                    setIsEditing(!isEditing);
-                    if (!isEditing) setActiveTab("about");
+                    setIsEditing(true);
                     setSuccess("");
                     setError("");
                   }}
                   className="flex-1 md:flex-initial bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm md:text-base"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                  {isEditing ? "View Profile" : "Edit Profile"}
+                  Edit Profile
                 </button>
                 <button
                   onClick={() => router.push("/feed")}
@@ -517,6 +516,18 @@ export default function ProfilePage() {
                         <span><span className="font-semibold">{doctor.experienceYears} Years</span> of clinical experience</span>
                       </div>
                     )}
+                    {doctor?.pmdcNumber && (
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span>PMDC No: <span className="font-semibold">{doctor.pmdcNumber}</span></span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <svg className={`w-5 h-5 shrink-0 ${doctor?.isVerified ? 'text-green-500' : 'text-amber-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      <span className={`font-semibold ${doctor?.isVerified ? 'text-green-600' : 'text-amber-600'}`}>
+                        {doctor?.isVerified ? 'Verified Account' : 'Verification Pending'}
+                      </span>
+                    </div>
                     {doctor?.linkedinUrl && (
                       <div className="flex items-center gap-3">
                         <svg className="w-5 h-5 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
@@ -814,170 +825,74 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Tab 5: About (Details & Edit Form) */}
+        {/* Tab 5: About (Details Card) */}
         {activeTab === "about" && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">{isEditing ? "Edit Personal Details" : "Personal Information"}</h2>
-              {!isEditing && (
-                <button 
-                  onClick={() => setIsEditing(true)} 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg text-sm shadow-sm transition"
-                >
-                  Edit Profile
-                </button>
-              )}
+              <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
+              <button 
+                type="button"
+                onClick={() => setIsEditing(true)} 
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg text-sm shadow-sm transition flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                <span>Edit Profile</span>
+              </button>
             </div>
 
-            {!isEditing ? (
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Details</h3>
-                    <div className="space-y-2 text-sm text-gray-800">
-                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Email:</span> <span className="font-semibold">{doctor?.email}</span></p>
-                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Phone:</span> <span className="font-semibold">{doctor?.phoneNumber}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Identity</h3>
-                    <div className="space-y-2 text-sm text-gray-800">
-                      <p className="flex"><span className="w-24 text-gray-500 font-medium">PMDC No:</span> <span className="font-semibold">{doctor?.pmdcNumber}</span></p>
-                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Status:</span> <span className={`font-bold ${doctor?.isVerified ? 'text-green-600' : 'text-amber-500'}`}>{doctor?.isVerified ? '✓ Verified Practitioner' : 'Verification Pending'}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Career Summary</h3>
-                    <div className="space-y-2 text-sm text-gray-800">
-                      <p className="flex"><span className="w-28 text-gray-500 font-medium">Hospital/Clinic:</span> <span className="font-semibold">{doctor?.hospital || "-"}</span></p>
-                      <p className="flex"><span className="w-28 text-gray-500 font-medium">City:</span> <span className="font-semibold">{doctor?.city || "-"}</span></p>
-                      <p className="flex"><span className="w-28 text-gray-500 font-medium">Experience:</span> <span className="font-semibold">{doctor?.experienceYears ? `${doctor.experienceYears} Years` : "-"}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Qualifications</h3>
-                    <div className="space-y-2 text-sm text-gray-800">
-                      <p className="flex"><span className="w-24 text-gray-500 font-medium">Highest Cert:</span> <span className="font-semibold">{doctor?.qualification || "-"}</span></p>
-                      <p className="flex"><span className="w-24 text-gray-500 font-medium">College:</span> <span className="font-semibold">{doctor?.medicalCollege || "-"}</span></p>
-                    </div>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Details</h3>
+                  <div className="space-y-2 text-sm text-gray-800">
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">Email:</span> <span className="font-semibold">{doctor?.email}</span></p>
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">Phone:</span> <span className="font-semibold">{doctor?.phoneNumber}</span></p>
                   </div>
                 </div>
 
-                {doctor?.bio && (
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Bio / Professional Statement</h3>
-                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{doctor.bio}</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Identity</h3>
+                  <div className="space-y-2 text-sm text-gray-800">
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">PMDC No:</span> <span className="font-semibold">{doctor?.pmdcNumber}</span></p>
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">Status:</span> <span className={`font-bold ${doctor?.isVerified ? 'text-green-600' : 'text-amber-500'}`}>{doctor?.isVerified ? '✓ Verified Practitioner' : 'Verification Pending'}</span></p>
                   </div>
-                )}
+                </div>
 
-                {(doctor?.linkedinUrl || doctor?.websiteUrl) && (
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Links</h3>
-                    <div className="flex gap-4">
-                      {doctor?.linkedinUrl && <a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0H5C2.24 0 0 2.24 0 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM7.5 19H4.5V9h3v10zM6 7.5C4.62 7.5 3.5 6.38 3.5 5S4.62 2.5 6 2.5 8.5 3.62 8.5 5 7.38 7.5 6 7.5zM19.5 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V9h3v1.77c1.4-2.59 7-2.78 7 2.48V19z"/></svg> LinkedIn</a>}
-                      {doctor?.websiteUrl && <a href={doctor.websiteUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9"></path></svg> Website</a>}
-                    </div>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Career Summary</h3>
+                  <div className="space-y-2 text-sm text-gray-800">
+                    <p className="flex"><span className="w-28 text-gray-500 font-medium">Hospital/Clinic:</span> <span className="font-semibold">{doctor?.hospital || "-"}</span></p>
+                    <p className="flex"><span className="w-28 text-gray-500 font-medium">City:</span> <span className="font-semibold">{doctor?.city || "-"}</span></p>
+                    <p className="flex"><span className="w-28 text-gray-500 font-medium">Experience:</span> <span className="font-semibold">{doctor?.experienceYears ? `${doctor.experienceYears} Years` : "-"}</span></p>
                   </div>
-                )}
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Qualifications</h3>
+                  <div className="space-y-2 text-sm text-gray-800">
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">Highest Cert:</span> <span className="font-semibold">{doctor?.qualification || "-"}</span></p>
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">College:</span> <span className="font-semibold">{doctor?.medicalCollege || "-"}</span></p>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                    <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Specialization</label>
-                    <input type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Hospital / Clinic</label>
-                    <input type="text" name="hospital" value={formData.hospital} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">City</label>
-                    <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Highest Qualification</label>
-                    <input type="text" name="qualification" value={formData.qualification} onChange={handleInputChange} placeholder="e.g. MBBS, FCPS" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Medical College</label>
-                    <input type="text" name="medicalCollege" value={formData.medicalCollege} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Years of Experience</label>
-                    <input type="number" name="experienceYears" value={formData.experienceYears} onChange={handleInputChange} min="0" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">LinkedIn URL</label>
-                    <input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Website URL</label>
-                    <input type="url" name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition" />
-                  </div>
-                  <div className="md:col-span-2 flex items-center gap-3 py-2">
-                    <input
-                      type="checkbox"
-                      id="isProfilePrivate"
-                      name="isProfilePrivate"
-                      checked={formData.isProfilePrivate}
-                      onChange={(e) => setFormData({ ...formData, isProfilePrivate: e.target.checked })}
-                      className="h-4.5 w-4.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="isProfilePrivate" className="text-sm text-gray-900 font-semibold cursor-pointer">Keep my clinical cases private (visible only to mutual friends)</label>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Profile Background (Cover Photo)</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                      {COVER_PRESETS.map((preset) => (
-                        <div 
-                          key={preset.name}
-                          onClick={() => setFormData(prev => ({ ...prev, coverImage: preset.url }))}
-                          className={`relative cursor-pointer aspect-[3/1] rounded-lg overflow-hidden border-2 transition ${
-                            formData.coverImage === preset.url ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-1">
-                            <span className="text-[10px] sm:text-xs text-white font-bold text-center">{preset.name}</span>
-                          </div>
-                          {formData.coverImage === preset.url && (
-                            <div className="absolute top-1 right-1 bg-blue-600 text-white rounded-full p-0.5">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <label className="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2.5 px-4 rounded-lg cursor-pointer shadow-sm transition text-xs font-bold border border-gray-300 inline-block">
-                        <span>Upload Custom Background Image</span>
-                        <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} disabled={uploading} />
-                      </label>
-                      {uploading && <span className="text-xs text-gray-500 animate-pulse font-medium">Uploading file...</span>}
-                    </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Bio (max 500 characters)</label>
-                    <textarea name="bio" value={formData.bio} onChange={handleInputChange} maxLength={500} rows={4} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black transition"></textarea>
-                  </div>
-                </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                  <button type="button" onClick={() => setIsEditing(false)} className="px-5 py-2.5 border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                  <button type="submit" disabled={saving || uploading} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-lg shadow-sm transition">
-                    {saving ? "Saving..." : "Save Changes"}
-                  </button>
+              {doctor?.bio && (
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Bio / Professional Statement</h3>
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{doctor.bio}</p>
                 </div>
-              </form>
-            )}
+              )}
+
+              {(doctor?.linkedinUrl || doctor?.websiteUrl) && (
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Links</h3>
+                  <div className="flex gap-4">
+                    {doctor?.linkedinUrl && <a href={doctor.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0H5C2.24 0 0 2.24 0 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM7.5 19H4.5V9h3v10zM6 7.5C4.62 7.5 3.5 6.38 3.5 5S4.62 2.5 6 2.5 8.5 3.62 8.5 5 7.38 7.5 6 7.5zM19.5 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V9h3v1.77c1.4-2.59 7-2.78 7 2.48V19z"/></svg> LinkedIn</a>}
+                    {doctor?.websiteUrl && <a href={doctor.websiteUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9"></path></svg> Website</a>}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -1270,6 +1185,141 @@ export default function ProfilePage() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Profile Modal Dialog */}
+      {isEditing && (
+        <div className="fixed inset-0 bg-black/60 z-[999] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-8">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900 text-lg">Edit Profile Details</h3>
+              <button 
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-1.5 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit}>
+              <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+                
+                {/* Visuals Quick Edit Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
+                  <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-between gap-3 border border-gray-100">
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-sm">Profile Picture</h4>
+                      <p className="text-xs text-gray-500">Update your account avatar</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setShowAvatarMenu(true);
+                      }}
+                      className="bg-white hover:bg-gray-50 border border-gray-300 text-blue-600 font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-between gap-3 border border-gray-100">
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-sm">Cover Background</h4>
+                      <p className="text-xs text-gray-500">Change your profile banner</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setShowCoverMenu(true);
+                      }}
+                      className="bg-white hover:bg-gray-50 border border-gray-300 text-blue-600 font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
+                    <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specialization</label>
+                    <input type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Hospital / Clinic</label>
+                    <input type="text" name="hospital" value={formData.hospital} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">City</label>
+                    <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Highest Qualification</label>
+                    <input type="text" name="qualification" value={formData.qualification} onChange={handleInputChange} placeholder="e.g. MBBS, FCPS" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Medical College</label>
+                    <input type="text" name="medicalCollege" value={formData.medicalCollege} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Years of Experience</label>
+                    <input type="number" name="experienceYears" value={formData.experienceYears} onChange={handleInputChange} min="0" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">LinkedIn URL</label>
+                    <input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Website URL</label>
+                    <input type="url" name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition" />
+                  </div>
+                  
+                  <div className="md:col-span-2 flex items-center gap-3 py-1 bg-gray-50 px-3 py-2.5 rounded-lg border border-gray-150">
+                    <input
+                      type="checkbox"
+                      id="isProfilePrivate"
+                      name="isProfilePrivate"
+                      checked={formData.isProfilePrivate}
+                      onChange={(e) => setFormData({ ...formData, isProfilePrivate: e.target.checked })}
+                      className="h-4.5 w-4.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    />
+                    <label htmlFor="isProfilePrivate" className="text-xs text-gray-700 font-bold cursor-pointer">Keep my clinical cases private (visible only to mutual friends)</label>
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Bio (max 500 characters)</label>
+                    <textarea name="bio" value={formData.bio} onChange={handleInputChange} maxLength={500} rows={3} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black text-sm transition"></textarea>
+                  </div>
+                </div>
+
+              </div>
+              
+              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setIsEditing(false)} 
+                  className="px-5 py-2.5 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={saving || uploading} 
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl shadow-sm transition text-sm"
+                >
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
