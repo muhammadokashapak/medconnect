@@ -23,12 +23,29 @@ export async function PUT(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    await prisma.notification.updateMany({
-      where: { doctorId: userId, isRead: false },
-      data: { isRead: true },
-    });
+    let notificationId = null;
+    try {
+      const body = await req.json();
+      if (body && body.notificationId) {
+        notificationId = body.notificationId;
+      }
+    } catch (e) {
+      // Body might be empty
+    }
 
-    return NextResponse.json({ message: "All notifications marked as read" }, { status: 200 });
+    if (notificationId) {
+      await prisma.notification.updateMany({
+        where: { id: notificationId, doctorId: userId },
+        data: { isRead: true },
+      });
+      return NextResponse.json({ message: "Notification marked as read" }, { status: 200 });
+    } else {
+      await prisma.notification.updateMany({
+        where: { doctorId: userId, isRead: false },
+        data: { isRead: true },
+      });
+      return NextResponse.json({ message: "All notifications marked as read" }, { status: 200 });
+    }
   } catch (error) {
     console.error("Mark Notifications Read Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

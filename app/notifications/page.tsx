@@ -42,6 +42,17 @@ export default function NotificationsPage() {
     } catch (error) {}
   };
 
+  const markSingleRead = async (id: string) => {
+    try {
+      await fetch("/api/notifications/read", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId: id })
+      });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (error) {}
+  };
+
   const handleFriendRequest = async (requestId: string, action: 'accept' | 'decline') => {
     try {
       const res = await fetch("/api/friend-request", {
@@ -133,11 +144,11 @@ export default function NotificationsPage() {
                 return (
                   <li key={n.id} className={`hover:bg-gray-50 transition ${!n.isRead ? 'bg-indigo-50/50' : ''}`}>
                     {n.actionUrl ? (
-                      <Link href={n.actionUrl} className="p-4 block w-full h-full">
+                      <Link href={n.actionUrl} onClick={() => { if (!n.isRead) markSingleRead(n.id); }} className="p-4 block w-full h-full">
                         {NotificationContent}
                       </Link>
                     ) : (
-                      <div className="p-4 block w-full h-full">
+                      <div onClick={() => { if (!n.isRead) markSingleRead(n.id); }} className="p-4 block w-full h-full cursor-pointer">
                         {NotificationContent}
                       </div>
                     )}

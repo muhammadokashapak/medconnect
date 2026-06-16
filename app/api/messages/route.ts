@@ -88,11 +88,34 @@ export async function POST(req: Request) {
         isAiConversation = true;
         aiBotId = p.doctorId;
       } else {
+        const unreadCount = await prisma.message.count({
+          where: {
+            conversationId,
+            senderId: userId,
+            isRead: false
+          }
+        });
+
+        const notifText = unreadCount > 1 
+          ? `Dr. ${doctor.fullName} sent you ${unreadCount} messages.`
+          : `Dr. ${doctor.fullName} sent you a message.`;
+
+        await prisma.notification.deleteMany({
+           where: {
+              doctorId: p.doctorId,
+              type: "MESSAGE",
+              isRead: false,
+              message: {
+                 startsWith: `Dr. ${doctor.fullName} sent you`
+              }
+           }
+        });
+
         await prisma.notification.create({
           data: {
             doctorId: p.doctorId,
             title: "New Message",
-            message: `Dr. ${doctor.fullName} sent you a message.`,
+            message: notifText,
             type: "MESSAGE",
             actionUrl: "/messages"
           }
