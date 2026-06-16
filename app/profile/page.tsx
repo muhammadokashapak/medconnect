@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 type DoctorProfileData = {
@@ -42,6 +42,10 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showAvatarLightbox, setShowAvatarLightbox] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [doctor, setDoctor] = useState<DoctorProfileData | null>(null);
   const [formData, setFormData] = useState({
@@ -298,7 +302,10 @@ export default function ProfilePage() {
             <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-16 md:-mt-24 gap-4 pb-6 border-b border-gray-200">
               <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
                 <div className="relative group/avatar">
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10">
+                  <div 
+                    onClick={() => setShowAvatarMenu(true)}
+                    className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 cursor-pointer group/img overflow-hidden"
+                  >
                     {doctor?.profileImage ? (
                       <img src={doctor.profileImage || undefined} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
@@ -308,11 +315,39 @@ export default function ProfilePage() {
                         </svg>
                       </div>
                     )}
+                    
+                    {/* Hover camera overlay (Facebook style) */}
+                    <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition duration-200">
+                      <svg className="w-6 h-6 md:w-8 md:h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                      <span className="text-[10px] md:text-xs font-bold text-center px-2">Update Photo</span>
+                    </div>
                   </div>
-                  <label className="absolute bottom-1 right-1 z-20 bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 rounded-full p-2.5 cursor-pointer shadow-md transition border-2 border-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                  </label>
+
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAvatarMenu(true);
+                    }}
+                    className="absolute bottom-1 right-1 z-20 bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 rounded-full p-2.5 cursor-pointer shadow-md transition border-2 border-white"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                  </button>
+
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    disabled={uploading} 
+                  />
                 </div>
 
                 <div className="md:mb-3">
@@ -924,6 +959,110 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Facebook-style Avatar Options Modal */}
+      {showAvatarMenu && (
+        <div className="fixed inset-0 bg-black/60 z-[999] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+          <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900 text-lg">Profile Picture</h3>
+              <button 
+                type="button"
+                onClick={() => setShowAvatarMenu(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-1.5 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-3 space-y-1">
+              {doctor?.profileImage && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAvatarMenu(false);
+                    setShowAvatarLightbox(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 rounded-xl transition text-gray-700 font-semibold text-sm"
+                >
+                  <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900">View Profile Picture</div>
+                    <div className="text-xs text-gray-500 font-normal">See your profile photo in full size</div>
+                  </div>
+                </button>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAvatarMenu(false);
+                  fileInputRef.current?.click();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 rounded-xl transition text-gray-700 font-semibold text-sm"
+              >
+                <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-bold text-gray-900">Upload New Photo</div>
+                  <div className="text-xs text-gray-500 font-normal">Choose a photo from your device</div>
+                </div>
+              </button>
+            </div>
+            
+            <div className="p-3 bg-gray-50 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowAvatarMenu(false)}
+                className="w-full py-2.5 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl text-center transition text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Picture Lightbox */}
+      {showAvatarLightbox && (
+        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col items-center justify-center p-4 transition-opacity duration-300 animate-in fade-in">
+          {/* Close button top right */}
+          <button
+            type="button"
+            onClick={() => setShowAvatarLightbox(false)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition backdrop-blur-md z-[10000]"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          
+          {/* Image */}
+          <div className="relative max-w-4xl max-h-[80vh] w-full flex items-center justify-center">
+            <img 
+              src={doctor?.profileImage || undefined} 
+              alt="Profile" 
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+            />
+          </div>
+          
+          {/* Name overlay footer */}
+          <div className="absolute bottom-6 left-0 right-0 text-center">
+            <h4 className="text-white text-lg font-bold">Dr. {doctor?.fullName}</h4>
+            <p className="text-gray-400 text-sm">{doctor?.specialization || "General Medicine"}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

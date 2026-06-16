@@ -64,6 +64,7 @@ export default function DoctorProfilePage() {
   const [mutualFriends, setMutualFriends] = useState<any[]>([]);
   const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
   const [friendsSearchQuery, setFriendsSearchQuery] = useState("");
+  const [showAvatarLightbox, setShowAvatarLightbox] = useState(false);
 
   const loadDoctorProfile = async () => {
     try {
@@ -322,12 +323,25 @@ export default function DoctorProfilePage() {
           <div className="px-4 py-6 sm:px-8">
             <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-16 md:-mt-24 gap-4 pb-6 border-b border-gray-200">
               <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0">
+                <div 
+                  onClick={() => doctor.profileImage && setShowAvatarLightbox(true)}
+                  className={`w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0 ${
+                    doctor.profileImage ? "cursor-pointer group/avatar hover:brightness-95 transition" : ""
+                  }`}
+                >
                   {doctor.profileImage ? (
                     <img src={doctor.profileImage || undefined} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-indigo-50 flex items-center justify-center text-indigo-400 text-5xl font-bold">
                       {doctor.fullName[0]}
+                    </div>
+                  )}
+                  {doctor.profileImage && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white opacity-0 group-hover/avatar:opacity-100 transition duration-200">
+                      <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
                     </div>
                   )}
                 </div>
@@ -822,6 +836,36 @@ export default function DoctorProfilePage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Profile Picture Lightbox */}
+      {showAvatarLightbox && (
+        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col items-center justify-center p-4 transition-opacity duration-300 animate-in fade-in">
+          {/* Close button top right */}
+          <button
+            type="button"
+            onClick={() => setShowAvatarLightbox(false)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition backdrop-blur-md z-[10000]"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          
+          {/* Image */}
+          <div className="relative max-w-4xl max-h-[80vh] w-full flex items-center justify-center">
+            <img 
+              src={doctor.profileImage || undefined} 
+              alt="Profile" 
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+            />
+          </div>
+          
+          {/* Name overlay footer */}
+          <div className="absolute bottom-6 left-0 right-0 text-center">
+            <h4 className="text-white text-lg font-bold">Dr. {doctor.fullName}</h4>
+            <p className="text-gray-400 text-sm">{doctor.specialization || "General Medicine"}</p>
           </div>
         </div>
       )}
