@@ -59,6 +59,14 @@ export async function POST(req: Request) {
       },
     });
 
+    // Send a test notification so the user sees it immediately
+    const { sendPushNotification } = require("@/lib/push-helper");
+    await sendPushNotification(doctorId, {
+      title: "MedConnect",
+      message: "Push notifications have been successfully enabled!",
+      url: "/settings"
+    });
+
     return NextResponse.json({ message: "Subscription saved successfully." }, { status: 200 });
   } catch (error) {
     console.error("WebPush POST Error:", error);
