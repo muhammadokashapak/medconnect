@@ -79,7 +79,54 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       return NextResponse.json({ message: "Cannot delete an Admin account" }, { status: 400 });
     }
 
-    // Begin Cascade Deletion of all related data
+    // 1. Fetch dependent IDs that have their own nested relations
+    const userPosts = await prisma.casePost.findMany({ where: { doctorId: params.id }, select: { id: true } });
+    const postIds = userPosts.map(p => p.id);
+
+    const patients = await prisma.patient.findMany({ where: { doctorId: params.id }, select: { id: true } });
+    const patientIds = patients.map(p => p.id);
+
+    const aiSessions = await prisma.aIClinicalSession.findMany({ where: { doctorId: params.id }, select: { id: true } });
+    const sessionIds = aiSessions.map(s => s.id);
+
+    // 2. Delete deeply nested records first
+    if (patientIds.length > 0) {
+      await prisma.$transaction([
+        prisma.emergencyContact.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.medicalHistory.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.allergy.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.medication.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.diagnosis.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.vitalSigns.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.labResult.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.prescription.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.immunization.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.clinicalVisit.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.attachment.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.appointment.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.queueToken.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.followUpReminder.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.invoice.deleteMany({ where: { patientId: { in: patientIds } } })
+      ]);
+    }
+
+    if (sessionIds.length > 0) {
+      await prisma.$transaction([
+        prisma.aIConversation.deleteMany({ where: { sessionId: { in: sessionIds } } }),
+        prisma.aIToolUsage.deleteMany({ where: { sessionId: { in: sessionIds } } })
+      ]);
+    }
+
+    if (postIds.length > 0) {
+      await prisma.$transaction([
+        prisma.caseView.deleteMany({ where: { casePostId: { in: postIds } } }),
+        prisma.caseReaction.deleteMany({ where: { casePostId: { in: postIds } } }),
+        prisma.savedCase.deleteMany({ where: { casePostId: { in: postIds } } }),
+        prisma.comment.deleteMany({ where: { casePostId: { in: postIds } } }),
+      ]);
+    }
+
+    // 3. Delete direct associations to the Doctor
     await prisma.$transaction([
       prisma.caseView.deleteMany({ where: { doctorId: params.id } }),
       prisma.caseReaction.deleteMany({ where: { doctorId: params.id } }),
@@ -88,9 +135,13 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       prisma.message.deleteMany({ where: { senderId: params.id } }),
       prisma.conversationParticipant.deleteMany({ where: { doctorId: params.id } }),
       prisma.follow.deleteMany({ where: { OR: [{ followerId: params.id }, { followingId: params.id }] } }),
+      prisma.friendRequest.deleteMany({ where: { OR: [{ senderId: params.id }, { receiverId: params.id }] } }),
       prisma.notification.deleteMany({ where: { doctorId: params.id } }),
       prisma.activity.deleteMany({ where: { doctorId: params.id } }),
+      prisma.appointment.deleteMany({ where: { OR: [{ doctorId: params.id }, { consultantId: params.id }] } }),
+      prisma.callHistory.deleteMany({ where: { OR: [{ callerId: params.id }, { receiverId: params.id }] } }),
       prisma.savedGuideline.deleteMany({ where: { doctorId: params.id } }),
+      prisma.guideline.deleteMany({ where: { doctorId: params.id } }),
       prisma.savedResearch.deleteMany({ where: { doctorId: params.id } }),
       prisma.resourceView.deleteMany({ where: { doctorId: params.id } }),
       prisma.hospitalMembership.deleteMany({ where: { doctorId: params.id } }),
@@ -100,26 +151,18 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       prisma.cMECertificate.deleteMany({ where: { doctorId: params.id } }),
       prisma.aIRequest.deleteMany({ where: { doctorId: params.id } }),
       prisma.videoPost.deleteMany({ where: { doctorId: params.id } }),
-      // For CasePosts, we also need to delete views/reactions/comments tied to those posts
-      // but prisma deleteMany on casePosts doesn't cascade if there are foreign keys.
-      // Easiest is to find all their case posts, delete related data, then delete the case posts.
+      prisma.pushSubscription.deleteMany({ where: { doctorId: params.id } }),
+      prisma.prescription.deleteMany({ where: { doctorId: params.id } }),
+      prisma.clinicalVisit.deleteMany({ where: { doctorId: params.id } }),
+      prisma.queueToken.deleteMany({ where: { doctorId: params.id } }),
+      
+      // 4. Finally delete the models that had nested models (which we cleared above)
+      prisma.casePost.deleteMany({ where: { doctorId: params.id } }),
+      prisma.patient.deleteMany({ where: { doctorId: params.id } }),
+      prisma.aIClinicalSession.deleteMany({ where: { doctorId: params.id } })
     ]);
 
-    // Handle CasePosts specifically because they have incoming relations (comments, views, reactions)
-    const userPosts = await prisma.casePost.findMany({ where: { doctorId: params.id }, select: { id: true } });
-    const postIds = userPosts.map(p => p.id);
-    
-    if (postIds.length > 0) {
-      await prisma.$transaction([
-        prisma.caseView.deleteMany({ where: { casePostId: { in: postIds } } }),
-        prisma.caseReaction.deleteMany({ where: { casePostId: { in: postIds } } }),
-        prisma.savedCase.deleteMany({ where: { casePostId: { in: postIds } } }),
-        prisma.comment.deleteMany({ where: { casePostId: { in: postIds } } }),
-        prisma.casePost.deleteMany({ where: { doctorId: params.id } })
-      ]);
-    }
-
-    // Now delete the doctor
+    // 5. Now safely delete the doctor
     await prisma.doctor.delete({
       where: { id: params.id }
     });
