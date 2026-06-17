@@ -4,6 +4,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import VerificationBadge from "@/components/VerificationBadge";
 
 type DoctorProfileData = {
   id: string;
@@ -23,6 +24,7 @@ type DoctorProfileData = {
   phoneNumber?: string;
   pmdcNumber?: string;
   isVerified?: boolean;
+  verificationStatus?: string;
   linkedinUrl?: string;
 };
 
@@ -376,15 +378,11 @@ export default function ProfilePage() {
                 <div className="md:mb-3">
                   <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
                     Dr. {doctor?.fullName}
-                    {doctor?.isVerified && (
-                      <span className="bg-blue-500 text-white rounded-full p-1" title="Verified Medical Practitioner">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                      </span>
-                    )}
+                    {doctor && <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />}
                   </h1>
                   <p className="text-gray-600 font-semibold text-lg">{doctor?.specialization || "General Medicine"}</p>
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
-                    <span>PMDC: {doctor?.pmdcNumber}</span>
+                    <span>License/Reg No: {doctor?.pmdcNumber}</span>
                     <span>•</span>
                     <button onClick={() => setActiveTab("friends")} className="font-bold text-gray-800 hover:underline">
                       {friendCount} friend{friendCount !== 1 ? 's' : ''}
