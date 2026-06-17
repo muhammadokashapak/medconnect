@@ -401,12 +401,12 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 w-full md:w-auto justify-center md:pt-20">
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto md:pt-20 mt-2 md:mt-0">
                 <button
                   onClick={() => router.push("/create-case")}
-                  className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 text-sm md:text-base"
                 >
-                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
+                  <svg className="w-4 h-4 md:w-5 md:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
                   Add Case Post
                 </button>
                 <button
@@ -415,14 +415,14 @@ export default function ProfilePage() {
                     setSuccess("");
                     setError("");
                   }}
-                  className="flex-1 md:flex-initial bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm border border-gray-200"
+                  className="flex-1 md:flex-initial bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center gap-1.5 text-sm md:text-base"
                 >
-                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                  <svg className="w-4 h-4 md:w-5 md:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   Edit Profile
                 </button>
                 <button
                   onClick={() => router.push("/feed")}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold p-2.5 rounded-full shadow-sm transition flex items-center justify-center border border-gray-200"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold p-2 rounded-lg transition flex items-center justify-center shrink-0"
                   title="Back to Homepage"
                 >
                   <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
