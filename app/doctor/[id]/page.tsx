@@ -355,14 +355,14 @@ export default function DoctorProfilePage() {
                   )}
                 </div>
 
-                <div className="md:mb-3">
+                <div className="md:pt-4">
                   <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
                     Dr. {doctor.fullName}
                     <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />
                   </h1>
                   <p className="text-gray-600 font-semibold text-lg">{doctor.specialization || "General Medicine"}</p>
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
-                    <span>Medical Professional</span>
+                    <span>License/Reg No: {doctor.pmdcNumber || "N/A"}</span>
                     <span>•</span>
                     <span className="font-bold text-gray-800">{friendCount} friend{friendCount !== 1 ? 's' : ''}</span>
                   </div>

@@ -375,7 +375,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="md:mb-3">
+                <div className="md:pt-4">
                   <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
                     Dr. {doctor?.fullName}
                     {doctor && <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />}
