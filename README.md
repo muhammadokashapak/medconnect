@@ -86,6 +86,12 @@ MedConnect is an exclusive, secure, and professional social networking and consu
 
 The UI is built with a focus on **Professional Aesthetics**, utilizing clean typography, subtle micro-animations, and a highly responsive layout optimized for both desktop and mobile devices.
 
+### Mobile Interfaces
+<div style="display: flex; gap: 10px; overflow-x: auto;">
+  <img src="/public/screenshots/mobile_profile.png" alt="Mobile Profile" width="300" />
+  <img src="/public/screenshots/mobile_feed.png" alt="Mobile Feed" width="300" />
+</div>
+
 ## 🤝 Contributing
 
 We welcome contributions to MedConnect! If you are a developer with a background in healthcare tech or just passionate about secure networking platforms, feel free to submit a Pull Request.
