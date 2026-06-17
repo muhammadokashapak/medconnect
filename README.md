@@ -2,7 +2,7 @@
 
 MedConnect is an exclusive, secure, and professional social networking and consultation platform built strictly for verified medical professionals (Doctors). It aims to bridge the gap between healthcare practitioners, providing them with a secure environment to discuss clinical cases, share medical knowledge, and communicate in real-time.
 
-![MedConnect Banner](/public/vercel.svg)
+![MedConnect Banner](public/vercel.svg)
 
 ## 🌟 Key Features
 
@@ -88,8 +88,8 @@ The UI is built with a focus on **Professional Aesthetics**, utilizing clean typ
 
 ### Mobile Interfaces
 <div style="display: flex; gap: 10px; overflow-x: auto;">
-  <img src="/public/screenshots/mobile_profile.png" alt="Mobile Profile" width="300" />
-  <img src="/public/screenshots/mobile_feed.png" alt="Mobile Feed" width="300" />
+  <img src="public/screenshots/mobile_profile.png" alt="Mobile Profile" width="300" />
+  <img src="public/screenshots/mobile_feed.png" alt="Mobile Feed" width="300" />
 </div>
 
 ## 🤝 Contributing
