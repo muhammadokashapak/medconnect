@@ -225,8 +225,16 @@ export default function SettingsPage() {
     setError("");
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      
+      // 1. Explicitly request notification permission first (fixes Safari/iOS hanging)
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        throw new Error("You must allow notifications in your browser settings.");
+      }
+
+      // 2. Ensure Service Worker is registered
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+
       if (isPushEnabled) {
         // Unsubscribe
         const subscription = await registration.pushManager.getSubscription();
