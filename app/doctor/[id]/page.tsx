@@ -329,12 +329,13 @@ export default function DoctorProfilePage() {
           </div>
 
           {/* Profile Details Header */}
-          <div className="px-4 py-6 sm:px-8">
-            <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-16 md:-mt-24 gap-4 pb-6 border-b border-gray-200">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
+          <div className="px-4 pb-6 sm:px-8">
+            <div className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-200 pb-6">
+              
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 w-full md:w-auto mt-[-40px] md:mt-[-60px]">
                 <div 
                   onClick={() => doctor.profileImage && setShowAvatarLightbox(true)}
-                  className={`w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0 ${
+                  className={`w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0 mx-auto md:mx-0 ${
                     doctor.profileImage ? "cursor-pointer group/avatar hover:brightness-95 transition" : ""
                   }`}
                 >
@@ -355,31 +356,43 @@ export default function DoctorProfilePage() {
                   )}
                 </div>
 
-                <div className="md:pt-4">
-                  <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                <div className="md:pt-16 text-center md:text-left w-full md:w-auto">
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
                     Dr. {doctor.fullName}
                     <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />
                   </h1>
-                  <p className="text-gray-600 font-semibold text-lg">{doctor.specialization || "General Medicine"}</p>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
-                    <span>License/Reg No: {doctor.pmdcNumber || "N/A"}</span>
-                    <span>•</span>
-                    <span className="font-bold text-gray-800">{friendCount} friend{friendCount !== 1 ? 's' : ''}</span>
+                  <p className="text-gray-600 font-medium text-lg mt-1">{doctor.specialization || "General Medicine"}</p>
+                  
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2 mt-4 text-sm text-gray-600 font-medium">
+                    <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                      License: {doctor.pmdcNumber || "N/A"}
+                    </span>
+                    <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                      <span className="font-bold">{friendCount}</span> Connections
+                    </span>
+                    {doctor.experienceYears && (
+                      <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
+                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span className="font-bold">{doctor.experienceYears} Yrs</span> Exp
+                      </span>
+                    )}
                   </div>
 
                   {/* Mutual Friends Stack */}
                   {currentDoctorId && currentDoctorId !== doctor.id && mutualFriends.length > 0 && (
-                    <div className="flex items-center justify-center md:justify-start gap-2 mt-3 text-xs text-gray-500">
-                      <div className="flex -space-x-1.5 overflow-hidden">
+                    <div className="flex items-center justify-center md:justify-start gap-2 mt-4 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 shadow-sm w-fit mx-auto md:mx-0">
+                      <div className="flex -space-x-2 overflow-hidden">
                         {mutualFriends.slice(0, 3).map(mf => (
-                          <div key={mf.id} className="w-6 h-6 rounded-full border border-white overflow-hidden bg-gray-200" title={mf.fullName}>
-                            {mf.profileImage ? <img src={mf.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-500">{mf.fullName[0]}</div>}
+                          <div key={mf.id} className="w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gray-200" title={mf.fullName}>
+                            {mf.profileImage ? <img src={mf.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-[9px] font-bold text-blue-500">{mf.fullName[0]}</div>}
                           </div>
                         ))}
                       </div>
                       <p>
-                        <span className="font-bold text-gray-700">{mutualFriends.length} mutual friend{mutualFriends.length !== 1 ? 's' : ''}</span>
-                        {mutualFriends.length > 0 && <> including <span className="font-semibold text-gray-800">Dr. {mutualFriends[0].fullName}</span></>}
+                        <span className="font-bold text-gray-800">{mutualFriends.length} mutual</span>
+                        {mutualFriends.length > 0 && <> including <span className="font-semibold text-gray-900">Dr. {mutualFriends[0].fullName.split(" ")[0]}</span></>}
                       </p>
                     </div>
                   )}
@@ -387,11 +400,11 @@ export default function DoctorProfilePage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-center">
+              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-center md:pt-20">
                 <button
                   onClick={handleMessageClick}
                   disabled={messaging}
-                  className="flex-1 md:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60"
+                  className="flex-1 md:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                   <span>{messaging ? "Wait..." : "Message"}</span>
@@ -406,7 +419,7 @@ export default function DoctorProfilePage() {
                         fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'AUDIO', roomId }) });
                         router.push(`/video/${roomId}`);
                       }}
-                      className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                      className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-full shadow-sm transition flex items-center justify-center"
                       title="Voice Call"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
@@ -419,20 +432,20 @@ export default function DoctorProfilePage() {
                         fetch('/api/call-notify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ targetDoctorId: doctor.id, callType: 'VIDEO', roomId }) });
                         router.push(`/video/${roomId}`);
                       }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                      className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-full shadow-sm transition flex items-center justify-center"
                       title="Video Call"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     </button>
 
                     {doctor.appointment ? (
-                      <button disabled className="px-5 py-2.5 rounded-lg shadow-sm font-bold text-sm flex items-center justify-center bg-gray-100 text-gray-500 cursor-not-allowed">
+                      <button disabled className="px-5 py-2.5 rounded-full shadow-sm font-bold text-sm flex items-center justify-center bg-gray-100 text-gray-500 cursor-not-allowed">
                         {doctor.appointment.status === "PENDING" ? "Pending Appt" : "Scheduled"}
                       </button>
                     ) : (
                       <button
                         onClick={() => setShowAppointmentModal(true)}
-                        className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm font-bold text-sm flex items-center justify-center"
+                        className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-sm font-bold text-sm flex items-center justify-center"
                       >
                         Book Appt
                       </button>
@@ -443,7 +456,7 @@ export default function DoctorProfilePage() {
                 )}
                 <button
                   onClick={() => router.back()}
-                  className="bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold p-2.5 rounded-full shadow-sm transition flex items-center justify-center border border-gray-200"
                   title="Go Back"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -500,7 +513,7 @@ export default function DoctorProfilePage() {
                 {/* Left Column (Sidebar Widgets) */}
                 <div className="space-y-6">
                   {/* Intro Card */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Intro</h2>
                     <div className="space-y-4">
                       {doctor.bio && (
@@ -539,7 +552,7 @@ export default function DoctorProfilePage() {
                   </div>
 
                   {/* Friends Preview Card */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex justify-between items-center mb-4">
                       <div>
                         <h2 className="text-xl font-bold text-gray-900">Friends</h2>
@@ -580,7 +593,7 @@ export default function DoctorProfilePage() {
                 {/* Right Column (Clinical Posts) */}
                 <div className="lg:col-span-2 space-y-6">
                   {(!doctor.posts || doctor.posts.length === 0) ? (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-500">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
                       <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
                       <p className="font-semibold text-lg text-gray-700">No Clinical Cases Shared Yet</p>
                       <p className="text-sm text-gray-400 mt-1">Check back later or invite them to share case files.</p>
@@ -588,7 +601,7 @@ export default function DoctorProfilePage() {
                   ) : (
                     <div className="space-y-6">
                       {doctor.posts.map(post => (
-                        <div key={post.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                           {/* Post Header */}
                           <div className="p-4 flex justify-between items-center">
                             <div className="flex items-center gap-3">

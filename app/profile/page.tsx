@@ -323,13 +323,14 @@ export default function ProfilePage() {
           </div>
 
           {/* Profile Name & Primary Actions */}
-          <div className="px-4 py-6 sm:px-8">
-            <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-16 md:-mt-24 gap-4 pb-6 border-b border-gray-200">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
-                <div className="relative group/avatar">
+          <div className="px-4 pb-6 sm:px-8">
+            <div className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-200 pb-6">
+              
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 w-full md:w-auto mt-[-40px] md:mt-[-60px]">
+                <div className="relative group/avatar shrink-0 z-10 mx-auto md:mx-0">
                   <div 
                     onClick={() => setShowAvatarMenu(true)}
-                    className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 cursor-pointer group/img overflow-hidden"
+                    className="w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative cursor-pointer group/img"
                   >
                     {doctor?.profileImage ? (
                       <img src={doctor.profileImage || undefined} alt="Profile" className="w-full h-full object-cover" />
@@ -341,7 +342,6 @@ export default function ProfilePage() {
                       </div>
                     )}
                     
-                    {/* Hover camera overlay (Facebook style) */}
                     <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition duration-200">
                       <svg className="w-6 h-6 md:w-8 md:h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -357,7 +357,7 @@ export default function ProfilePage() {
                       e.stopPropagation();
                       setShowAvatarMenu(true);
                     }}
-                    className="absolute bottom-1 right-1 z-20 bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 rounded-full p-2.5 cursor-pointer shadow-md transition border-2 border-white"
+                    className="absolute bottom-2 right-2 z-20 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full p-2.5 cursor-pointer shadow-md transition border-2 border-white"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -375,36 +375,36 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="md:pt-4">
-                  <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                <div className="md:pt-16 text-center md:text-left w-full md:w-auto">
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
                     Dr. {doctor?.fullName}
                     {doctor && <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />}
                   </h1>
-                  <p className="text-gray-600 font-semibold text-lg">{doctor?.specialization || "General Medicine"}</p>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
-                    <span>License/Reg No: {doctor?.pmdcNumber}</span>
-                    <span>•</span>
-                    <button onClick={() => setActiveTab("friends")} className="font-bold text-gray-800 hover:underline">
-                      {friendCount} friend{friendCount !== 1 ? 's' : ''}
+                  <p className="text-gray-600 font-medium text-lg mt-1">{doctor?.specialization || "General Medicine"}</p>
+                  
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2 mt-4 text-sm text-gray-600 font-medium">
+                    <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                      License: {doctor?.pmdcNumber}
+                    </span>
+                    <button onClick={() => setActiveTab("friends")} className="bg-gray-100 px-3 py-1.5 rounded-full hover:bg-blue-50 transition text-gray-800 flex items-center gap-1.5 shadow-sm border border-gray-200">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                      <span className="font-bold">{friendCount}</span> Connections
                     </button>
+                    {doctor?.experienceYears && (
+                      <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
+                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span className="font-bold">{doctor.experienceYears} Yrs</span> Exp
+                      </span>
+                    )}
                   </div>
-                  {/* Friends Stack Preview */}
-                  {friends.length > 0 && (
-                    <div className="flex items-center justify-center md:justify-start -space-x-2 mt-3 overflow-hidden">
-                      {friends.slice(0, 5).map(f => (
-                        <div key={f.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gray-200" title={f.fullName}>
-                          {f.profileImage ? <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center text-xs text-blue-500 font-bold">{f.fullName[0]}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-center">
+              <div className="flex flex-wrap gap-3 w-full md:w-auto justify-center md:pt-20">
                 <button
                   onClick={() => router.push("/create-case")}
-                  className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm md:text-base"
+                  className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
                   Add Case Post
@@ -415,14 +415,14 @@ export default function ProfilePage() {
                     setSuccess("");
                     setError("");
                   }}
-                  className="flex-1 md:flex-initial bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm md:text-base"
+                  className="flex-1 md:flex-initial bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm border border-gray-200"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   Edit Profile
                 </button>
                 <button
                   onClick={() => router.push("/feed")}
-                  className="bg-[#E4E6EB] hover:bg-[#D8DADF] text-gray-900 font-bold p-2.5 rounded-lg shadow-sm transition flex items-center justify-center"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold p-2.5 rounded-full shadow-sm transition flex items-center justify-center border border-gray-200"
                   title="Back to Homepage"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -474,7 +474,7 @@ export default function ProfilePage() {
             {/* Left Column (Sidebar Widgets) */}
             <div className="space-y-6">
               {/* Intro Card */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Intro</h2>
                 <div className="space-y-4">
                   {doctor?.bio ? (
@@ -538,7 +538,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Friends Preview Card */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">Friends</h2>
@@ -579,7 +579,7 @@ export default function ProfilePage() {
             {/* Right Column (Clinical Feed & Post Button) */}
             <div className="lg:col-span-2 space-y-6">
               {/* "What's on your mind" Box */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex gap-4 items-center">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex gap-4 items-center">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                   {doctor?.profileImage ? (
                     <img src={doctor.profileImage || undefined} alt="" className="w-full h-full object-cover" />
@@ -597,7 +597,7 @@ export default function ProfilePage() {
 
               {/* Feed List */}
               {myCases.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-500">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
                   <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
                   <p className="font-semibold text-lg text-gray-700">No Clinical Cases Posted Yet</p>
                   <p className="text-sm text-gray-400 mt-1">Cases you share will appear here on your feed.</p>
@@ -605,7 +605,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-6">
                   {myCases.map(c => (
-                    <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                       {/* Post Header */}
                       <div className="p-4 flex justify-between items-center">
                         <div className="flex items-center gap-3">
