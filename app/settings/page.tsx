@@ -225,7 +225,15 @@ export default function SettingsPage() {
     setError("");
 
     try {
-      // 1. Explicitly request notification permission first (fixes Safari/iOS hanging)
+      // 0. Detect iOS Safari not in standalone mode
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+      
+      if (isIos && !isStandalone) {
+        throw new Error("iPhone users: You must tap 'Share' ➔ 'Add to Home Screen' first. Then open the app from your Home Screen to enable Push Notifications.");
+      }
+
+      // 1. Explicitly request notification permission first
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         throw new Error("You must allow notifications in your browser settings.");
@@ -246,7 +254,7 @@ export default function SettingsPage() {
       } else {
         // Subscribe
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) throw new Error("VAPID key is missing.");
+        if (!vapidPublicKey) throw new Error("VAPID Keys are missing on the server! Please add NEXT_PUBLIC_VAPID_PUBLIC_KEY to Vercel.");
 
         const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
         const subscription = await registration.pushManager.subscribe({
