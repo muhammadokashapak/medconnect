@@ -139,9 +139,11 @@ export async function GET(req: Request) {
     const total = await prisma.casePost.count({ where: whereClause });
 
     const sanitizedCases = cases.map((c) => {
+      const _count = c._count || { comments: 0, views: 0, reactions: 0 };
       if (c.isAnonymous) {
         return {
           ...c,
+          _count,
           doctor: {
             id: c.doctor.id,
             fullName: "Anonymous Doctor",
@@ -154,6 +156,7 @@ export async function GET(req: Request) {
       }
       return {
         ...c,
+        _count,
         doctor: {
           id: c.doctor.id,
           fullName: c.doctor.fullName,

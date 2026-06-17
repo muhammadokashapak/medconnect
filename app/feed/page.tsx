@@ -120,6 +120,9 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [followingSet, setFollowingSet] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchFollowings = async () => {
     try {
@@ -142,14 +145,17 @@ export default function FeedPage() {
   const fetchData = async () => {
     try {
       const [casesRes, trendingRes, savedRes, profileRes, friendsRes] = await Promise.all([
-        fetch("/api/cases", { cache: 'no-store' }),
+        fetch("/api/cases?page=1&limit=10", { cache: 'no-store' }),
         fetch("/api/trending", { cache: 'no-store' }),
         fetch("/api/save-case", { cache: 'no-store' }),
         fetch("/api/profile", { cache: 'no-store' }),
         fetch("/api/friends", { cache: 'no-store' }),
       ]);
 
-      const casesData = (await casesRes.json()) as CasePost[];
+      const casesJson = await casesRes.json();
+      const casesData = casesJson.data || casesJson;
+      const meta = casesJson.meta || {};
+      
       const trendingData = (await trendingRes.json()) as TrendingCase[];
       const savedData = (await savedRes.json()) as SavedCase[];
       
@@ -166,6 +172,7 @@ export default function FeedPage() {
 
       setCases(casesData);
       setTrending(trendingData);
+      setHasMore(meta.hasMore || false);
       
       const savedIds = new Set<string>();
       if (Array.isArray(savedData)) {
@@ -190,6 +197,28 @@ export default function FeedPage() {
     void initFeed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadMore = async () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await fetch(`/api/cases?page=${nextPage}&limit=10`, { cache: 'no-store' });
+      const json = await res.json();
+      const newData = json.data || json;
+      setCases(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const filteredNew = newData.filter((c: CasePost) => !existingIds.has(c.id));
+        return [...prev, ...filteredNew];
+      });
+      setPage(nextPage);
+      setHasMore(json.meta?.hasMore || false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const toggleSave = async (e: MouseEvent<HTMLButtonElement>, caseId: string) => {
     e.stopPropagation();
@@ -337,6 +366,10 @@ export default function FeedPage() {
                   <div className="flex items-center text-gray-500 border-t pt-4 gap-6">
                     <button onClick={async (e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
+                      // Optimistic Update: toggle +1 or -1 based on assuming it's a like if we don't have user state
+                      // Actually, since we don't have user hasLiked state natively in this simple case, we just assume +1 if we react, or we just do a naive +1 optimistically
+                      const oldCases = [...cases];
+                      setCases(prev => prev.map(cs => cs.id === c.id ? {...cs, _count: {...cs._count, reactions: (cs._count?.reactions || 0) + 1}} : cs));
                       try {
                         const res = await fetch("/api/cases/react", {
                           method: "POST",
@@ -346,10 +379,15 @@ export default function FeedPage() {
                         if (res.ok) {
                           const data = await res.json();
                           const change = data.reacted ? 1 : -1;
-                          setCases(prev => prev.map(cs => cs.id === c.id ? {...cs, _count: {...cs._count, reactions: Math.max(0, (cs._count?.reactions || 0) + change)}} : cs));
+                          // fix optimistic update with actual result
+                          setCases(prev => prev.map(cs => cs.id === c.id ? {...cs, _count: {...cs._count, reactions: Math.max(0, (oldCases.find(oc => oc.id === c.id)?._count?.reactions || 0) + change)}} : cs));
+                        } else {
+                          // revert
+                          setCases(oldCases);
                         }
                       } catch (error) {
                         console.error('Like failed:', error);
+                        setCases(oldCases);
                       }
                     }} className="flex items-center hover:text-blue-600 transition">
                       <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
@@ -373,6 +411,18 @@ export default function FeedPage() {
                   </div>
                 </div>
               ))}
+              
+              {hasMore && (
+                <div className="flex justify-center mt-6">
+                  <button 
+                    onClick={loadMore} 
+                    disabled={isLoadingMore}
+                    className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition shadow-sm disabled:opacity-50"
+                  >
+                    {isLoadingMore ? "Loading..." : "Load More"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

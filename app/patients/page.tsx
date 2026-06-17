@@ -84,7 +84,33 @@ export default function PatientsPage() {
 
         {/* Results */}
         {loading ? (
-          <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
+          <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4">MRN</th>
+                  <th className="px-6 py-4">Patient Name</th>
+                  <th className="px-6 py-4">Gender & Age</th>
+                  <th className="px-6 py-4">Last Visit</th>
+                  <th className="px-6 py-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(5)].map((_, i) => (
+                  <tr key={i} className="border-b border-gray-50 animate-pulse">
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 bg-gray-200 rounded w-32 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-24"></div>
+                    </td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                    <td className="px-6 py-4 text-right"><div className="h-8 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
             {patients.length === 0 ? (

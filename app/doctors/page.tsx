@@ -94,7 +94,25 @@ export default function DoctorsDirectoryPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-gray-500">Loading doctors...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col animate-pulse">
+                <div className="flex items-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-gray-200 flex-shrink-0"></div>
+                  <div className="ml-4 flex-1">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-6 flex-1 mt-2">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+                </div>
+                <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+              </div>
+            ))}
+          </div>
         ) : doctors.length === 0 ? (
           <div className="text-center py-10 bg-white rounded-lg shadow text-gray-500">
             No doctors found matching your criteria.

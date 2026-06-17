@@ -32,7 +32,7 @@ export default function GuidelinesPage() {
       if (!res.ok) throw new Error("Unauthorized");
       let data = await res.json();
       if (!specialty || specialty === "All") {
-        data = [...data].sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        data = [...data].sort((a: any, b: any) => a.title.localeCompare(b.title));
       }
       setGuidelines(data);
     } catch (err) {
