@@ -31,20 +31,23 @@ model Doctor {
   isProfilePrivate Boolean   @default(false)
 
   // Verification & Admin Fields
-  role               String    @default("DOCTOR")
-  verificationStatus String    @default("PENDING")
-  isTwoFactorEnabled Boolean   @default(false)
-  twoFactorPhone     String?
-  otpCode            String?
-  otpExpiry          DateTime?
-  resetToken         String?
-  resetTokenExpiry   DateTime?
-  licenseImage       String?
-  cnicImage          String?
-  selfieImage        String?
-  verificationNotes  String?
-  verifiedAt         DateTime?
-  verifiedBy         String?
+  role                    String    @default("DOCTOR")
+  verificationStatus      String    @default("UNVERIFIED") // UNVERIFIED, PENDING_REVIEW, VERIFIED, REJECTED, SUSPENDED
+  verificationRequestedAt DateTime?
+  verificationUpdatedAt   DateTime?
+  verificationDocuments   String?   @db.Text
+  isTwoFactorEnabled      Boolean   @default(false)
+  twoFactorPhone          String?
+  otpCode                 String?
+  otpExpiry               DateTime?
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  licenseImage            String?
+  cnicImage               String?
+  selfieImage             String?
+  verificationNotes       String?
+  verifiedAt              DateTime?
+  verifiedBy              String?
 
   casePosts       CasePost[]
   comments        Comment[]

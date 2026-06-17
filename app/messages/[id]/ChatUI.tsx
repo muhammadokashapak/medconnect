@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
+import VerificationBadge from "@/components/VerificationBadge";
 
 export default function ChatUI({ id }: { id: string }) {
   const router = useRouter();
@@ -134,6 +135,7 @@ export default function ChatUI({ id }: { id: string }) {
   const recipientId = recipientMsg?.senderId;
   const recipientName = recipientMsg?.sender?.fullName || "Doctor";
   const recipientAvatar = recipientMsg?.sender?.profileImage || null;
+  const recipientStatus = recipientMsg?.sender?.verificationStatus || (recipientMsg?.sender?.isVerified ? "VERIFIED" : "UNVERIFIED");
 
   // Emit check_online_status when we know the recipient
   useEffect(() => {
@@ -490,7 +492,10 @@ export default function ChatUI({ id }: { id: string }) {
               )}
             </div>
             <div className="flex flex-col">
-              <h2 className="text-[16px] font-semibold text-gray-900 leading-tight">Dr. {recipientName}</h2>
+              <h2 className="text-[16px] font-semibold text-gray-900 leading-tight flex items-center gap-1">
+                Dr. {recipientName}
+                {recipientMsg && <VerificationBadge status={recipientStatus} className="scale-75" />}
+              </h2>
               <p className={`text-[13px] font-medium ${isOnline || isTyping ? 'text-indigo-600' : 'text-gray-500'}`}>
                 {isTyping ? "typing..." : (isOnline ? "online" : "offline")}
               </p>

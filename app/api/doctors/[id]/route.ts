@@ -44,8 +44,12 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       }
     });
 
-    if (!doctor || doctor.verificationStatus !== "VERIFIED") {
-      return NextResponse.json({ message: "Doctor not found or not verified" }, { status: 404 });
+    if (!doctor) {
+      return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
+    }
+    
+    if (doctor.verificationStatus !== "VERIFIED" && params.id !== userId) {
+      return NextResponse.json({ message: "Doctor not verified yet" }, { status: 403 });
     }
 
     const isFollowing = await prisma.follow.findUnique({

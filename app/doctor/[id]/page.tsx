@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
+import VerificationBadge from "@/components/VerificationBadge";
 
 type DoctorProfile = {
   id: string;
@@ -21,6 +22,7 @@ type DoctorProfile = {
   linkedinUrl?: string;
   websiteUrl?: string;
   isVerified?: boolean;
+  verificationStatus?: string;
   isProfilePrivate?: boolean;
   isFriend?: boolean;
   friendRequestStatus?: string | null;
@@ -356,15 +358,11 @@ export default function DoctorProfilePage() {
                 <div className="md:mb-3">
                   <h1 className="text-3xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
                     Dr. {doctor.fullName}
-                    {doctor.isVerified && (
-                      <span className="bg-blue-500 text-white rounded-full p-1" title="Verified Practitioner">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                      </span>
-                    )}
+                    <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />
                   </h1>
                   <p className="text-gray-600 font-semibold text-lg">{doctor.specialization || "General Medicine"}</p>
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-sm text-gray-500">
-                    <span>PMDC Verified Practitioner</span>
+                    <span>Medical Professional</span>
                     <span>•</span>
                     <span className="font-bold text-gray-800">{friendCount} friend{friendCount !== 1 ? 's' : ''}</span>
                   </div>
@@ -600,9 +598,7 @@ export default function DoctorProfilePage() {
                               <div>
                                 <h3 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer flex items-center gap-1.5">
                                   Dr. {doctor.fullName}
-                                  {doctor.isVerified && (
-                                    <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" /></svg>
-                                  )}
+                                  <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} className="w-4 h-4" />
                                 </h3>
                                 <p className="text-xs text-gray-500 font-medium">{new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} • {post.specialty}</p>
                               </div>
@@ -779,7 +775,7 @@ export default function DoctorProfilePage() {
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Details</h3>
                   <p className="text-xs text-gray-500">Contact detail visibility is determined by account privacy.</p>
                   <div className="mt-2 space-y-1 text-sm text-gray-800">
-                    <p className="flex"><span className="w-16 text-gray-500 font-medium">PMDC:</span> <span className="font-semibold">{doctor.pmdcNumber || "-"}</span></p>
+                    <p className="flex"><span className="w-24 text-gray-500 font-medium">License No:</span> <span className="font-semibold">{doctor.pmdcNumber || "-"}</span></p>
                   </div>
                 </div>
               </div>

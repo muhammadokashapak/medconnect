@@ -20,6 +20,9 @@ export async function POST(req: Request) {
       phoneNumber,
       pmdcNumber,
       password,
+      degree,
+      hospital,
+      specialization,
     } = body;
 
     // Normalize email
@@ -96,6 +99,10 @@ export async function POST(req: Request) {
         otpCode,
         otpExpiry,
         isVerified: false,
+        verificationStatus: "UNVERIFIED",
+        qualification: degree,
+        hospital,
+        specialization,
       },
     });
 

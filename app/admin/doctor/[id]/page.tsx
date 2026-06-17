@@ -80,6 +80,31 @@ export default function AdminDoctorReviewPage() {
     }
   };
 
+  const handleSuspend = async () => {
+    if (!notes.trim()) {
+      setFeedback({ type: "error", message: "Suspension reason is required." });
+      setTimeout(() => setFeedback(null), 3000);
+      return;
+    }
+    
+    setProcessing(true);
+    try {
+      const res = await fetch("/api/admin/suspend", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ doctorId: params?.id, notes }),
+      });
+
+      if (!res.ok) throw new Error("Failed to suspend");
+      
+      setFeedback({ type: "success", message: "Doctor suspended successfully." });
+      setTimeout(() => router.push("/admin"), 1500);
+    } catch (err: any) {
+      setFeedback({ type: "error", message: err.message });
+      setProcessing(false);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading details...</div>;
   }
@@ -109,7 +134,7 @@ export default function AdminDoctorReviewPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Dr. {doctor.fullName}</h1>
               <p className="text-lg text-gray-600 flex items-center">
-                PMDC: <span className="font-bold text-gray-900 ml-2">{doctor.pmdcNumber}</span>
+                License/Reg No: <span className="font-bold text-gray-900 ml-2">{doctor.pmdcNumber}</span>
               </p>
             </div>
             <div>
@@ -142,9 +167,9 @@ export default function AdminDoctorReviewPage() {
           <h3 className="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Verification Documents</h3>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-            {/* PMDC Certificate */}
+            {/* Medical License */}
             <div className="border rounded-lg overflow-hidden flex flex-col">
-              <div className="bg-gray-100 px-4 py-2 border-b font-medium text-gray-700">PMDC Certificate</div>
+              <div className="bg-gray-100 px-4 py-2 border-b font-medium text-gray-700">Medical License</div>
               <div className="p-4 flex-1 flex items-center justify-center bg-gray-50">
                 {doctor.licenseImage ? (
                   <a href={doctor.licenseImage} target="_blank" rel="noreferrer">
@@ -179,8 +204,8 @@ export default function AdminDoctorReviewPage() {
             </div>
           </div>
 
-          {doctor.verificationStatus === 'PENDING' && (
-            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6">
+          {(doctor.verificationStatus === 'PENDING_REVIEW' || doctor.verificationStatus === 'PENDING') && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6 mb-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Admin Actions</h3>
               
               {!showRejectBox ? (
@@ -217,6 +242,48 @@ export default function AdminDoctorReviewPage() {
                       className="bg-red-600 text-white px-6 py-2 rounded shadow hover:bg-red-700 disabled:opacity-50 font-bold transition"
                     >
                       Confirm Rejection
+                    </button>
+                    <button 
+                      onClick={() => setShowRejectBox(false)}
+                      disabled={processing}
+                      className="bg-gray-300 text-gray-800 px-6 py-2 rounded shadow hover:bg-gray-400 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {doctor.verificationStatus === 'VERIFIED' && (
+            <div className="bg-orange-50 border border-orange-100 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-bold text-orange-900 mb-4">Danger Zone</h3>
+              {!showRejectBox ? (
+                <button 
+                  onClick={() => setShowRejectBox(true)}
+                  disabled={processing}
+                  className="bg-orange-600 text-white px-6 py-3 rounded shadow hover:bg-orange-700 disabled:opacity-50 font-bold transition"
+                >
+                  Suspend Verification
+                </button>
+              ) : (
+                <div className="animate-fade-in-up">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Suspension Reason</label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                    placeholder="Reason for suspending this account."
+                    className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none mb-4"
+                  ></textarea>
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={handleSuspend}
+                      disabled={processing || !notes.trim()}
+                      className="bg-orange-600 text-white px-6 py-2 rounded shadow hover:bg-orange-700 disabled:opacity-50 font-bold transition"
+                    >
+                      Confirm Suspension
                     </button>
                     <button 
                       onClick={() => setShowRejectBox(false)}

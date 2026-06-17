@@ -28,27 +28,26 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { doctorId } = body;
+    const { doctorId, notes } = body;
 
-    if (!doctorId) {
-      return NextResponse.json({ message: "Doctor ID is required" }, { status: 400 });
+    if (!doctorId || !notes) {
+      return NextResponse.json({ message: "Doctor ID and rejection notes are required" }, { status: 400 });
     }
 
     const updatedDoctor = await prisma.doctor.update({
       where: { id: doctorId },
       data: {
-        verificationStatus: "VERIFIED",
-        isVerified: true,
-        verifiedAt: new Date(),
+        verificationStatus: "SUSPENDED",
+        isVerified: false,
         verificationUpdatedAt: new Date(),
         verifiedBy: adminId,
-        verificationNotes: null,
+        verificationNotes: notes,
       },
     });
 
-    return NextResponse.json({ message: "Doctor approved successfully", doctor: updatedDoctor }, { status: 200 });
+    return NextResponse.json({ message: "Doctor suspended successfully", doctor: updatedDoctor }, { status: 200 });
   } catch (error) {
-    console.error("Approve Doctor Error:", error);
+    console.error("Suspend Doctor Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }

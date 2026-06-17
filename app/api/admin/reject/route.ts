@@ -39,6 +39,8 @@ export async function PUT(req: Request) {
       data: {
         verificationStatus: "REJECTED",
         isVerified: false,
+        verificationUpdatedAt: new Date(),
+        verifiedBy: adminId,
         verificationNotes: notes,
       },
     });
