@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function HospitalAdminPage() {
   const router = useRouter();
@@ -36,14 +37,14 @@ export default function HospitalAdminPage() {
         body: JSON.stringify({ membershipId, action })
       });
       if (res.ok) {
-        alert(`Request ${action}D successfully.`);
+        toast.success(`Request ${action}D successfully.`);
         fetchData();
       } else {
         const d = await res.json();
-        alert(d.message || "Action failed.");
+        toast.error(d.message || "Action failed.");
       }
     } catch (error) {
-      alert("Error processing action");
+      toast.error("Error processing action");
     } finally {
       setProcessing(null);
     }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function AIDecisionSupportPage() {
   const router = useRouter();
@@ -26,11 +27,11 @@ export default function AIDecisionSupportPage() {
         setResponse(await res.json());
       } else {
         if (res.status === 401) router.push("/login");
-        else alert("Failed to get AI response. Ensure Patient Data is valid JSON if provided.");
+        else toast.error("Failed to get AI response. Ensure Patient Data is valid JSON if provided.");
       }
     } catch (err) {
       console.error(err);
-      alert("Invalid JSON in Patient Data or Network Error.");
+      toast.error("Invalid JSON in Patient Data or Network Error.");
     } finally {
       setLoading(false);
     }

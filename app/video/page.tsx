@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function VideoFeed() {
   const router = useRouter();
@@ -65,10 +66,10 @@ export default function VideoFeed() {
         fetchVideos();
       } else {
         const errorData = await res.json();
-        alert(errorData.message || "Failed to upload video");
+        toast.error(errorData.message || "Failed to upload video");
       }
     } catch (err) {
-      alert("Error uploading video");
+      toast.error("Error uploading video");
     }
     setUploading(false);
   };

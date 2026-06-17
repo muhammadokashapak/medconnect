@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function EventsPage() {
   const router = useRouter();
@@ -30,14 +31,14 @@ export default function EventsPage() {
     try {
       const res = await fetch(`/api/events/${id}/register`, { method: "POST" });
       if (res.ok) {
-        alert("Successfully registered for the event!");
+        toast.success("Successfully registered for the event!");
         fetchData();
       } else {
         const data = await res.json();
-        alert(data.message || "Failed to register.");
+        toast.error(data.message || "Failed to register.");
       }
     } catch (error) {
-      alert("Error registering");
+      toast.error("Error registering");
     }
   };
 

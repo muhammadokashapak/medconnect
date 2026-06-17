@@ -27,6 +27,9 @@ export async function GET(req: Request) {
     const query = searchParams.get("query") || "";
     const specialty = searchParams.get("specialty") || "";
     const city = searchParams.get("city") || "";
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const skip = (page - 1) * limit;
 
     const whereClause: any = {
       verificationStatus: "VERIFIED",
@@ -60,10 +63,21 @@ export async function GET(req: Request) {
         experienceYears: true,
       },
       orderBy: { fullName: "asc" },
-      take: 50, // Limit to prevent massive payloads
+      skip,
+      take: limit,
     });
 
-    return NextResponse.json(doctors, { status: 200 });
+    const total = await prisma.doctor.count({ where: whereClause });
+
+    return NextResponse.json({
+      data: doctors,
+      meta: {
+        total,
+        page,
+        limit,
+        hasMore: skip + doctors.length < total
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error("Doctors Search Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

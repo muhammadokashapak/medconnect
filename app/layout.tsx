@@ -21,6 +21,8 @@ export const metadata: Metadata = {
 import Navbar from "@/components/Navbar";
 import ProfileBanner from "@/components/ProfileBanner";
 import BottomNav from "@/components/BottomNav";
+import ToastProvider from "@/components/ToastProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function RootLayout({
   children,
@@ -50,8 +52,13 @@ export default function RootLayout({
         />
         <Navbar />
         <ProfileBanner />
-        <main className="flex-1 pb-24 md:pb-0">{children}</main>
+        <main className="flex-1 pb-24 md:pb-0">
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </main>
         <BottomNav />
+        <ToastProvider />
       </body>
     </html>
   );

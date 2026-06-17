@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
+import toast from "react-hot-toast";
 let socket: Socket;
 let SimplePeer: any;
 
@@ -48,7 +49,7 @@ export default function VideoCallRoom() {
         myVideo.current.srcObject = currentStream;
       }
     }).catch(err => {
-        alert("Camera/Microphone permissions are required.");
+        toast.error("Camera/Microphone permissions are required.");
     });
 
     socket.on("connect", () => {
@@ -97,7 +98,7 @@ export default function VideoCallRoom() {
         
         // 30 minutes = 1800 seconds
         if (duration >= 1800) {
-            alert("Maximum meeting duration of 30 minutes reached. Disconnecting...");
+            toast.error("Maximum meeting duration of 30 minutes reached. Disconnecting...");
             leaveCall();
         }
       }

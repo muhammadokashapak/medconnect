@@ -1,9 +1,15 @@
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { registerRateLimiter } from "@/lib/rate-limit";
+import { validateLicenseNumber } from "@/lib/license-validation";
 
 export async function POST(req: Request) {
   try {
-    console.log("STEP 1: Request received");
+    // Rate Limiting
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+    if (!registerRateLimiter.check(ip)) {
+      return Response.json({ message: "Too many registration attempts. Please try again later." }, { status: 429 });
+    }
 
     const body = await req.json();
     console.log("STEP 2: Body:", body);
@@ -24,22 +30,24 @@ export async function POST(req: Request) {
     console.log("STEP 3: Validating PMDC and checking existing doctor");
 
     // PMDC Validation
+    let finalPmdc = pmdcNumber;
     if (pmdcNumber) {
-      const pmdcRegex = /^\d{6}-[mM]$/;
-      if (!pmdcRegex.test(pmdcNumber)) {
+      const validation = validateLicenseNumber(pmdcNumber);
+      if (!validation.valid) {
         return Response.json(
-          { message: "Invalid PMDC License Format." },
+          { message: validation.error || "Invalid PMDC License Format." },
           { status: 400 }
         );
       }
+      finalPmdc = validation.sanitized;
     }
 
     const orConditions: any[] = [{ email }];
     if (phoneNumber && phoneNumber.trim() !== "") {
       orConditions.push({ phoneNumber });
     }
-    if (pmdcNumber && pmdcNumber.trim() !== "") {
-      orConditions.push({ pmdcNumber });
+    if (finalPmdc && finalPmdc.trim() !== "") {
+      orConditions.push({ pmdcNumber: finalPmdc });
     }
 
     const existingDoctor = await prisma.doctor.findFirst({
@@ -56,9 +64,9 @@ export async function POST(req: Request) {
           { message: "aap k gmail se account bana hoa ha already, aap login kr lein." },
           { status: 400 }
         );
-      } else if (existingDoctor.pmdcNumber === pmdcNumber) {
+      } else if (existingDoctor.pmdcNumber === finalPmdc) {
         return Response.json(
-          { message: "This PMDC number is already registered." },
+          { message: "This PMDC/License number is already registered." },
           { status: 400 }
         );
       } else {
@@ -83,7 +91,7 @@ export async function POST(req: Request) {
         fullName,
         email,
         phoneNumber,
-        pmdcNumber,
+        pmdcNumber: finalPmdc,
         password: hashedPassword,
         otpCode,
         otpExpiry,
@@ -98,8 +106,8 @@ export async function POST(req: Request) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.SMTP_EMAIL || "muhammad.okasha2146@gmail.com",
-        pass: process.env.SMTP_PASSWORD || "uzzr kdog fkte ntzd",
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD,
       },
     });
 
@@ -137,13 +145,11 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error("FULL ERROR:");
-    console.error(error);
+    console.error("Registration error:", error);
 
     return Response.json(
       {
-        error: error?.message,
-        stack: error?.stack,
+        error: "An error occurred during registration. Please try again.",
       },
       { status: 500 }
     );

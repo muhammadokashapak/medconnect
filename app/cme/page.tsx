@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function CMEPage() {
   const router = useRouter();
@@ -37,14 +38,14 @@ export default function CMEPage() {
         body: JSON.stringify({ courseId })
       });
       if (res.ok) {
-        alert("Certificate claimed successfully!");
+        toast.success("Certificate claimed successfully!");
         fetchData();
       } else {
         const d = await res.json();
-        alert(d.message || "Failed to claim");
+        toast.error(d.message || "Failed to claim");
       }
     } catch (error) {
-      alert("Error claiming certificate");
+      toast.error("Error claiming certificate");
     } finally {
       setClaiming(null);
     }

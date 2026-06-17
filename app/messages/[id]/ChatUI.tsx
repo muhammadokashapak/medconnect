@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import toast from "react-hot-toast";
+import EmojiPicker from "emoji-picker-react";
 
 export default function ChatUI({ id }: { id: string }) {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function ChatUI({ id }: { id: string }) {
   const [isOnline, setIsOnline] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isAiConversation, setIsAiConversation] = useState(false);
   const [showNewMsgIndicator, setShowNewMsgIndicator] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   
@@ -366,7 +370,7 @@ export default function ChatUI({ id }: { id: string }) {
       }
       
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -389,10 +393,10 @@ export default function ChatUI({ id }: { id: string }) {
         if (res.ok) {
           setMessages(prev => prev.filter(m => m.id !== messageId));
         } else {
-          alert("Failed to delete message");
+          toast.error("Failed to delete message");
         }
       } catch (err) {
-        alert("Error deleting message");
+        toast.error("Error deleting message");
       }
     }
     setActiveMenu(null);
@@ -424,7 +428,7 @@ export default function ChatUI({ id }: { id: string }) {
       await fetch(`/api/messages/${id}`, { method: 'DELETE' });
       router.push("/messages");
     } catch (err) {
-      alert("Failed to delete chat");
+      toast.error("Failed to delete chat");
     }
   };
 
@@ -440,13 +444,13 @@ export default function ChatUI({ id }: { id: string }) {
         setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isPinned: newPinnedStatus } : m));
       }
     } catch (err) {
-      alert("Failed to pin message");
+      toast.error("Failed to pin message");
     }
     setActiveMenu(null);
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><span className="text-gray-500 font-medium">Loading chat...</span></div></div>;
+    return <div className="min-h-screen flex items-center justify-center"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><span className="text-gray-500 font-medium">Loading chat...</span></div></div>;
   }
 
   if (error) {
@@ -622,7 +626,7 @@ export default function ChatUI({ id }: { id: string }) {
                     <div className={`absolute top-full mt-1 z-[100] w-48 bg-white rounded-lg shadow-[0_2px_15px_rgba(0,0,0,0.15)] py-1 border border-gray-100 ${isMine ? "right-0" : "left-0"}`}>
                       <button onClick={() => { setReplyToMessage(msg); setActiveMenu(null); }} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Reply</button>
                       <button onClick={() => handleCopyMessage(msg.content)} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Copy</button>
-                      <button onClick={() => { setActiveMenu(null); alert(`Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}`); }} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Info</button>
+                      <button onClick={() => { setActiveMenu(null); toast.error(`Info:\nSent: ${new Date(msg.createdAt).toLocaleString()}`); }} className="block w-full text-left px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-50">Info</button>
                       {isMine && (
                         <button onClick={() => handleDeleteMessage(msg.id)} className="block w-full text-left px-4 py-2.5 text-[15px] text-red-500 hover:bg-gray-50">Delete for me</button>
                       )}
@@ -678,7 +682,7 @@ export default function ChatUI({ id }: { id: string }) {
                     </div>
                     <span className="text-gray-700 font-medium text-[15px]">Gallery</span>
                   </button>
-                  <button type="button" onClick={() => { alert('Document upload coming soon!'); setShowAttachMenu(false); }} className="flex items-center gap-3 w-full p-2 hover:bg-gray-50 rounded-xl transition">
+                  <button type="button" onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }} className="flex items-center gap-3 w-full p-2 hover:bg-gray-50 rounded-xl transition">
                     <div className="bg-blue-100 p-2.5 rounded-full text-blue-600">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </div>
@@ -695,7 +699,7 @@ export default function ChatUI({ id }: { id: string }) {
                 onChange={handleFileUpload}
               />
 
-              <div className="flex-1 bg-white rounded-3xl flex items-center min-h-[44px] shadow-sm overflow-hidden">
+              <div className="flex-1 bg-white rounded-3xl flex items-center min-h-[44px] shadow-sm overflow-visible relative">
                 <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} className={`p-2 ml-1 transition ${showAttachMenu ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                 </button>
@@ -708,6 +712,14 @@ export default function ChatUI({ id }: { id: string }) {
                   autoFocus
                   className="flex-1 bg-transparent border-none py-2.5 px-2 focus:outline-none focus:ring-0 text-[15px] text-gray-900 leading-tight disabled:opacity-50"
                 />
+                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2 mr-1 transition ${showEmojiPicker ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute bottom-14 right-0 z-50 shadow-2xl rounded-lg">
+                    <EmojiPicker onEmojiClick={(emojiData) => setNewMessage(prev => prev + emojiData.emoji)} />
+                  </div>
+                )}
               </div>
               <button
                 type="submit"

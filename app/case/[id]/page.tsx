@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 type DoctorSummary = {
   id: string;
@@ -200,7 +201,7 @@ export default function CaseDetailsPage() {
       setEditMode(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to update post";
-      alert(message);
+      toast.error(message);
     } finally {
       setSavingPost(false);
     }
@@ -216,7 +217,7 @@ export default function CaseDetailsPage() {
       router.push("/feed");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to delete post";
-      alert(message);
+      toast.error(message);
     } finally {
       setDeletingPost(false);
     }

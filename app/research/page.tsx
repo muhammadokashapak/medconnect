@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function ResearchPage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function ResearchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "save", paperId })
       });
-      alert("Paper saved to your Learning Dashboard!");
+      toast.success("Paper saved to your Learning Dashboard!");
     } catch (err) {
       console.error(err);
     }

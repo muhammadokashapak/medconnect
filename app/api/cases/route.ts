@@ -90,7 +90,13 @@ export async function GET(req: Request) {
     const friendsIds = myFollowing.filter(f => followerIds.has(f.followingId)).map(f => f.followingId);
 
     const url = new URL(req.url);
-    const requestedDoctorId = url.searchParams.get("doctorId");
+    const searchParams = url.searchParams;
+    const requestedDoctorId = searchParams.get("doctorId");
+    
+    // Pagination parameters
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const skip = (page - 1) * limit;
 
     let whereClause: any = {
       OR: [
@@ -107,6 +113,8 @@ export async function GET(req: Request) {
     const cases = await prisma.casePost.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
       include: {
         doctor: {
           select: {
@@ -114,6 +122,8 @@ export async function GET(req: Request) {
             fullName: true,
             profileImage: true,
             isVerified: true,
+            specialization: true,
+            verificationStatus: true
           }
         },
         _count: {
@@ -126,22 +136,44 @@ export async function GET(req: Request) {
       }
     });
 
-    const sanitizedCases = cases.map(c => {
+    const total = await prisma.casePost.count({ where: whereClause });
+
+    const sanitizedCases = cases.map((c) => {
       if (c.isAnonymous) {
         return {
           ...c,
           doctor: {
             id: c.doctor.id,
             fullName: "Anonymous Doctor",
+            specialization: null,
             profileImage: null,
             isVerified: c.doctor.isVerified,
+            verificationStatus: null
           }
         };
       }
-      return c;
+      return {
+        ...c,
+        doctor: {
+          id: c.doctor.id,
+          fullName: c.doctor.fullName,
+          specialization: c.doctor.specialization,
+          profileImage: c.doctor.profileImage,
+          isVerified: c.doctor.isVerified,
+          verificationStatus: c.doctor.verificationStatus,
+        }
+      };
     });
 
-    return NextResponse.json(sanitizedCases, { status: 200 });
+    return NextResponse.json({
+      data: sanitizedCases,
+      meta: {
+        total,
+        page,
+        limit,
+        hasMore: skip + sanitizedCases.length < total
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error("Get Cases Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

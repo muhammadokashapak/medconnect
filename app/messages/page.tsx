@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function MessagesListPage() {
   const router = useRouter();
@@ -171,9 +172,9 @@ export default function MessagesListPage() {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ conversationId: conv.id, isMuted: true })
                               });
-                              alert("Chat muted successfully!");
+                              toast.success("Chat muted successfully!");
                             } catch (err) {
-                              alert("Failed to mute chat");
+                              toast.error("Failed to mute chat");
                             }
                             setActiveMenu(null); 
                           }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

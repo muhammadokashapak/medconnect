@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
+import toast from "react-hot-toast";
 
 let socket: Socket;
 let SimplePeer: any;
@@ -55,7 +56,7 @@ export default function ConferenceRoom() {
       }
     }).catch(err => {
       console.error("Failed to get media", err);
-      alert("Please allow camera and microphone access to join the conference.");
+      toast.error("Please allow camera and microphone access to join the conference.");
     });
 
     return () => {

@@ -3,6 +3,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 type DoctorProfileData = {
   id: string;
@@ -151,7 +152,7 @@ export default function ProfilePage() {
       if (res.ok) {
         setMyCases(prev => prev.filter(c => c.id !== caseId));
       } else {
-        alert("Failed to delete case.");
+        toast.error("Failed to delete case.");
       }
     } catch (err) {
       console.error(err);
@@ -721,7 +722,7 @@ export default function ProfilePage() {
                               if(res.ok) {
                                 setMyVideos(myVideos.map(video => video.id === v.id ? {...video, title: newTitle, description: newDesc} : video));
                               } else {
-                                alert('Failed to update video');
+                                toast.error('Failed to update video');
                               }
                             });
                           }} 
@@ -737,7 +738,7 @@ export default function ProfilePage() {
                                 if(res.ok) {
                                   setMyVideos(myVideos.filter(video => video.id !== v.id));
                                 } else {
-                                  alert('Failed to delete video');
+                                  toast.error('Failed to delete video');
                                 }
                               });
                             }

@@ -23,6 +23,11 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query") || "";
+    
+    // Pagination parameters
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const skip = (page - 1) * limit;
 
     const patients = await prisma.patient.findMany({
       where: {
@@ -39,10 +44,35 @@ export async function GET(req: Request) {
           orderBy: { visitedAt: "desc" },
           take: 1
         }
-      }
+      },
+      skip,
+      take: limit,
     });
 
-    return NextResponse.json(patients, { status: 200 });
+    const total = await prisma.patient.count({
+      where: {
+        doctorId: userId,
+        ...(query
+          ? {
+              OR: [
+                { fullName: { contains: query, mode: "insensitive" } },
+                { mrn: { contains: query, mode: "insensitive" } },
+                { phone: { contains: query, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+    });
+
+    return NextResponse.json({
+      data: patients,
+      meta: {
+        total,
+        page,
+        limit,
+        hasMore: skip + patients.length < total
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

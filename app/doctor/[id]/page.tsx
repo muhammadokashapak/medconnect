@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 type DoctorProfile = {
   id: string;
@@ -157,7 +158,7 @@ export default function DoctorProfilePage() {
       await loadDoctorProfile();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send friend request";
-      alert(message);
+      toast.error(message);
     } finally {
       setFriendUpdating(false);
     }
@@ -187,10 +188,10 @@ export default function DoctorProfilePage() {
 
       setShowAppointmentModal(false);
       await loadDoctorProfile();
-      alert("Appointment request sent successfully!");
+      toast.success("Appointment request sent successfully!");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to book appointment";
-      alert(message);
+      toast.error(message);
     } finally {
       setBookingAppointment(false);
     }
@@ -209,10 +210,10 @@ export default function DoctorProfilePage() {
       if (res.ok && data.conversationId) {
         router.push(`/messages/${data.conversationId}`);
       } else {
-        alert("Failed to start conversation.");
+        toast.error("Failed to start conversation.");
       }
     } catch (err) {
-      alert("Error starting conversation.");
+      toast.error("Error starting conversation.");
     } finally {
       setMessaging(false);
     }
@@ -268,7 +269,7 @@ export default function DoctorProfilePage() {
                       setFriendCount(d.friendCount||0); 
                     }
                   } catch(e) { 
-                    alert('Failed to unfriend'); 
+                    toast.error('Failed to unfriend'); 
                   }
                   setFriendUpdating(false);
                 }}
