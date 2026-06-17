@@ -317,7 +317,7 @@ export default function DoctorProfilePage() {
           {/* Cover Photo */}
           <div 
             onClick={() => doctor.coverImage && setShowCoverLightbox(true)}
-            className={`h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden sm:rounded-b-2xl ${
+            className={`h-40 sm:h-56 md:h-72 lg:h-80 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden sm:rounded-b-2xl ${
               doctor.coverImage ? "cursor-pointer hover:brightness-95 transition" : ""
             }`}
           >
@@ -332,10 +332,10 @@ export default function DoctorProfilePage() {
           <div className="px-4 pb-6 sm:px-8">
             <div className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-200 pb-6">
               
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 w-full md:w-auto mt-[-40px] md:mt-[-60px]">
+              <div className="flex flex-col md:flex-row items-start md:items-start gap-4 md:gap-6 w-full md:w-auto mt-[-40px] sm:mt-[-50px] md:mt-[-60px]">
                 <div 
                   onClick={() => doctor.profileImage && setShowAvatarLightbox(true)}
-                  className={`w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0 mx-auto md:mx-0 ${
+                  className={`w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative z-10 shrink-0 mx-0 ${
                     doctor.profileImage ? "cursor-pointer group/avatar hover:brightness-95 transition" : ""
                   }`}
                 >
@@ -356,14 +356,14 @@ export default function DoctorProfilePage() {
                   )}
                 </div>
 
-                <div className="md:pt-16 text-center md:text-left w-full md:w-auto">
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                <div className="md:pt-16 text-left w-full md:w-auto">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 flex flex-wrap items-center justify-start gap-2">
                     Dr. {doctor.fullName}
                     <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />
                   </h1>
-                  <p className="text-gray-600 font-medium text-lg mt-1">{doctor.specialization || "General Medicine"}</p>
+                  <p className="text-gray-600 font-medium text-base md:text-lg mt-1">{doctor.specialization || "General Medicine"}</p>
                   
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2 mt-4 text-sm text-gray-600 font-medium">
+                  <div className="flex flex-wrap items-center justify-start gap-x-2 gap-y-2 mt-4 text-xs sm:text-sm text-gray-600 font-medium">
                     <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
                       License: {doctor.pmdcNumber || "N/A"}
@@ -406,7 +406,7 @@ export default function DoctorProfilePage() {
                   disabled={messaging}
                   className="flex-1 md:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-60"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                   <span>{messaging ? "Wait..." : "Message"}</span>
                 </button>
 
@@ -422,7 +422,7 @@ export default function DoctorProfilePage() {
                       className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-full shadow-sm transition flex items-center justify-center"
                       title="Voice Call"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                      <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                     </button>
 
                     {/* Video Call */}
@@ -435,7 +435,7 @@ export default function DoctorProfilePage() {
                       className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-full shadow-sm transition flex items-center justify-center"
                       title="Video Call"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                      <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     </button>
 
                     {doctor.appointment ? (

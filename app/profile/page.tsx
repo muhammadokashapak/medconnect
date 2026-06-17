@@ -293,7 +293,7 @@ export default function ProfilePage() {
           {/* Cover Photo */}
           <div 
             onClick={() => setShowCoverMenu(true)}
-            className="h-48 sm:h-72 md:h-96 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative group overflow-hidden sm:rounded-b-2xl cursor-pointer hover:brightness-95 transition"
+            className="h-40 sm:h-56 md:h-72 lg:h-80 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative group overflow-hidden sm:rounded-b-2xl cursor-pointer hover:brightness-95 transition"
           >
             {(doctor?.coverImage) ? (
               <img src={doctor.coverImage || undefined} alt="Cover" className="w-full h-full object-cover" />
@@ -326,11 +326,11 @@ export default function ProfilePage() {
           <div className="px-4 pb-6 sm:px-8">
             <div className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-200 pb-6">
               
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 w-full md:w-auto mt-[-40px] md:mt-[-60px]">
-                <div className="relative group/avatar shrink-0 z-10 mx-auto md:mx-0">
+              <div className="flex flex-col md:flex-row items-start md:items-start gap-4 md:gap-6 w-full md:w-auto mt-[-40px] sm:mt-[-50px] md:mt-[-60px]">
+                <div className="relative group/avatar shrink-0 z-10 mx-0">
                   <div 
                     onClick={() => setShowAvatarMenu(true)}
-                    className="w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative cursor-pointer group/img"
+                    className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl relative cursor-pointer group/img"
                   >
                     {doctor?.profileImage ? (
                       <img src={doctor.profileImage || undefined} alt="Profile" className="w-full h-full object-cover" />
@@ -375,14 +375,14 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="md:pt-16 text-center md:text-left w-full md:w-auto">
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                <div className="md:pt-16 text-left w-full md:w-auto">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 flex flex-wrap items-center justify-start gap-2">
                     Dr. {doctor?.fullName}
                     {doctor && <VerificationBadge status={doctor.verificationStatus || (doctor.isVerified ? "VERIFIED" : "UNVERIFIED")} />}
                   </h1>
-                  <p className="text-gray-600 font-medium text-lg mt-1">{doctor?.specialization || "General Medicine"}</p>
+                  <p className="text-gray-600 font-medium text-base md:text-lg mt-1">{doctor?.specialization || "General Medicine"}</p>
                   
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2 mt-4 text-sm text-gray-600 font-medium">
+                  <div className="flex flex-wrap items-center justify-start gap-x-2 gap-y-2 mt-4 text-xs sm:text-sm text-gray-600 font-medium">
                     <span className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-gray-200">
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
                       License: {doctor?.pmdcNumber}
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                   onClick={() => router.push("/create-case")}
                   className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
+                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
                   Add Case Post
                 </button>
                 <button
@@ -417,7 +417,7 @@ export default function ProfilePage() {
                   }}
                   className="flex-1 md:flex-initial bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2.5 px-6 rounded-full shadow-sm transition flex items-center justify-center gap-2 text-sm border border-gray-200"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   Edit Profile
                 </button>
                 <button
@@ -425,7 +425,7 @@ export default function ProfilePage() {
                   className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold p-2.5 rounded-full shadow-sm transition flex items-center justify-center border border-gray-200"
                   title="Back to Homepage"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 </button>
               </div>
             </div>
