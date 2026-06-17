@@ -538,7 +538,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Friends Preview Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">Friends</h2>
@@ -552,14 +552,14 @@ export default function ProfilePage() {
                 {friends.length === 0 ? (
                   <p className="text-center text-gray-500 py-6 text-sm">No friends added yet.</p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2 md:gap-3">
                     {friends.slice(0, 6).map(f => (
                       <div 
                         key={f.id} 
                         onClick={() => router.push(`/doctor/${f.id}`)}
                         className="cursor-pointer group text-center"
                       >
-                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 mb-1.5">
+                        <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-1.5 shadow-sm">
                           {f.profileImage ? (
                             <img src={f.profileImage || undefined} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
                           ) : (
@@ -579,25 +579,38 @@ export default function ProfilePage() {
             {/* Right Column (Clinical Feed & Post Button) */}
             <div className="lg:col-span-2 space-y-6">
               {/* "What's on your mind" Box */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex gap-4 items-center">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                  {doctor?.profileImage ? (
-                    <img src={doctor.profileImage || undefined} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">Dr</div>
-                  )}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                <div className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shrink-0 border border-gray-100">
+                    {doctor?.profileImage ? (
+                      <img src={doctor.profileImage || undefined} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">Dr</div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => router.push("/create-case")}
+                    className="flex-1 text-left px-4 py-2.5 bg-[#F0F2F5] hover:bg-[#E4E6EB] text-gray-600 font-medium rounded-full transition text-sm md:text-base outline-none"
+                  >
+                    Share a clinical case or request consultation...
+                  </button>
                 </div>
-                <button
-                  onClick={() => router.push("/create-case")}
-                  className="flex-1 text-left px-5 py-3 bg-[#F0F2F5] hover:bg-[#E4E6EB] text-gray-500 font-medium rounded-full transition text-sm sm:text-base outline-none"
-                >
-                  Share a clinical case or request consultation...
-                </button>
+                <div className="h-px bg-gray-200 my-3"></div>
+                <div className="flex items-center justify-between px-1">
+                  <button onClick={() => router.push("/create-case")} className="flex flex-1 justify-center items-center gap-2 hover:bg-gray-100 p-2 rounded-lg transition text-gray-500 font-semibold text-sm">
+                    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Live Video
+                  </button>
+                  <button onClick={() => router.push("/create-case")} className="flex flex-1 justify-center items-center gap-2 hover:bg-gray-100 p-2 rounded-lg transition text-gray-500 font-semibold text-sm">
+                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Photo/Case
+                  </button>
+                </div>
               </div>
 
               {/* Feed List */}
               {myCases.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center text-gray-500 mb-6">
                   <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
                   <p className="font-semibold text-lg text-gray-700">No Clinical Cases Posted Yet</p>
                   <p className="text-sm text-gray-400 mt-1">Cases you share will appear here on your feed.</p>
