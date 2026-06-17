@@ -88,8 +88,7 @@ The UI is built with a focus on **Professional Aesthetics**, utilizing clean typ
 
 ### Mobile Interfaces
 <div style="display: flex; gap: 10px; overflow-x: auto;">
-  <img src="public/screenshots/mobile_profile.png" alt="Mobile Profile" width="300" />
-  <img src="public/screenshots/mobile_feed.png" alt="Mobile Feed" width="300" />
+  <img src="public/screenshots/mockup_profile.png" alt="Mobile Profile App Layout" width="300" />
 </div>
 
 ## 🤝 Contributing
