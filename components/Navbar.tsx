@@ -2,13 +2,33 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const pathname = usePathname() || "";
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch("/api/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          const unread = data.filter((n: any) => !n.isRead).length;
+          setUnreadCount(unread);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    // Don't fetch on auth pages
+    if (!["/login", "/register", "/signup", "/"].includes(pathname)) {
+      fetchNotifications();
+    }
+  }, [pathname]);
 
   // Hide Navbar on auth pages, admin pages, and video meeting pages
   if (
@@ -122,7 +142,9 @@ export default function Navbar() {
               <Link href="/notifications" onClick={closeAll}>
                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition relative shadow-sm ${pathname === "/notifications" ? "bg-blue-100 text-blue-600" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
-                  <span className="absolute top-0 right-0 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full border-2 border-white"></span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full border-2 border-white"></span>
+                  )}
                 </div>
               </Link>
 

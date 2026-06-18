@@ -17,7 +17,10 @@ export default function NotificationsPage() {
   const isLongPress = useRef(false);
 
   useEffect(() => {
-    fetchData();
+    fetchData().then(() => {
+      // Automatically mark all notifications as read when visiting the page
+      markAllRead();
+    });
   }, []);
 
   // Auto-dismiss toast after 3 seconds
