@@ -51,8 +51,15 @@ export default function VerificationPage() {
         throw new Error("Failed to load profile");
       }
       const data = await res.json();
+      const isLegacyUser = data.createdAt ? new Date(data.createdAt) < new Date("2026-06-16T00:00:00Z") : false;
       setStatus(data.verificationStatus || "PENDING");
-      setIsLegacy(data.createdAt ? new Date(data.createdAt) < new Date("2026-06-16T00:00:00Z") : false);
+      setIsLegacy(isLegacyUser);
+
+      if (data.verificationStatus === "VERIFIED" || isLegacyUser) {
+        router.push("/feed");
+        return;
+      }
+
       if (data.verificationStatus === "VERIFIED" || data.verificationStatus === "PENDING") {
         setDocuments({
           licenseImage: data.licenseImage || "",
