@@ -130,7 +130,7 @@ export default function AdminDoctorReviewPage() {
         )}
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8 mb-8">
-          <div className="flex justify-between items-start mb-6 border-b pb-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-4 mb-6 border-b pb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Dr. {doctor.fullName}</h1>
               <p className="text-lg text-gray-600 flex items-center">
@@ -204,7 +204,7 @@ export default function AdminDoctorReviewPage() {
             </div>
           </div>
 
-          {(doctor.verificationStatus === 'PENDING_REVIEW' || doctor.verificationStatus === 'PENDING') && (
+          {(doctor.verificationStatus !== 'VERIFIED') && (
             <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6 mb-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Admin Actions</h3>
               
