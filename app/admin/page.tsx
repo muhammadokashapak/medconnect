@@ -8,7 +8,7 @@ export default function AdminDashboardPage() {
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [statusFilter, setStatusFilter] = useState("PENDING_REVIEW");
+  const [statusFilter, setStatusFilter] = useState("UNVERIFIED");
   const [successMsg, setSuccessMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
