@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Webcam from "react-webcam";
 import { useRouter } from "next/navigation";
 
 export default function VerificationPage() {
@@ -19,6 +20,24 @@ export default function VerificationPage() {
   });
 
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [showWebcam, setShowWebcam] = useState(false);
+  const webcamRef = useRef<any>(null);
+
+  const captureWebcam = useCallback(async () => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (imageSrc) {
+      try {
+        const res = await fetch(imageSrc);
+        const blob = await res.blob();
+        const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+        const e = { target: { files: [file] } } as any;
+        setShowWebcam(false);
+        handleFileUpload(e, "selfieImage");
+      } catch (err) {
+        console.error("Failed to capture image", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchProfile();
@@ -226,11 +245,15 @@ export default function VerificationPage() {
               <p className="text-sm text-gray-500 mb-4">A clear photo of your face to verify against your CNIC and PMDC certificate.</p>
               
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <label className="cursor-pointer bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg transition font-medium flex items-center shadow-sm">
+                <button 
+                  type="button"
+                  onClick={() => setShowWebcam(true)}
+                  disabled={uploadingField !== null}
+                  className="cursor-pointer bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg transition font-medium flex items-center shadow-sm disabled:bg-indigo-400"
+                >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                   {uploadingField === "selfieImage" ? "Uploading..." : "Take Live Selfie"}
-                  <input type="file" className="hidden" accept="image/*" capture="user" onChange={(e) => handleFileUpload(e, "selfieImage")} disabled={uploadingField !== null} />
-                </label>
+                </button>
                 <label className="cursor-pointer bg-white text-indigo-600 border border-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg transition font-medium">
                   Upload from Gallery
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, "selfieImage")} disabled={uploadingField !== null} />
@@ -256,6 +279,45 @@ export default function VerificationPage() {
           </form>
         </div>
       </div>
+
+      {showWebcam && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Take Live Selfie</h3>
+              <button onClick={() => setShowWebcam(false)} className="text-gray-500 hover:text-gray-700 bg-gray-100 rounded-full p-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="relative rounded-xl overflow-hidden mb-6 bg-black aspect-[3/4] flex items-center justify-center">
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{ facingMode: "user" }}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button 
+                type="button" 
+                onClick={() => setShowWebcam(false)} 
+                className="flex-1 py-3 px-4 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={captureWebcam} 
+                className="flex-1 py-3 px-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md transition flex justify-center items-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Capture Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
