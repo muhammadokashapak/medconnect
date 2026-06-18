@@ -82,34 +82,34 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow mb-8 p-4 flex gap-4">
+        <div className="bg-white rounded-lg shadow mb-8 p-4 flex flex-wrap gap-2 md:gap-4">
           <button 
             onClick={() => setStatusFilter("PENDING_REVIEW")}
-            className={`px-4 py-2 rounded-md font-medium transition ${statusFilter === "PENDING_REVIEW" ? "bg-amber-100 text-amber-700" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm md:text-base font-medium transition ${statusFilter === "PENDING_REVIEW" ? "bg-amber-100 text-amber-700" : "text-gray-600 hover:bg-gray-100"}`}
           >
             Pending Review
           </button>
           <button 
             onClick={() => setStatusFilter("VERIFIED")}
-            className={`px-4 py-2 rounded-md font-medium transition ${statusFilter === "VERIFIED" ? "bg-green-100 text-green-700" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm md:text-base font-medium transition ${statusFilter === "VERIFIED" ? "bg-green-100 text-green-700" : "text-gray-600 hover:bg-gray-100"}`}
           >
             Verified
           </button>
           <button 
             onClick={() => setStatusFilter("REJECTED")}
-            className={`px-4 py-2 rounded-md font-medium transition ${statusFilter === "REJECTED" ? "bg-red-100 text-red-700" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm md:text-base font-medium transition ${statusFilter === "REJECTED" ? "bg-red-100 text-red-700" : "text-gray-600 hover:bg-gray-100"}`}
           >
             Rejected
           </button>
           <button 
             onClick={() => setStatusFilter("SUSPENDED")}
-            className={`px-4 py-2 rounded-md font-medium transition ${statusFilter === "SUSPENDED" ? "bg-orange-100 text-orange-700" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm md:text-base font-medium transition ${statusFilter === "SUSPENDED" ? "bg-orange-100 text-orange-700" : "text-gray-600 hover:bg-gray-100"}`}
           >
             Suspended
           </button>
           <button 
             onClick={() => setStatusFilter("UNVERIFIED")}
-            className={`px-4 py-2 rounded-md font-medium transition ${statusFilter === "UNVERIFIED" ? "bg-gray-200 text-gray-700" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm md:text-base font-medium transition ${statusFilter === "UNVERIFIED" ? "bg-gray-200 text-gray-700" : "text-gray-600 hover:bg-gray-100"}`}
           >
             Unverified
           </button>
