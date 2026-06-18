@@ -63,10 +63,13 @@ export async function POST(req: Request) {
 
     if (existingDoctor) {
       if (existingDoctor.email === email) {
-        return Response.json(
-          { message: "aap k gmail se account bana hoa ha already, aap login kr lein." },
-          { status: 400 }
-        );
+        if (existingDoctor.isVerified) {
+          return Response.json(
+            { message: "aap k gmail se account bana hoa ha already, aap login kr lein." },
+            { status: 400 }
+          );
+        }
+        // If not verified, we will update the existing record with a new OTP.
       } else if (existingDoctor.pmdcNumber === finalPmdc) {
         return Response.json(
           { message: "This PMDC/License number is already registered." },
@@ -87,24 +90,43 @@ export async function POST(req: Request) {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    console.log("STEP 6: Creating doctor with OTP");
+    let doctor;
 
-    const doctor = await prisma.doctor.create({
-      data: {
-        fullName,
-        email,
-        phoneNumber,
-        pmdcNumber: finalPmdc,
-        password: hashedPassword,
-        otpCode,
-        otpExpiry,
-        isVerified: false,
-        verificationStatus: "UNVERIFIED",
-        qualification: degree,
-        hospital,
-        specialization,
-      },
-    });
+    if (existingDoctor && !existingDoctor.isVerified && existingDoctor.email === email) {
+      console.log("STEP 6: Updating existing unverified doctor with new OTP");
+      doctor = await prisma.doctor.update({
+        where: { id: existingDoctor.id },
+        data: {
+          fullName,
+          phoneNumber,
+          pmdcNumber: finalPmdc,
+          password: hashedPassword,
+          otpCode,
+          otpExpiry,
+          qualification: degree,
+          hospital,
+          specialization,
+        },
+      });
+    } else {
+      console.log("STEP 6: Creating new doctor with OTP");
+      doctor = await prisma.doctor.create({
+        data: {
+          fullName,
+          email,
+          phoneNumber,
+          pmdcNumber: finalPmdc,
+          password: hashedPassword,
+          otpCode,
+          otpExpiry,
+          isVerified: false,
+          verificationStatus: "UNVERIFIED",
+          qualification: degree,
+          hospital,
+          specialization,
+        },
+      });
+    }
 
     console.log("STEP 7: Sending Email");
 
