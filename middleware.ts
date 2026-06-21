@@ -89,11 +89,11 @@ export function middleware(request: NextRequest) {
     '/feed', '/create-case', '/case', '/messages', '/ai', '/patients', '/appointments', '/consultations'
   ];
 
-  const requiresVerification = requireVerifiedPrefixes.some(prefix => request.nextUrl.pathname.startsWith(prefix));
+  // const requiresVerification = requireVerifiedPrefixes.some(prefix => request.nextUrl.pathname.startsWith(prefix));
 
-  if (requiresVerification && verificationStatus !== 'VERIFIED' && !isLegacyUser) {
-    return NextResponse.redirect(new URL('/verification', request.url));
-  }
+  // if (requiresVerification && verificationStatus !== 'VERIFIED' && !isLegacyUser) {
+  //   return NextResponse.redirect(new URL('/verification', request.url));
+  // }
 
   if (request.nextUrl.pathname.startsWith('/verification') && (verificationStatus === 'VERIFIED' || isLegacyUser)) {
     return NextResponse.redirect(new URL('/feed', request.url));

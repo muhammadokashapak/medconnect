@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       where: { id: doctor.id },
       data: {
         isVerified: true,
+        verificationStatus: "VERIFIED",
         otpCode: null,
         otpExpiry: null,
       },

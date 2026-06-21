@@ -106,6 +106,7 @@ export async function POST(req: Request) {
           qualification: degree,
           hospital,
           specialization,
+          verificationStatus: "VERIFIED",
         },
       });
     } else {
@@ -119,8 +120,8 @@ export async function POST(req: Request) {
           password: hashedPassword,
           otpCode,
           otpExpiry,
-          isVerified: false,
-          verificationStatus: "UNVERIFIED",
+          isVerified: true,
+          verificationStatus: "VERIFIED",
           qualification: degree,
           hospital,
           specialization,

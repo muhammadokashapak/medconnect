@@ -147,3 +147,130 @@ export async function PUT(req: Request) {
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const doctorId = getUserIdFromToken(req);
+    if (!doctorId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const doctorToDelete = await prisma.doctor.findUnique({
+      where: { id: doctorId }
+    });
+
+    if (!doctorToDelete) {
+      return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
+    }
+
+    if (doctorToDelete.role === "ADMIN") {
+      return NextResponse.json({ message: "Cannot delete an Admin account from settings. Contact support." }, { status: 400 });
+    }
+
+    // 1. Fetch dependent IDs that have their own nested relations
+    const userPosts = await prisma.casePost.findMany({ where: { doctorId }, select: { id: true } });
+    const postIds = userPosts.map(p => p.id);
+
+    const patients = await prisma.patient.findMany({ where: { doctorId }, select: { id: true } });
+    const patientIds = patients.map(p => p.id);
+
+    const aiSessions = await prisma.aIClinicalSession.findMany({ where: { doctorId }, select: { id: true } });
+    const sessionIds = aiSessions.map(s => s.id);
+
+    // 2. Delete deeply nested records first
+    if (patientIds.length > 0) {
+      await prisma.$transaction([
+        prisma.emergencyContact.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.medicalHistory.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.allergy.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.medication.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.diagnosis.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.vitalSigns.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.labResult.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.prescription.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.immunization.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.clinicalVisit.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.attachment.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.appointment.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.queueToken.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.followUpReminder.deleteMany({ where: { patientId: { in: patientIds } } }),
+        prisma.invoice.deleteMany({ where: { patientId: { in: patientIds } } })
+      ]);
+    }
+
+    if (sessionIds.length > 0) {
+      await prisma.$transaction([
+        prisma.aIConversation.deleteMany({ where: { sessionId: { in: sessionIds } } }),
+        prisma.aIToolUsage.deleteMany({ where: { sessionId: { in: sessionIds } } })
+      ]);
+    }
+
+    if (postIds.length > 0) {
+      await prisma.$transaction([
+        prisma.caseView.deleteMany({ where: { casePostId: { in: postIds } } }),
+        prisma.caseReaction.deleteMany({ where: { casePostId: { in: postIds } } }),
+        prisma.savedCase.deleteMany({ where: { casePostId: { in: postIds } } }),
+        prisma.comment.deleteMany({ where: { casePostId: { in: postIds } } }),
+      ]);
+    }
+
+    // 3. Delete direct associations to the Doctor
+    await prisma.$transaction([
+      prisma.caseView.deleteMany({ where: { doctorId } }),
+      prisma.caseReaction.deleteMany({ where: { doctorId } }),
+      prisma.savedCase.deleteMany({ where: { doctorId } }),
+      prisma.comment.deleteMany({ where: { doctorId } }),
+      prisma.message.deleteMany({ where: { senderId: doctorId } }),
+      prisma.conversationParticipant.deleteMany({ where: { doctorId } }),
+      prisma.follow.deleteMany({ where: { OR: [{ followerId: doctorId }, { followingId: doctorId }] } }),
+      prisma.friendRequest.deleteMany({ where: { OR: [{ senderId: doctorId }, { receiverId: doctorId }] } }),
+      prisma.notification.deleteMany({ where: { doctorId } }),
+      prisma.activity.deleteMany({ where: { doctorId } }),
+      prisma.appointment.deleteMany({ where: { OR: [{ doctorId }, { consultantId: doctorId }] } }),
+      prisma.callHistory.deleteMany({ where: { OR: [{ callerId: doctorId }, { receiverId: doctorId }] } }),
+      prisma.savedGuideline.deleteMany({ where: { doctorId } }),
+      prisma.guideline.deleteMany({ where: { doctorId } }),
+      prisma.savedResearch.deleteMany({ where: { doctorId } }),
+      prisma.resourceView.deleteMany({ where: { doctorId } }),
+      prisma.hospitalMembership.deleteMany({ where: { doctorId } }),
+      prisma.departmentMembership.deleteMany({ where: { doctorId } }),
+      prisma.orgMembership.deleteMany({ where: { doctorId } }),
+      prisma.eventAttendance.deleteMany({ where: { doctorId } }),
+      prisma.cMECertificate.deleteMany({ where: { doctorId } }),
+      prisma.aIRequest.deleteMany({ where: { doctorId } }),
+      prisma.videoPost.deleteMany({ where: { doctorId } }),
+      prisma.pushSubscription.deleteMany({ where: { doctorId } }),
+      prisma.prescription.deleteMany({ where: { doctorId } }),
+      prisma.clinicalVisit.deleteMany({ where: { doctorId } }),
+      prisma.queueToken.deleteMany({ where: { doctorId } }),
+      
+      // 4. Finally delete the models that had nested models (which we cleared above)
+      prisma.casePost.deleteMany({ where: { doctorId } }),
+      prisma.patient.deleteMany({ where: { doctorId } }),
+      prisma.aIClinicalSession.deleteMany({ where: { doctorId } })
+    ]);
+
+    // 5. Now safely delete the doctor
+    await prisma.doctor.delete({
+      where: { id: doctorId }
+    });
+
+    const response = NextResponse.json({ message: "Account deleted successfully" }, { status: 200 });
+
+    // Clear token cookie
+    response.cookies.set({
+      name: "medconnect_token",
+      value: "",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 0,
+      path: "/",
+    });
+
+    return response;
+
+  } catch (error: any) {
+    console.error("Profile Delete Error:", error);
+    return NextResponse.json({ message: "Server Error during account deletion" }, { status: 500 });
+  }
+}
