@@ -23,7 +23,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const doctor = await prisma.doctor.findUnique({
+    const doctorPromise = prisma.doctor.findUnique({
       where: { id: doctorId },
       include: {
         cmeCertificates: {
@@ -34,12 +34,7 @@ export async function GET(req: Request) {
       }
     });
 
-    if (!doctor) {
-      return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
-    }
-
-    // Mark pending messages as delivered
-    await prisma.message.updateMany({
+    const updateMessagesPromise = prisma.message.updateMany({
       where: {
         conversation: {
           participants: {
@@ -51,6 +46,12 @@ export async function GET(req: Request) {
       },
       data: { isDelivered: true }
     });
+
+    const [doctor] = await Promise.all([doctorPromise, updateMessagesPromise]);
+
+    if (!doctor) {
+      return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
+    }
 
     let tokenStatus = null;
     const tokenCookie = req.headers.get("cookie")?.split("; ").find(c => c.startsWith("medconnect_token="));

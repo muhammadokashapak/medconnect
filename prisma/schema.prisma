@@ -114,6 +114,9 @@ model CasePost {
   savedBy     SavedCase[]
   views       CaseView[]
   reactions   CaseReaction[]
+
+  @@index([doctorId])
+  @@index([createdAt])
 }
 
 model CaseView {
@@ -127,6 +130,8 @@ model CaseView {
   casePost   CasePost @relation(fields: [casePostId], references: [id])
 
   @@unique([doctorId, casePostId])
+  @@index([doctorId])
+  @@index([casePostId])
 }
 
 model CaseReaction {
@@ -141,6 +146,8 @@ model CaseReaction {
   casePost   CasePost @relation(fields: [casePostId], references: [id])
 
   @@unique([doctorId, casePostId])
+  @@index([doctorId])
+  @@index([casePostId])
 }
 
 model VideoPost {
@@ -170,6 +177,9 @@ model Comment {
   parentId    String?
   parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies     Comment[] @relation("CommentReplies")
+
+  @@index([doctorId])
+  @@index([casePostId])
 }
 
 model Conversation {
@@ -264,6 +274,8 @@ model Follow {
   following   Doctor   @relation("Following", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model FriendRequest {
@@ -626,6 +638,8 @@ model Patient {
   queueTokens       QueueToken[]
   followUpReminders FollowUpReminder[]
   invoices          Invoice[]
+
+  @@index([doctorId])
 }
 
 model EmergencyContact {

@@ -83,8 +83,10 @@ export async function GET(req: Request) {
     }
 
     // Find friends (bi-directional follows)
-    const myFollowers = await prisma.follow.findMany({ where: { followingId: doctorId }, select: { followerId: true } });
-    const myFollowing = await prisma.follow.findMany({ where: { followerId: doctorId }, select: { followingId: true } });
+    const [myFollowers, myFollowing] = await Promise.all([
+      prisma.follow.findMany({ where: { followingId: doctorId }, select: { followerId: true } }),
+      prisma.follow.findMany({ where: { followerId: doctorId }, select: { followingId: true } })
+    ]);
     
     const followerIds = new Set(myFollowers.map(f => f.followerId));
     const friendsIds = myFollowing.filter(f => followerIds.has(f.followingId)).map(f => f.followingId);
@@ -110,7 +112,7 @@ export async function GET(req: Request) {
       whereClause = { doctorId: requestedDoctorId };
     }
 
-    const cases = await prisma.casePost.findMany({
+    const casesPromise = prisma.casePost.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
       skip,
@@ -136,7 +138,7 @@ export async function GET(req: Request) {
       }
     });
 
-    const total = await prisma.casePost.count({ where: whereClause });
+    const [cases, total] = await Promise.all([casesPromise, prisma.casePost.count({ where: whereClause })]);
 
     const sanitizedCases = cases.map((c) => {
       const _count = c._count || { comments: 0, views: 0, reactions: 0 };

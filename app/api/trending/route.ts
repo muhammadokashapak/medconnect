@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const revalidate = 60; // Cache this endpoint for 60 seconds
+
 export async function GET() {
   try {
     const cases = await prisma.casePost.findMany({
