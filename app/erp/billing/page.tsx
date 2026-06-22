@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Plus, Receipt, CircleDollarSign, AlertCircle } from "lucide-react";
 
 export default function ERPBilling() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -22,68 +23,94 @@ export default function ERPBilling() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-             <svg className="w-8 h-8 mr-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-             Billing & Finance
-          </h1>
-          <Link href="/erp" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to ERP</Link>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+              <div className="p-2 bg-green-100 text-green-600 rounded-lg shadow-sm">
+                <Receipt className="w-6 h-6" />
+              </div>
+              Billing & Finance
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">Track hospital revenue, generated invoices, and outstanding payments.</p>
+          </div>
+          <Link href="/erp" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">Back to ERP</Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center">
-            <div className="text-gray-500 text-sm uppercase tracking-widest font-bold mb-1">Total Revenue (PAID)</div>
-            <div className="text-3xl font-black text-green-600">${totalRevenue.toFixed(2)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-2xl shadow-md text-white relative overflow-hidden group hover:shadow-lg transition-shadow">
+            <div className="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+              <CircleDollarSign className="w-32 h-32" />
+            </div>
+            <div className="text-green-50 text-sm uppercase tracking-widest font-bold mb-2">Total Revenue (PAID)</div>
+            <div className="text-4xl font-black">${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center">
-            <div className="text-gray-500 text-sm uppercase tracking-widest font-bold mb-1">Outstanding Invoices</div>
-            <div className="text-3xl font-black text-red-600">{outstanding}</div>
+          
+          <div className="bg-gradient-to-br from-red-500 to-orange-500 p-6 rounded-2xl shadow-md text-white relative overflow-hidden group hover:shadow-lg transition-shadow">
+            <div className="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+              <AlertCircle className="w-32 h-32" />
+            </div>
+            <div className="text-red-50 text-sm uppercase tracking-widest font-bold mb-2">Outstanding Invoices</div>
+            <div className="text-4xl font-black">{outstanding}</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow border border-gray-100 p-6">
-          <div className="flex justify-between items-center border-b pb-4 mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Recent Invoices</h2>
-            <button className="bg-green-600 text-white px-4 py-2 rounded font-bold text-sm hover:bg-green-700">
-              + Generate Invoice
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white/50 backdrop-blur-sm">
+            <h2 className="text-xl font-bold text-gray-800">Recent Invoices</h2>
+            <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-green-700 shadow-sm shadow-green-200 transition-all active:scale-95 flex items-center gap-2">
+              <Plus className="w-4 h-4" /> Generate Invoice
             </button>
           </div>
           
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4">ID / Patient</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={4} className="px-6 py-4 text-center">Loading...</td></tr>
-              ) : invoices.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-4 text-center">No invoices generated yet.</td></tr>
-              ) : (
-                invoices.map(inv => (
-                  <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50">
-                     <td className="px-6 py-4 font-bold text-gray-900">
-                       #{inv.id.slice(-6).toUpperCase()}<br/>
-                       <span className="font-normal text-xs text-gray-500">{inv.patient?.fullName}</span>
-                     </td>
-                     <td className="px-6 py-4 font-bold text-green-700">${inv.amount.toFixed(2)}</td>
-                     <td className="px-6 py-4">
-                       <span className={`text-xs font-bold px-2 py-1 rounded ${inv.status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                         {inv.status}
-                       </span>
-                     </td>
-                     <td className="px-6 py-4 text-gray-500">{new Date(inv.issuedAt).toLocaleDateString()}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="text-xs text-gray-500 uppercase bg-gray-50/80 font-semibold">
+                <tr>
+                  <th className="px-6 py-4 rounded-tl-lg">ID / Patient</th>
+                  <th className="px-6 py-4">Amount</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="px-6 py-4">
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                          <div className="h-3 bg-gray-200 rounded w-24"></div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-full w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                    </tr>
+                  ))
+                ) : invoices.length === 0 ? (
+                  <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">No invoices generated yet.</td></tr>
+                ) : (
+                  invoices.map(inv => (
+                    <tr key={inv.id} className="hover:bg-green-50/30 transition-colors group">
+                       <td className="px-6 py-4">
+                         <div className="font-bold text-gray-900">#{inv.id.slice(-6).toUpperCase()}</div>
+                         <div className="text-xs text-gray-500 mt-1">{inv.patient?.fullName}</div>
+                       </td>
+                       <td className="px-6 py-4 font-bold text-green-700">${inv.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                       <td className="px-6 py-4">
+                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${inv.status === 'PAID' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                           {inv.status}
+                         </span>
+                       </td>
+                       <td className="px-6 py-4 text-gray-500">{new Date(inv.issuedAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
