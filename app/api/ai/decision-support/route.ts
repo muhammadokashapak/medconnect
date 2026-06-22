@@ -27,42 +27,57 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Please provide clinical data or a query." }, { status: 400 });
     }
 
-    const promptString = `Decision Support Query: ${query}\nPatient Data: ${JSON.stringify(patientData)}`;
+    const promptText = `You are a medical Clinical Decision Support System.
+Evaluate the following patient data and query. Return the result STRICTLY as a JSON object with these exact keys: "treatmentRecommendations" (array of strings), "guidelineSuggestions" (array of strings), "riskFactorAnalysis" (array of strings), and "drugInteractionAlerts" (array of strings). Do NOT include markdown blocks like \`\`\`json.
 
-    // In a real application, you would pass `promptString` to an LLM like OpenAI, Gemini, or Claude.
-    // For MedConnect simulation, we provide a generic AI clinical decision support response.
+Query: ${query}
+Patient Data: ${JSON.stringify(patientData)}`;
 
-    const mockAiResponse = {
-      treatmentRecommendations: [
-        "Optimize current antihypertensive regimen per JNC 8 guidelines.",
-        "Consider initiating a statin for cardiovascular risk reduction based on ASCVD score.",
-        "Recommend lifestyle modifications including DASH diet and regular aerobic exercise."
-      ],
-      guidelineSuggestions: [
-        "AHA/ACC Hypertension Guidelines 2017",
-        "ADA Standards of Medical Care in Diabetes"
-      ],
-      riskFactorAnalysis: [
-        "High risk for major adverse cardiovascular events (MACE) due to uncontrolled hypertension.",
-        "Moderate risk for chronic kidney disease progression."
-      ],
-      drugInteractionAlerts: [
-        "Monitor renal function if initiating ACE inhibitor with concurrent NSAID use."
-      ]
-    };
+    let aiResponseObj;
+    try {
+      const { GoogleGenerativeAI } = require("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(promptText);
+      const text = result.response.text();
+      const cleanText = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+      aiResponseObj = JSON.parse(cleanText);
+    } catch (apiError) {
+      console.error("Gemini API Error:", apiError);
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo",
+            messages: [{ role: "user", content: promptText }]
+          })
+        });
+        const data = await response.json();
+        const text = data.choices[0].message.content;
+        const cleanText = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+        aiResponseObj = JSON.parse(cleanText);
+      } catch (orError) {
+        console.error("OpenRouter API Error:", orError);
+        throw new Error("Both AI providers failed");
+      }
+    }
 
-    const responseString = JSON.stringify(mockAiResponse);
+    const responseString = JSON.stringify(aiResponseObj);
 
     // Save AI request
     await prisma.aIRequest.create({
       data: {
         doctorId: userId,
-        prompt: promptString,
+        prompt: promptText,
         response: responseString
       }
     });
 
-    return NextResponse.json(mockAiResponse, { status: 200 });
+    return NextResponse.json(aiResponseObj, { status: 200 });
 
   } catch (error) {
     console.error(error);

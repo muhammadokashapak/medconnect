@@ -13,12 +13,17 @@ export default function PatientProfilePage() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
 
+  const [showAddVisitModal, setShowAddVisitModal] = useState(false);
+  const [showFullRecordModal, setShowFullRecordModal] = useState(false);
+  const [visitForm, setVisitForm] = useState({ chiefComplaint: "", history: "", examination: "", assessment: "", plan: "" });
+  const [submitting, setSubmitting] = useState(false);
+
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   };
 
-  useEffect(() => {
+  const fetchPatient = () => {
     fetch(`/api/patients/${id}`)
       .then(res => {
         if (!res.ok) throw new Error("Not found");
@@ -27,7 +32,86 @@ export default function PatientProfilePage() {
       .then(setPatient)
       .catch(() => router.push("/patients"))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchPatient();
   }, [id, router]);
+
+  const handlePrintSummary = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Patient Summary - ${patient.fullName}</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; line-height: 1.5; color: #111; }
+            h1 { color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; }
+            h2 { color: #1f2937; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 20px;}
+            .meta { color: #4b5563; margin-bottom: 20px; font-size: 14px; }
+            .section { margin-bottom: 20px; font-size: 14px; }
+            .card { margin-bottom: 10px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <h1>Patient Summary: ${patient.fullName}</h1>
+          <div class="meta">
+            <p><strong>MRN:</strong> ${patient.mrn} | <strong>Gender:</strong> ${patient.gender} | <strong>DOB:</strong> ${new Date(patient.dob).toLocaleDateString()}</p>
+            <p><strong>Blood Group:</strong> ${patient.bloodGroup || "N/A"} | <strong>Phone:</strong> ${patient.phone || "N/A"}</p>
+          </div>
+          
+          <div class="section">
+            <h2>Medical History</h2>
+            <p><strong>Chronic Diseases:</strong> ${patient.medicalHistory?.chronicDiseases || "None"}</p>
+            <p><strong>Surgeries:</strong> ${patient.medicalHistory?.surgeries || "None"}</p>
+          </div>
+
+          <div class="section">
+            <h2>Current Medications</h2>
+            <ul>
+              ${patient.medications?.length ? patient.medications.map((m: any) => `<li><strong>${m.name}</strong> - ${m.dosage} (${m.frequency})</li>`).join("") : "<li>None</li>"}
+            </ul>
+          </div>
+
+          <div class="section">
+            <h2>Recent Clinical Visits</h2>
+            ${patient.clinicalVisits?.length ? patient.clinicalVisits.map((v: any) => `
+              <div class="card">
+                <p><strong>Date:</strong> ${new Date(v.visitedAt).toLocaleDateString()} | <strong>Doctor:</strong> Dr. ${v.doctor?.fullName || "Unknown"}</p>
+                <p><strong>Complaint:</strong> ${v.chiefComplaint}</p>
+                ${v.assessment ? `<p><strong>Assessment:</strong> ${v.assessment}</p>` : ""}
+                ${v.plan ? `<p><strong>Plan:</strong> ${v.plan}</p>` : ""}
+              </div>
+            `).join("") : "<p>None</p>"}
+          </div>
+          <script>window.onload = function() { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleAddVisit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/patients/${id}/visits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(visitForm)
+      });
+      if (!res.ok) throw new Error("Failed to add visit");
+      showToast("Visit added successfully");
+      setShowAddVisitModal(false);
+      setVisitForm({ chiefComplaint: "", history: "", examination: "", assessment: "", plan: "" });
+      fetchPatient();
+    } catch (err) {
+      showToast("Error adding visit");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading || !patient) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -58,7 +142,7 @@ export default function PatientProfilePage() {
              <button onClick={() => showToast("Feature coming soon")} className="bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm text-sm hover:bg-gray-50">
                Edit Demographics
              </button>
-             <button onClick={() => showToast("Feature coming soon")} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm text-sm">
+             <button onClick={() => setShowAddVisitModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm text-sm">
                + New Clinical Visit
              </button>
           </div>
@@ -228,8 +312,8 @@ export default function PatientProfilePage() {
                            )}
                          </div>
                          <div className="mt-4 pt-3 border-t border-gray-200 flex gap-3">
-                           <button onClick={() => showToast("Feature coming soon")} className="text-blue-600 hover:text-blue-800 text-xs font-bold">View Full Record</button>
-                           <button onClick={() => showToast("Feature coming soon")} className="text-blue-600 hover:text-blue-800 text-xs font-bold">Print Summary</button>
+                           <button onClick={() => setShowFullRecordModal(true)} className="text-blue-600 hover:text-blue-800 text-xs font-bold">View Full Record</button>
+                           <button onClick={handlePrintSummary} className="text-blue-600 hover:text-blue-800 text-xs font-bold">Print Summary</button>
                          </div>
                       </div>
                     </div>
@@ -240,6 +324,130 @@ export default function PatientProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Add Visit Modal */}
+      {showAddVisitModal && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-900">New Clinical Visit</h3>
+              <button onClick={() => setShowAddVisitModal(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <form id="add-visit-form" onSubmit={handleAddVisit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Chief Complaint *</label>
+                  <input required value={visitForm.chiefComplaint} onChange={e => setVisitForm({...visitForm, chiefComplaint: e.target.value})} className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500" placeholder="E.g., Fever and cough" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">History of Presenting Illness</label>
+                  <textarea value={visitForm.history} onChange={e => setVisitForm({...visitForm, history: e.target.value})} className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500" rows={3} placeholder="Patient reports..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Examination Findings</label>
+                  <textarea value={visitForm.examination} onChange={e => setVisitForm({...visitForm, examination: e.target.value})} className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500" rows={3} placeholder="O/E..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Assessment / Diagnosis</label>
+                  <textarea value={visitForm.assessment} onChange={e => setVisitForm({...visitForm, assessment: e.target.value})} className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500" rows={2} placeholder="Working diagnosis..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Plan</label>
+                  <textarea value={visitForm.plan} onChange={e => setVisitForm({...visitForm, plan: e.target.value})} className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500" rows={3} placeholder="Rx, investigations, advice..." />
+                </div>
+              </form>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+              <button type="button" onClick={() => setShowAddVisitModal(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-100">Cancel</button>
+              <button form="add-visit-form" type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 disabled:opacity-50">
+                {submitting ? "Saving..." : "Save Visit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Record Modal */}
+      {showFullRecordModal && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-xl text-gray-900">Comprehensive Patient Record</h3>
+              <div className="flex gap-3">
+                <button onClick={handlePrintSummary} className="text-blue-600 hover:text-blue-800 font-bold text-sm bg-blue-50 px-3 py-1.5 rounded flex items-center">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                  Print
+                </button>
+                <button onClick={() => setShowFullRecordModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8 bg-gray-50/50">
+              {/* Demographics Summary */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <h4 className="font-bold text-lg border-b pb-2 mb-3">Patient Overview</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div><span className="text-gray-500 block">Name</span><span className="font-medium">{patient.fullName}</span></div>
+                  <div><span className="text-gray-500 block">MRN</span><span className="font-mono">{patient.mrn}</span></div>
+                  <div><span className="text-gray-500 block">DOB / Age</span><span>{new Date(patient.dob).toLocaleDateString()} ({calculateAge()}y)</span></div>
+                  <div><span className="text-gray-500 block">Gender</span><span className="capitalize">{patient.gender}</span></div>
+                  <div><span className="text-gray-500 block">Blood Group</span><span className="font-bold text-red-600">{patient.bloodGroup || "Unknown"}</span></div>
+                  <div><span className="text-gray-500 block">Contact</span><span>{patient.phone || "N/A"}</span></div>
+                  <div className="col-span-2"><span className="text-gray-500 block">Address</span><span>{patient.address || "N/A"}</span></div>
+                </div>
+              </div>
+
+              {/* Lab Results */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <h4 className="font-bold text-lg border-b pb-2 mb-3">Lab Results</h4>
+                {patient.labResults?.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-gray-50 text-gray-500">
+                        <tr><th className="px-3 py-2">Date</th><th className="px-3 py-2">Test Name</th><th className="px-3 py-2">Result</th><th className="px-3 py-2">Status</th></tr>
+                      </thead>
+                      <tbody>
+                        {patient.labResults.map((lab: any) => (
+                          <tr key={lab.id} className="border-b">
+                            <td className="px-3 py-2 whitespace-nowrap">{new Date(lab.date).toLocaleDateString()}</td>
+                            <td className="px-3 py-2 font-medium">{lab.testName}</td>
+                            <td className="px-3 py-2 font-mono text-xs">{lab.resultValue} {lab.unit}</td>
+                            <td className="px-3 py-2"><span className={`px-2 py-0.5 rounded text-xs ${lab.isAbnormal ? 'bg-red-100 text-red-800 font-bold' : 'bg-green-100 text-green-800'}`}>{lab.isAbnormal ? "Abnormal" : "Normal"}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : <p className="text-sm text-gray-500">No lab results found.</p>}
+              </div>
+
+              {/* Prescriptions */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <h4 className="font-bold text-lg border-b pb-2 mb-3">Prescriptions History</h4>
+                {patient.prescriptions?.length ? (
+                  <ul className="space-y-4">
+                    {patient.prescriptions.map((rx: any) => (
+                      <li key={rx.id} className="border border-gray-100 p-3 rounded bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold text-gray-900">{new Date(rx.issuedAt).toLocaleDateString()}</span>
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 rounded">Status: {rx.status}</span>
+                        </div>
+                        <p className="text-sm font-mono text-gray-700 whitespace-pre-wrap bg-white p-2 border rounded">{rx.medicationsText}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="text-sm text-gray-500">No prescriptions found.</p>}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

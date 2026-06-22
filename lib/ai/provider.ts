@@ -11,54 +11,50 @@ export async function generateAIResponse(
   userPrompt: string, 
   type: string
 ): Promise<AIResponse> {
-  const provider = process.env.AI_PROVIDER || "SIMULATED";
+  const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
 
-  if (provider === "OPENAI" && process.env.OPENAI_API_KEY) {
-    // Implement real OpenAI logic here when keys are available
-    // const response = await fetch("https://api.openai.com/v1/chat/completions", {...})
+  try {
+    const { GoogleGenerativeAI } = require("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const result = await model.generateContent(combinedPrompt);
+    const text = result.response.text();
     return {
-      content: `[OPENAI] Simulated response for ${type} based on: ${userPrompt.substring(0, 50)}...`,
-      providerUsed: "OPENAI",
-      tokens: 150
+      content: text,
+      providerUsed: "GEMINI",
+      tokens: text.split(" ").length * 1.5 // rough estimate
     };
-  } else if (provider === "ANTHROPIC" && process.env.ANTHROPIC_API_KEY) {
-    // Implement real Anthropic logic here
-    return {
-      content: `[ANTHROPIC] Simulated response for ${type} based on: ${userPrompt.substring(0, 50)}...`,
-      providerUsed: "ANTHROPIC",
-      tokens: 120
-    };
-  } else {
-    // Fallback Simulated AI
-    let simulatedContent = "";
-
-    switch(type) {
-      case "DIAGNOSIS":
-        simulatedContent = `Based on the provided symptoms, here is the differential diagnosis:
-1. Primary condition likely (60% confidence).
-2. Secondary condition possible (30% confidence).
-Red Flags: None observed.
-Recommended Investigations: CBC, X-Ray.`;
-        break;
-      case "SOAP":
-        simulatedContent = `**S (Subjective):** Patient reports symptoms.
-**O (Objective):** Vitals stable.
-**A (Assessment):** Condition improving.
-**P (Plan):** Continue current medication, follow up in 2 weeks.`;
-        break;
-      case "PRESCRIPTION":
-        simulatedContent = `**Safety Check Passed:**
-No severe interactions found between the requested drugs.
-*Note: Patient allergy to Penicillin noted, alternative prescribed.*`;
-        break;
-      default:
-        simulatedContent = `Simulated response for general query.`;
+  } catch (geminiError) {
+    console.error("Gemini Error in provider:", geminiError);
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-3.5-turbo",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+      const data = await response.json();
+      const text = data.choices[0].message.content;
+      return {
+        content: text,
+        providerUsed: "OPENROUTER",
+        tokens: data.usage?.total_tokens || 0
+      };
+    } catch (orError) {
+      console.error("OpenRouter Error in provider:", orError);
+      return {
+        content: "Error: Could not generate response from AI providers.",
+        providerUsed: "NONE",
+        tokens: 0
+      };
     }
-
-    return {
-      content: simulatedContent,
-      providerUsed: "SIMULATED",
-      tokens: 50
-    };
   }
 }

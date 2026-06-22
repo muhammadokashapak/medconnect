@@ -21,13 +21,7 @@ export default function ERPDashboard() {
             <p className="text-gray-500 text-sm">Manage doctors, nurses, technicians, and their shifts.</p>
           </Link>
 
-          <Link href="/erp/beds" className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition group">
-            <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Bed Management</h2>
-            <p className="text-gray-500 text-sm">Track ward occupancy, ICU availability, and assignments.</p>
-          </Link>
+
 
           <Link href="/erp/billing" className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition group">
             <div className="w-14 h-14 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-6 group-hover:bg-green-600 group-hover:text-white transition">

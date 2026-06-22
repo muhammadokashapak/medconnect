@@ -34,22 +34,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Case text is required" }, { status: 400 });
     }
 
-    // Simulate AI delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const promptText = `Summarize the following clinical notes concisely and professionally, highlighting primary symptoms, patient history, and key findings:
+${caseText}`;
 
-    // Mocked response
-    const mockSummary = "This is an AI-generated concise summary of the provided clinical notes. It highlights the primary symptoms, patient history, and key findings for rapid review by other medical professionals.";
+    let summaryText = "";
+    try {
+      const { GoogleGenerativeAI } = require("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(promptText);
+      summaryText = result.response.text().trim();
+    } catch (apiError) {
+      console.error("Gemini API Error:", apiError);
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo",
+            messages: [{ role: "user", content: promptText }]
+          })
+        });
+        const data = await response.json();
+        summaryText = data.choices[0].message.content.trim();
+      } catch (orError) {
+        console.error("OpenRouter API Error:", orError);
+        throw new Error("Both AI providers failed");
+      }
+    }
 
     // Log the request
     await prisma.aIRequest.create({
       data: {
         doctorId: userId,
         prompt: `Summarize:\n${caseText.substring(0, 500)}...`,
-        response: mockSummary
+        response: summaryText
       }
     });
 
-    return NextResponse.json({ summary: mockSummary }, { status: 200 });
+    return NextResponse.json({ summary: summaryText }, { status: 200 });
   } catch (error) {
     console.error("AI Summarize Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

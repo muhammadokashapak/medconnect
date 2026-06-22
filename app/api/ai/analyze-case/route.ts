@@ -35,30 +35,61 @@ export async function POST(req: Request) {
     }
 
     // Prepare prompt to save
-    const promptText = `Analyze Case: Age: ${age}, Gender: ${gender}\nSymptoms: ${symptoms}\nHistory: ${history || 'None'}\nLabs: ${labResults || 'None'}`;
+    const promptText = `You are an expert medical AI assistant.
+Analyze the following patient case and return the result STRICTLY as a JSON object with these exact keys: "possibleDiagnoses" (array of strings), "differentialDiagnoses" (array of strings), "recommendedTests" (array of strings), "redFlags" (array of strings), and "specialistReferral" (string).
+Do not include any markdown formatting like \`\`\`json.
 
-    // Simulate AI delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+Patient Info:
+Age: ${age}, Gender: ${gender}
+Symptoms: ${symptoms}
+History: ${history || 'None'}
+Labs: ${labResults || 'None'}`;
 
-    // Mocked response
-    const mockResponse = {
-      possibleDiagnoses: ["Primary Condition A", "Primary Condition B"],
-      differentialDiagnoses: ["Secondary Condition X", "Secondary Condition Y", "Secondary Condition Z"],
-      recommendedTests: ["Complete Blood Count (CBC)", "Metabolic Panel", "Specific Imaging"],
-      redFlags: ["Alert symptom 1", "Alert symptom 2"],
-      specialistReferral: "Consider referral to specialized department if symptoms persist."
-    };
+    let aiResponseObj;
+    try {
+      const { GoogleGenerativeAI } = require("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(promptText);
+      const text = result.response.text();
+      // Clean potential markdown backticks
+      const cleanText = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+      aiResponseObj = JSON.parse(cleanText);
+    } catch (apiError) {
+      console.error("Gemini API Error:", apiError);
+      // Fallback to OpenRouter if Gemini fails or is not configured
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo",
+            messages: [{ role: "user", content: promptText }]
+          })
+        });
+        const data = await response.json();
+        const text = data.choices[0].message.content;
+        const cleanText = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+        aiResponseObj = JSON.parse(cleanText);
+      } catch (orError) {
+        console.error("OpenRouter API Error:", orError);
+        throw new Error("Both AI providers failed");
+      }
+    }
 
     // Log the request
     await prisma.aIRequest.create({
       data: {
         doctorId: userId,
         prompt: promptText,
-        response: JSON.stringify(mockResponse)
+        response: JSON.stringify(aiResponseObj)
       }
     });
 
-    return NextResponse.json(mockResponse, { status: 200 });
+    return NextResponse.json(aiResponseObj, { status: 200 });
   } catch (error) {
     console.error("AI Case Analysis Error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });

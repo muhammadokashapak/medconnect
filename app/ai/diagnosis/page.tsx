@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function AIDiagnosis() {
@@ -11,6 +11,21 @@ export default function AIDiagnosis() {
   const [vitals, setVitals] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  
+  // Patient Selection for Saving
+  const [patients, setPatients] = useState<any[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Fetch patients on mount
+  useEffect(() => {
+    fetch("/api/patients?limit=50")
+      .then(r => r.json())
+      .then(data => {
+        if (data.patients) setPatients(data.patients);
+      })
+      .catch(console.error);
+  }, []);
 
   const showFeedback = (msg: string) => {
     setFeedback(msg);
@@ -52,8 +67,34 @@ export default function AIDiagnosis() {
     }
   };
 
-  const handleSave = () => {
-    showFeedback("Saved to patient record (feature coming soon)");
+  const handleSave = async () => {
+    if (!selectedPatientId || !result) {
+      showFeedback("Please select a patient first.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/patients/${selectedPatientId}/visits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chiefComplaint: symptoms,
+          history: history,
+          examination: vitals + "\n" + labs,
+          assessment: "AI Diagnosis: " + result,
+          plan: "Pending physician review"
+        })
+      });
+      if (res.ok) {
+        showFeedback("Saved to patient record successfully!");
+      } else {
+        showFeedback("Failed to save to record.");
+      }
+    } catch {
+      showFeedback("Error saving to record.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -141,9 +182,23 @@ export default function AIDiagnosis() {
               )}
             </div>
             {result && (
-              <div className="mt-4 flex gap-2">
-                 <button onClick={handleSave} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Save to Patient Record</button>
-                 <button onClick={handleCopy} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Copy to Clipboard</button>
+              <div className="mt-4 flex flex-col gap-3">
+                 <div className="flex gap-2">
+                   <select 
+                     className="flex-1 border border-gray-300 rounded p-2 text-sm focus:ring-indigo-500"
+                     value={selectedPatientId}
+                     onChange={e => setSelectedPatientId(e.target.value)}
+                   >
+                     <option value="">-- Select Patient to Save --</option>
+                     {patients.map(p => (
+                       <option key={p.id} value={p.id}>{p.fullName} (MRN: {p.mrn})</option>
+                     ))}
+                   </select>
+                   <button disabled={saving} onClick={handleSave} className="bg-indigo-600 border border-indigo-700 text-white py-2 px-4 rounded font-bold text-sm hover:bg-indigo-700 disabled:opacity-50">
+                     {saving ? "Saving..." : "Save Record"}
+                   </button>
+                 </div>
+                 <button onClick={handleCopy} className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Copy to Clipboard</button>
               </div>
             )}
           </div>

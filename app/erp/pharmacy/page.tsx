@@ -1,8 +1,22 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function ERPPharmacy() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/erp/pharmacy")
+      .then(res => res.json())
+      .then(data => {
+        if (data.items) setItems(data.items);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-6xl mx-auto">
@@ -11,15 +25,7 @@ export default function ERPPharmacy() {
              <svg className="w-8 h-8 mr-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
              Pharmacy & Inventory
           </h1>
-          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
-        </div>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-          <svg className="w-6 h-6 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
-          <div>
-            <p className="font-semibold text-amber-800">Module Under Development</p>
-            <p className="text-sm text-amber-600">This module is currently being built and shows sample data. Full functionality coming soon.</p>
-          </div>
+          <Link href="/erp" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to ERP</Link>
         </div>
 
         <div className="bg-white rounded-xl shadow border border-gray-100 p-6">
@@ -40,18 +46,22 @@ export default function ERPPharmacy() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-gray-50 hover:bg-gray-50">
-                 <td className="px-6 py-4 font-bold text-gray-900">Paracetamol 500mg</td>
-                 <td className="px-6 py-4">MEDICINE</td>
-                 <td className="px-6 py-4 text-green-600 font-bold">500 units</td>
-                 <td className="px-6 py-4">$0.10</td>
-              </tr>
-              <tr className="border-b border-gray-50 hover:bg-gray-50">
-                 <td className="px-6 py-4 font-bold text-gray-900">Surgical Masks</td>
-                 <td className="px-6 py-4">CONSUMABLE</td>
-                 <td className="px-6 py-4 text-green-600 font-bold">1000 units</td>
-                 <td className="px-6 py-4">$0.05</td>
-              </tr>
+              {loading ? (
+                <tr><td colSpan={4} className="px-6 py-4 text-center">Loading...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={4} className="px-6 py-4 text-center">No inventory items found.</td></tr>
+              ) : (
+                items.map(item => (
+                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+                     <td className="px-6 py-4 font-bold text-gray-900">{item.name}</td>
+                     <td className="px-6 py-4">{item.category}</td>
+                     <td className={`px-6 py-4 font-bold ${item.quantity <= item.minStock ? 'text-red-600' : 'text-green-600'}`}>
+                       {item.quantity} units {item.quantity <= item.minStock && <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded ml-2">LOW</span>}
+                     </td>
+                     <td className="px-6 py-4">${item.unitPrice.toFixed(2)}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
