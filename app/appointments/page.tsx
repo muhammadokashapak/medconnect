@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Calendar, Clock, Video, XCircle, CheckCircle2, ChevronRight, UserCircle2, CalendarPlus, X } from "lucide-react";
 
 export default function AppointmentsPage() {
   const router = useRouter();
@@ -111,7 +112,20 @@ export default function AppointmentsPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-indigo-600 font-medium">Loading Dashboard...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0] py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="h-12 w-64 bg-gray-200 animate-pulse rounded-lg mb-8"></div>
+          <div className="flex gap-4">
+            <div className="h-12 w-24 bg-gray-200 animate-pulse rounded-xl"></div>
+            <div className="h-12 w-24 bg-gray-200 animate-pulse rounded-xl"></div>
+            <div className="h-12 w-24 bg-gray-200 animate-pulse rounded-xl"></div>
+          </div>
+          <div className="h-40 bg-white rounded-3xl animate-pulse shadow-sm"></div>
+          <div className="h-40 bg-white rounded-3xl animate-pulse shadow-sm"></div>
+        </div>
+      </div>
+    );
   }
 
   const now = new Date();
@@ -130,17 +144,20 @@ export default function AppointmentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-indigo-50/30 py-10 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">My Appointments</h1>
-            <p className="mt-2 text-sm text-gray-500">Manage your consultations and schedule with ease.</p>
+            <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/20 mb-4 text-white">
+              <Calendar className="w-8 h-8" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">My Meetings</h1>
+            <p className="mt-3 text-lg text-gray-500 max-w-2xl">Manage your upcoming clinical consultations and professional meetings with colleagues.</p>
           </div>
         </div>
 
-        {/* Custom Tabs */}
-        <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-1 mb-8 w-fit mx-auto md:mx-0">
+        {/* Premium Animated Tabs */}
+        <div className="bg-white/60 backdrop-blur-xl p-1.5 rounded-2xl shadow-sm border border-white/50 flex flex-wrap gap-1 mb-10 w-fit mx-auto md:mx-0 relative z-10">
           {[
             { id: "upcoming", label: "Upcoming", count: upcoming.length },
             { id: "pending", label: "Pending", count: pending.length },
@@ -150,14 +167,14 @@ export default function AppointmentsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-indigo-50 text-indigo-700 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-white text-indigo-700 shadow-[0_4px_12px_rgba(0,0,0,0.05)] ring-1 ring-black/5"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50/50"
               }`}
             >
               {tab.label}
-              <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? "bg-indigo-200 text-indigo-800" : "bg-gray-100 text-gray-600"}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-black transition-colors ${activeTab === tab.id ? "bg-indigo-100 text-indigo-700" : "bg-gray-100/80 text-gray-400"}`}>
                 {tab.count}
               </span>
             </button>
@@ -165,14 +182,14 @@ export default function AppointmentsPage() {
         </div>
 
         {/* List Content */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {getActiveList().length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-2xl shadow-sm border border-dashed border-gray-300">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <div className="bg-white/40 backdrop-blur-3xl p-16 text-center rounded-[2.5rem] shadow-sm border border-white/60">
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <CalendarPlus className="w-10 h-10 text-gray-400" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">No {activeTab} appointments</h2>
-              <p className="text-gray-500 mt-2">You're all caught up for now.</p>
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">No {activeTab} meetings</h2>
+              <p className="text-gray-500 mt-3 text-lg">You're all caught up for now. Enjoy your free time!</p>
             </div>
           ) : (
             getActiveList().map((app) => {
@@ -188,88 +205,89 @@ export default function AppointmentsPage() {
               const displayStatus = app.status.startsWith("POSTPONED") ? "POSTPONED" : app.status;
 
               return (
-                <div key={app.id} className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col md:flex-row gap-6 md:items-center justify-between group relative overflow-hidden">
+                <div key={app.id} className="bg-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col lg:flex-row gap-6 lg:items-center justify-between group relative overflow-hidden backdrop-blur-xl">
                   
-                  {/* Left accent border */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                    displayStatus === "PENDING" || displayStatus === "POSTPONED" ? "bg-yellow-400" :
-                    displayStatus === "ACCEPTED" ? "bg-emerald-500" :
-                    displayStatus === "CANCELLED" ? "bg-rose-500" : "bg-gray-300"
-                  }`}></div>
+                  {/* Decorative Gradient Blob (hidden but casts soft shadow) */}
+                  <div className="absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full blur-3xl opacity-50 pointer-events-none group-hover:opacity-70 transition-opacity"></div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-5 md:w-2/3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-6 lg:w-2/3 relative z-10">
                     {/* Date Block */}
-                    <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-indigo-50 border border-indigo-100 flex flex-col items-center justify-center">
-                      <span className="text-xs font-bold text-indigo-500 uppercase tracking-wider">{apptDate.toLocaleString('default', { month: 'short' })}</span>
-                      <span className="text-2xl font-black text-indigo-700">{apptDate.getDate()}</span>
+                    <div className="flex-shrink-0 w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100/50 flex flex-col items-center justify-center shadow-sm">
+                      <span className="text-xs font-black text-indigo-500 uppercase tracking-widest">{apptDate.toLocaleString('default', { month: 'short' })}</span>
+                      <span className="text-3xl font-black text-indigo-700 mt-0.5">{apptDate.getDate()}</span>
                     </div>
 
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${
-                          displayStatus === "PENDING" || displayStatus === "POSTPONED" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" :
-                          displayStatus === "ACCEPTED" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
-                          displayStatus === "CANCELLED" ? "bg-rose-100 text-rose-800 border border-rose-200" :
-                          "bg-gray-100 text-gray-800 border border-gray-200"
+                      <div className="flex items-center gap-3 mb-2.5">
+                        <span className={`px-3 py-1 text-[10px] font-black uppercase rounded-full tracking-widest ${
+                          displayStatus === "PENDING" || displayStatus === "POSTPONED" ? "bg-amber-100/80 text-amber-800 border border-amber-200/50" :
+                          displayStatus === "ACCEPTED" ? "bg-emerald-100/80 text-emerald-800 border border-emerald-200/50" :
+                          displayStatus === "CANCELLED" ? "bg-rose-100/80 text-rose-800 border border-rose-200/50" :
+                          "bg-gray-100/80 text-gray-800 border border-gray-200/50"
                         }`}>
                           {displayStatus}
                         </span>
-                        <span className="text-sm font-medium text-gray-500 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span className="text-sm font-bold text-gray-500 flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-gray-400" />
                           {apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden flex-shrink-0 shadow-inner ring-2 ring-white">
                           {otherParty?.profileImage ? (
                             <img src={otherParty.profileImage} alt="Profile" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold bg-indigo-100 text-indigo-600">
-                              {otherParty?.fullName?.charAt(0) || "D"}
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-50 to-gray-200">
+                              <UserCircle2 className="w-7 h-7" />
                             </div>
                           )}
                         </div>
                         <div>
-                           <h3 className="text-lg font-bold text-gray-900 leading-tight">Dr. {otherParty?.fullName}</h3>
-                           <p className="text-sm text-gray-500 font-medium">{otherParty?.specialization || "General Medicine"}</p>
+                           <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Dr. {otherParty?.fullName}</h3>
+                           <p className="text-sm text-gray-500 font-semibold mt-0.5">{otherParty?.specialization || "General Medicine"}</p>
                         </div>
                       </div>
 
                       {app.notes && (
-                        <div className="mt-3 bg-gray-50 rounded-lg p-3 text-sm text-gray-600 border border-gray-100">
-                          <span className="font-semibold text-gray-700">Notes:</span> {app.notes}
+                        <div className="mt-4 bg-gray-50/80 rounded-xl p-3.5 text-sm text-gray-600 border border-gray-100/50 backdrop-blur-sm">
+                          <span className="font-bold text-gray-800 mr-1">Notes:</span> {app.notes}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-row md:flex-col items-center md:items-end justify-end gap-2 md:w-1/3 mt-4 md:mt-0">
+                  <div className="flex flex-row lg:flex-col items-center lg:items-end justify-end gap-3 lg:w-1/3 mt-4 lg:mt-0 relative z-10 border-t border-gray-100 lg:border-t-0 pt-4 lg:pt-0">
                     {isPendingForMe && (
                       <div className="flex flex-wrap gap-2 justify-end w-full">
-                        <button onClick={() => handleAcceptClick(app)} className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 hover:shadow transition-all">Accept</button>
-                        <button onClick={() => deleteAppointment(app)} className="flex-1 md:flex-none px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">Delete</button>
+                        <button onClick={() => handleAcceptClick(app)} className="flex-1 lg:flex-none px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" /> Accept
+                        </button>
+                        <button onClick={() => deleteAppointment(app)} className="flex-1 lg:flex-none px-6 py-2.5 bg-white text-rose-600 border border-rose-200 rounded-xl text-sm font-bold shadow-sm hover:bg-rose-50 hover:border-rose-300 transition-all duration-200 flex items-center justify-center gap-2">
+                          <XCircle className="w-4 h-4" /> Decline
+                        </button>
                       </div>
                     )}
 
                     {!isPendingForMe && !isConsultant && (
-                      <button onClick={() => deleteAppointment(app)} className="w-full md:w-auto px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-50 transition-all">
-                        {app.status === "ACCEPTED" ? "Delete Meeting" : "Cancel Request"}
+                      <button onClick={() => deleteAppointment(app)} className="w-full lg:w-auto px-6 py-2.5 bg-white text-rose-600 border border-rose-200 rounded-xl text-sm font-bold shadow-sm hover:bg-rose-50 hover:border-rose-300 transition-all duration-200 flex items-center justify-center gap-2">
+                        <XCircle className="w-4 h-4" />
+                        {app.status === "ACCEPTED" ? "Cancel Meeting" : "Cancel Request"}
                       </button>
                     )}
 
                     {app.status === "ACCEPTED" && new Date(app.scheduledAt) >= now && (
-                      <div className="flex flex-col gap-2 w-full md:w-auto">
-                        <button onClick={() => startVideoCall(app.id)} className="w-full px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-700 hover:shadow-md transition-all flex items-center justify-center gap-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                          Join Meeting
+                      <div className="flex flex-col gap-2 w-full lg:w-auto">
+                        <button onClick={() => startVideoCall(app.id)} className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-black tracking-wide shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group/btn">
+                          <Video className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                          START MEETING
                         </button>
-                        <button onClick={() => handlePostpone(app)} className="w-full px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all">Reschedule</button>
+                        <button onClick={() => handlePostpone(app)} className="w-full px-5 py-2.5 bg-white text-gray-600 border border-gray-200 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">Reschedule</button>
                       </div>
                     )}
 
                     {app.status === "ACCEPTED" && new Date(app.scheduledAt) < now && (
-                      <button onClick={() => updateStatus(app.id, "COMPLETED")} className="w-full md:w-auto px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-bold hover:bg-gray-900 transition-all">Mark Completed</button>
+                      <button onClick={() => updateStatus(app.id, "COMPLETED")} className="w-full lg:w-auto px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-gray-900/20 hover:bg-black transition-all duration-200">Mark Completed</button>
                     )}
                   </div>
                 </div>
@@ -281,29 +299,34 @@ export default function AppointmentsPage() {
 
       {/* Accept Appointment Modal */}
       {showAcceptModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all">
-            <div className="px-6 py-5 border-b border-gray-100">
-              <h3 className="text-xl font-extrabold text-gray-900">
-                {modalAction === "RESCHEDULE" ? "Reschedule Appointment" : "Confirm Appointment"}
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {modalAction === "RESCHEDULE" ? "Select the new date and time." : "Set the exact date and time you are available."}
-              </p>
-            </div>
-            <div className="p-6 space-y-4">
+        <div className="fixed inset-0 bg-gray-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all animate-in zoom-in-95 duration-200 border border-white/20">
+            <div className="px-6 py-6 border-b border-gray-100 flex items-start justify-between">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Date</label>
-                <input type="date" value={confirmedDate} onChange={e => setConfirmedDate(e.target.value)} className="w-full border-gray-300 rounded-xl shadow-sm p-3 border focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 text-gray-900" />
+                <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">
+                  {modalAction === "RESCHEDULE" ? "Reschedule Meeting" : "Confirm Time"}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1.5 font-medium">
+                  {modalAction === "RESCHEDULE" ? "Select the new date and time." : "Set the exact date and time you are available."}
+                </p>
+              </div>
+              <button onClick={() => setShowAcceptModal(false)} className="text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                 <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-sm font-extrabold text-gray-700 mb-2">Date</label>
+                <input type="date" value={confirmedDate} onChange={e => setConfirmedDate(e.target.value)} className="w-full border-gray-200 rounded-xl shadow-sm p-3.5 border focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50 hover:bg-gray-100/50 transition-colors text-gray-900 font-medium" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Time</label>
-                <input type="time" value={confirmedTime} onChange={e => setConfirmedTime(e.target.value)} className="w-full border-gray-300 rounded-xl shadow-sm p-3 border focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 text-gray-900" />
+                <label className="block text-sm font-extrabold text-gray-700 mb-2">Time</label>
+                <input type="time" value={confirmedTime} onChange={e => setConfirmedTime(e.target.value)} className="w-full border-gray-200 rounded-xl shadow-sm p-3.5 border focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50 hover:bg-gray-100/50 transition-colors text-gray-900 font-medium" />
               </div>
             </div>
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+            <div className="px-6 py-5 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-3">
               <button disabled={isAccepting} onClick={() => setShowAcceptModal(false)} className="px-5 py-2.5 text-gray-600 rounded-xl hover:bg-gray-200 font-bold text-sm transition-colors">Cancel</button>
-              <button disabled={isAccepting || !confirmedDate || !confirmedTime} onClick={confirmAccept} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold text-sm shadow-sm transition-all disabled:opacity-50 flex items-center">
+              <button disabled={isAccepting || !confirmedDate || !confirmedTime} onClick={confirmAccept} className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 font-bold text-sm shadow-sm transition-all disabled:opacity-50 flex items-center">
                 {isAccepting ? "Confirming..." : "Confirm Schedule"}
               </button>
             </div>

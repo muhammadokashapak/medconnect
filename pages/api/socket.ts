@@ -81,6 +81,21 @@ export default function SocketHandler(req: NextApiRequest, res: NextApiResponse 
         io.to(data.to).emit('call_ended');
       });
 
+      // Global Ringing / Meeting Notification
+      socket.on('start_global_call', (data: { receiverId: string, callerId: string, callerName: string, roomId: string, type: string }) => {
+        const receiverSocketId = onlineUsers.get(data.receiverId);
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit('incoming_global_call', data);
+        }
+      });
+
+      socket.on('global_call_rejected', (data: { callerId: string }) => {
+        const callerSocketId = onlineUsers.get(data.callerId);
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('global_call_rejected');
+        }
+      });
+
       // Conference Mesh Signaling
       socket.on('join_conference', (roomId: string) => {
         socket.join(roomId);

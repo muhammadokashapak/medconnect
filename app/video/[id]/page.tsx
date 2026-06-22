@@ -30,6 +30,9 @@ export default function VideoCallRoom() {
   const [callDuration, setCallDuration] = useState(0);
   const [callStartTime, setCallStartTime] = useState<number | null>(null);
 
+  const [myId, setMyId] = useState("");
+  const [receiverId, setReceiverId] = useState("");
+
   useEffect(() => {
     // Lock body scroll for immersive full screen
     document.body.style.overflow = 'hidden';
@@ -40,7 +43,23 @@ export default function VideoCallRoom() {
     fetch("/api/profile")
       .then(res => res.json())
       .then(data => {
-        if(data && data.fullName) setName("Dr. " + data.fullName);
+        if(data && data.fullName) {
+          setName("Dr. " + data.fullName);
+          setMyId(data.id);
+        }
+      }).catch(()=>{});
+
+    // Fetch appointment to get receiverId
+    fetch(`/api/appointments`)
+      .then(res => res.json())
+      .then(appointments => {
+        const currentAppt = appointments.find((a: any) => a.id === roomId);
+        if (currentAppt) {
+          fetch("/api/profile").then(res => res.json()).then(me => {
+            const isConsultant = currentAppt.consultantId === me.id;
+            setReceiverId(isConsultant ? currentAppt.doctorId : currentAppt.consultantId);
+          });
+        }
       }).catch(()=>{});
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((currentStream) => {
@@ -106,9 +125,34 @@ export default function VideoCallRoom() {
     return () => clearInterval(timer);
   }, [callStartTime, callAccepted, callEnded]);
 
+  const [callDeclined, setCallDeclined] = useState(false);
+
+  useEffect(() => {
+    socket.on("global_call_rejected", () => {
+      setCallDeclined(true);
+      setPreJoin(false); // Drop them out of prejoin directly to the declined screen
+    });
+
+    return () => {
+      socket.off("global_call_rejected");
+    }
+  }, []);
+
   const joinMeeting = () => {
     setPreJoin(false);
     socket.emit("join_conference", roomId);
+
+    const isJoining = new URLSearchParams(window.location.search).get("join") === "true";
+    if (!isJoining && receiverId) {
+      // Ring the other user
+      socket.emit("start_global_call", {
+        receiverId: receiverId,
+        callerId: myId,
+        callerName: name,
+        roomId: roomId,
+        type: "MEETING"
+      });
+    }
   };
 
   const callUser = (idToCall: string) => {
@@ -361,6 +405,16 @@ export default function VideoCallRoom() {
               {remoteName}
             </div>
           </div>
+        ) : callDeclined ? (
+            // Call Declined State
+            <div className="text-white text-center flex flex-col items-center">
+                <div className="w-20 h-20 bg-rose-500/20 rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-10 h-10 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h1 className="text-4xl font-bold mb-2">Call Declined</h1>
+                <p className="text-gray-400 mb-8 max-w-md">The other participant has declined your meeting request. They may be busy right now.</p>
+                <button onClick={() => router.push("/appointments")} className="bg-white text-gray-900 font-bold px-6 py-3 rounded-full hover:bg-gray-200 transition-colors">Return to Dashboard</button>
+            </div>
         ) : callEnded ? (
             // Call Ended State
             <div className="text-white text-center flex flex-col items-center">
