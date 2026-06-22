@@ -38,7 +38,12 @@ export default function VideoCallRoom() {
     document.body.style.overflow = 'hidden';
     
     SimplePeer = require("simple-peer");
-    socket = io({ path: "/api/socket" });
+    socket = io({ 
+      path: "/api/socket",
+      reconnectionAttempts: 3,
+      reconnectionDelayMax: 5000,
+      timeout: 10000 
+    });
 
     fetch("/api/profile")
       .then(res => res.json())

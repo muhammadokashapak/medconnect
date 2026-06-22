@@ -80,7 +80,7 @@ export default function MessagesListPage() {
         {error && <div className="bg-red-50 text-red-700 p-4 rounded mb-6 border border-red-200">{error}</div>}
 
         {conversations.length === 0 && !error ? (
-          <div className="bg-white rounded-lg shadow p-10 text-center border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-10 text-center border border-white/20">
             <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No messages yet</h3>
             <p className="text-gray-500 mb-6">Start a conversation with a verified doctor to ask for clinical advice.</p>
@@ -92,7 +92,7 @@ export default function MessagesListPage() {
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20">
             <ul className="divide-y divide-gray-200">
               {conversations.map((conv) => (
                 <li 
@@ -150,7 +150,7 @@ export default function MessagesListPage() {
 
                       {/* Dropdown Menu */}
                       {activeMenu === conv.id && (
-                        <div className="absolute top-10 right-0 z-10 w-36 bg-white rounded-md shadow-lg py-1 border border-gray-200">
+                        <div className="absolute top-10 right-0 z-10 w-36 bg-white/90 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-1 border border-white/20">
                           <button onClick={(e) => { e.stopPropagation(); router.push(`/messages/${conv.id}`); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Open Chat
                           </button>

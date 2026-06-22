@@ -41,7 +41,12 @@ export default function GlobalCallProvider({ children }: { children: React.React
       .then((data) => {
         if (data && data.id) {
           setCurrentUser(data);
-          const newSocket = io({ path: "/api/socket" });
+          const newSocket = io({ 
+            path: "/api/socket",
+            reconnectionAttempts: 3,
+            reconnectionDelayMax: 5000,
+            timeout: 10000
+          });
           setSocket(newSocket);
 
           newSocket.on("connect", () => {

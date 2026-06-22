@@ -47,7 +47,12 @@ export default function ConferenceRoom() {
 
   useEffect(() => {
     SimplePeer = require("simple-peer");
-    socket = io({ path: "/api/socket" });
+    socket = io({ 
+      path: "/api/socket",
+      reconnectionAttempts: 3,
+      reconnectionDelayMax: 5000,
+      timeout: 10000 
+    });
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((currentStream) => {
       setStream(currentStream);

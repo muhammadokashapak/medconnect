@@ -57,7 +57,7 @@ export default function DoctorsDirectoryPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6 mb-8">
           <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Search Name, PMDC, or Hospital</label>
@@ -96,7 +96,7 @@ export default function DoctorsDirectoryPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col animate-pulse">
+              <div key={i} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6 flex flex-col animate-pulse">
                 <div className="flex items-center mb-4">
                   <div className="w-16 h-16 rounded-full bg-gray-200 flex-shrink-0"></div>
                   <div className="ml-4 flex-1">
@@ -114,13 +114,13 @@ export default function DoctorsDirectoryPage() {
             ))}
           </div>
         ) : doctors.length === 0 ? (
-          <div className="text-center py-10 bg-white rounded-lg shadow text-gray-500">
+          <div className="text-center py-10 bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-500">
             No doctors found matching your criteria.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {doctors.map(doctor => (
-              <div key={doctor.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition flex flex-col">
+              <div key={doctor.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6 hover:shadow-lg transition flex flex-col">
                 <div className="flex items-center mb-4">
                   <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                     {doctor.profileImage ? (

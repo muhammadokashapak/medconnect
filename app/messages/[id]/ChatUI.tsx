@@ -44,7 +44,12 @@ export default function ChatUI({ id }: { id: string }) {
       console.error("Failed to initialize socket route:", err);
     }
 
-    const socket = io({ path: "/api/socket" });
+    const socket = io({ 
+      path: "/api/socket",
+      reconnectionAttempts: 3,
+      reconnectionDelayMax: 5000,
+      timeout: 10000 
+    });
     socketRef.current = socket;
 
     socket.on("connect", () => {

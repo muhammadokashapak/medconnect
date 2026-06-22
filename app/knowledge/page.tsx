@@ -73,7 +73,7 @@ export default function KnowledgeHubPage() {
         
         {/* AI Quick Query Section */}
         <div className="mb-12">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 overflow-hidden flex flex-col md:flex-row">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 md:w-1/3 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-200">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
                 <span className="text-2xl">🤖</span>
@@ -133,7 +133,7 @@ export default function KnowledgeHubPage() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {data?.featured?.guidelines?.map((g: any, idx: number) => (
-                  <Link key={g.id || idx} href={`/guidelines/${g.id}`} className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition group block">
+                  <Link key={g.id || idx} href={`/guidelines/${g.id}`} className="bg-white/80 backdrop-blur-xl rounded-xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 hover:shadow-md hover:border-blue-300 transition group block">
                     <div className="flex justify-between items-start mb-3">
                       <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">{g.specialty}</span>
                       <span className="text-gray-400 text-sm">PDF</span>
@@ -151,7 +151,7 @@ export default function KnowledgeHubPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Latest Medical News</h2>
                 <Link href="/news" className="text-blue-600 font-semibold hover:text-blue-800 transition">More News &rarr;</Link>
               </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 overflow-hidden">
                 {data?.featured?.news?.map((n: any, idx: number) => (
                   <Link key={n.id || idx} href={`/news`} className="flex flex-col sm:flex-row p-5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition group block">
                     <div className="sm:w-1/4 h-24 sm:h-auto bg-gray-200 rounded-lg mb-4 sm:mb-0 sm:mr-5 flex-shrink-0 overflow-hidden">
@@ -170,7 +170,7 @@ export default function KnowledgeHubPage() {
 
           {/* Right Sidebar */}
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Browse by Specialty</h2>
               <div className="flex flex-wrap gap-2">
                 {specialties.map(spec => (
@@ -181,7 +181,7 @@ export default function KnowledgeHubPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20">
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
                 <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Recently Viewed
@@ -228,7 +228,7 @@ function ToolCard({ icon, title, desc, href, color }: { icon: string, title: str
   };
 
   return (
-    <Link href={href} className={`p-5 rounded-2xl shadow-sm border transition flex flex-col h-full bg-white group hover:shadow-md ${colorMap[color].split(" ").filter(c => c.startsWith("hover:border")).join(" ")}`}>
+    <Link href={href} className={`p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 transition flex flex-col h-full bg-white/80 backdrop-blur-xl group hover:shadow-md ${colorMap[color].split(" ").filter(c => c.startsWith("hover:border")).join(" ")}`}>
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 transition ${colorMap[color].split(" ").filter(c => !c.startsWith("border") && !c.startsWith("hover:border")).join(" ")}`}>
         {icon}
       </div>

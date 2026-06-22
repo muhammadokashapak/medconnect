@@ -114,31 +114,31 @@ export default function ProfilePage() {
           isProfilePrivate: data.isProfilePrivate || false,
         });
         
-        // Fetch posts for this doctor
+        // Fetch associated data in parallel
         if (data.id) {
-          fetch(`/api/cases?doctorId=${data.id}`)
-            .then(r => r.json())
-            .then(casesData => {
-              if (Array.isArray(casesData)) {
-                setMyCases(casesData);
-              }
-            }).catch(console.error);
-
-          fetch(`/api/videos?doctorId=${data.id}`)
-            .then(r => r.json())
-            .then(videosData => {
-              if (Array.isArray(videosData)) {
-                setMyVideos(videosData);
-              }
-            }).catch(console.error);
-
-          // Fetch friends
-          fetch('/api/friends')
-            .then(r => r.json())
-            .then(friendsData => {
+          try {
+            const [casesRes, videosRes, friendsRes] = await Promise.all([
+              fetch(`/api/cases?doctorId=${data.id}`),
+              fetch(`/api/videos?doctorId=${data.id}`),
+              fetch('/api/friends')
+            ]);
+            
+            if (casesRes.ok) {
+              const casesData = await casesRes.json();
+              if (Array.isArray(casesData)) setMyCases(casesData);
+            }
+            if (videosRes.ok) {
+              const videosData = await videosRes.json();
+              if (Array.isArray(videosData)) setMyVideos(videosData);
+            }
+            if (friendsRes.ok) {
+              const friendsData = await friendsRes.json();
               setFriends(friendsData.friends || []);
               setFriendCount(friendsData.friendCount || 0);
-            }).catch(console.error);
+            }
+          } catch (err) {
+            console.error("Failed to load secondary profile data", err);
+          }
         }
 
         setLoading(false);
@@ -507,7 +507,7 @@ export default function ProfilePage() {
             {/* Left Column (Sidebar Widgets) */}
             <div className="space-y-6">
               {/* Intro Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Intro</h2>
                 <div className="space-y-4">
                   {doctor?.bio ? (
@@ -571,7 +571,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Friends Preview Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4">
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-4 md:p-6 mb-4">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">Friends</h2>
@@ -643,7 +643,7 @@ export default function ProfilePage() {
 
               {/* Feed List */}
               {myCases.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center text-gray-500 mb-6">
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-8 text-center text-gray-500 mb-6">
                   <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
                   <p className="font-semibold text-lg text-gray-700">No Clinical Cases Posted Yet</p>
                   <p className="text-sm text-gray-400 mt-1">Cases you share will appear here on your feed.</p>
@@ -651,7 +651,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-6">
                   {myCases.map(c => (
-                    <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div key={c.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 overflow-hidden">
                       {/* Post Header */}
                       <div className="p-4 flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -741,7 +741,7 @@ export default function ProfilePage() {
 
         {/* Tab 2: Videos */}
         {activeTab === "videos" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Uploaded Videos</h2>
             {myVideos.length === 0 ? (
               <p className="text-center text-gray-500 py-10">You haven't uploaded any video cases yet.</p>
@@ -811,7 +811,7 @@ export default function ProfilePage() {
 
         {/* Tab 3: Photos */}
         {activeTab === "photos" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Photos Directory</h2>
             {myCases.filter(c => c.imageUrl).length === 0 ? (
               <p className="text-center text-gray-500 py-10">You haven't uploaded any photos yet.</p>
@@ -836,7 +836,7 @@ export default function ProfilePage() {
 
         {/* Tab 4: Friends */}
         {activeTab === "friends" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Friends Directory</h2>
@@ -881,7 +881,7 @@ export default function ProfilePage() {
 
         {/* Tab 5: CME Certificates */}
         {activeTab === "cme" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">CME Certificates</h2>
             {!doctor?.cmeCertificates || doctor.cmeCertificates.length === 0 ? (
               <p className="text-center text-gray-500 py-10">No CME certificates earned yet.</p>
@@ -906,7 +906,7 @@ export default function ProfilePage() {
 
         {/* Tab 6: About (Details Card) */}
         {activeTab === "about" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-6 md:p-8">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
               <button 
