@@ -35,11 +35,43 @@ export async function GET(req: Request) {
       include: { course: true }
     });
 
-    const totalCredits = userCertificates.reduce((acc, cert) => acc + cert.course.credits, 0);
+    const totalCredits = userCertificates.reduce((acc, cert) => {
+      const courseCredits = cert.course?.credits || 0;
+      const customCredits = cert.customCredits || 0;
+      return acc + courseCredits + customCredits;
+    }, 0);
 
     return NextResponse.json({ courses, totalCredits, userCertificates }, { status: 200 });
   } catch (error) {
     console.error(error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const userId = getUserIdFromToken(req);
+    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const { customTitle, customProvider, customCredits, certificateUrl } = await req.json();
+
+    if (!customTitle || !customProvider || !certificateUrl) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    }
+
+    const certificate = await prisma.cMECertificate.create({
+      data: {
+        doctorId: userId,
+        customTitle,
+        customProvider,
+        customCredits: parseInt(customCredits) || 0,
+        certificateUrl,
+      }
+    });
+
+    return NextResponse.json({ message: "Certificate uploaded successfully", certificate }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating custom certificate:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }

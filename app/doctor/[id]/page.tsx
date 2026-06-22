@@ -43,6 +43,18 @@ type DoctorProfile = {
     createdAt: string;
   }>;
   appointment?: any;
+  cmeCertificates?: Array<{
+    id: string;
+    issuedAt: string;
+    customTitle?: string;
+    customProvider?: string;
+    customCredits?: number;
+    course?: {
+      title: string;
+      provider: string;
+      credits: number;
+    };
+  }>;
 };
 
 export default function DoctorProfilePage() {
@@ -54,7 +66,7 @@ export default function DoctorProfilePage() {
   const [messaging, setMessaging] = useState(false);
   const [friendUpdating, setFriendUpdating] = useState(false);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos" | "friends" | "about">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos" | "friends" | "cme" | "about">("posts");
 
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [bookingAppointment, setBookingAppointment] = useState(false);
@@ -466,7 +478,7 @@ export default function DoctorProfilePage() {
 
             {/* Navigation Tabs */}
             <div className="flex gap-2 overflow-x-auto pt-2 scrollbar-none">
-              {(["posts", "videos", "photos", "friends", "about"] as const).map(tab => (
+              {(["posts", "videos", "photos", "friends", "cme", "about"] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -476,7 +488,7 @@ export default function DoctorProfilePage() {
                       : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg"
                   }`}
                 >
-                  {tab === "posts" ? "Clinical Cases" : tab}
+                  {tab === "posts" ? "Clinical Cases" : tab === "cme" ? "CME Certificates" : tab}
                 </button>
               ))}
             </div>
@@ -759,7 +771,32 @@ export default function DoctorProfilePage() {
           </>
         )}
 
-        {/* Tab 5: About (Always accessible even if profile is private) */}
+        {/* Tab 5: CME Certificates */}
+        {activeTab === "cme" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">CME Certificates</h2>
+            {!doctor.cmeCertificates || doctor.cmeCertificates.length === 0 ? (
+              <p className="text-center text-gray-500 py-10">No CME certificates earned yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {doctor.cmeCertificates.map(cert => (
+                  <div key={cert.id} className="border border-gray-100 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                    <h3 className="font-bold text-lg text-gray-900 mb-1">{cert.course?.title || cert.customTitle}</h3>
+                    <p className="text-sm text-gray-500 font-medium mb-3">{cert.course?.provider || cert.customProvider}</p>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-xs text-gray-400">Issued: {new Date(cert.issuedAt).toLocaleDateString()}</span>
+                      <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
+                        {cert.course?.credits || cert.customCredits || 0} Credits
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 6: About (Always accessible even if profile is private) */}
         {activeTab === "about" && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">About Dr. {doctor.fullName}</h2>

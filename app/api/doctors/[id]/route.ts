@@ -41,6 +41,9 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         websiteUrl: true,
         verificationStatus: true,
         isProfilePrivate: true,
+        cmeCertificates: {
+          include: { course: true }
+        }
       }
     });
 

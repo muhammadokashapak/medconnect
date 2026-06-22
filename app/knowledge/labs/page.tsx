@@ -10,11 +10,15 @@ const labCategories = [
     name: "Complete Blood Count (CBC)",
     description: "Evaluates overall health and detects a wide range of disorders, including anemia, infection, and leukemia.",
     labs: [
-      { name: "White Blood Cells (WBC)", range: "4,500 to 11,000 cells/mcL", meaningHigh: "Infection, Inflammation, Leukemia", meaningLow: "Bone marrow failure, Autoimmune diseases" },
-      { name: "Red Blood Cells (RBC)", range: "Male: 4.32-5.72 / Female: 3.90-5.03 million/mcL", meaningHigh: "Dehydration, Polycythemia vera", meaningLow: "Anemia, Bleeding" },
-      { name: "Hemoglobin (Hgb)", range: "Male: 13.5-17.5 / Female: 12.0-15.5 g/dL", meaningHigh: "Polycythemia, COPD", meaningLow: "Anemia, Iron deficiency" },
-      { name: "Hematocrit (Hct)", range: "Male: 38.3-48.6% / Female: 35.5-44.9%", meaningHigh: "Dehydration", meaningLow: "Anemia, Bleeding" },
-      { name: "Platelets", range: "150,000 to 450,000/mcL", meaningHigh: "Essential thrombocythemia", meaningLow: "Thrombocytopenia, Bleeding risk" },
+      { name: "White Blood Cells (WBC)", range: "4.5 to 11.0 x 10^9/L", meaningHigh: "Infection, Inflammation, Leukemia, Stress", meaningLow: "Bone marrow failure, Autoimmune diseases, Severe infection" },
+      { name: "Red Blood Cells (RBC)", range: "Male: 4.3-5.7 / Female: 3.9-5.0 million/mcL", meaningHigh: "Dehydration, Polycythemia vera, Hypoxia", meaningLow: "Anemia, Bleeding, Hemolysis" },
+      { name: "Hemoglobin (Hgb)", range: "Male: 13.5-17.5 / Female: 12.0-15.5 g/dL", meaningHigh: "Polycythemia, COPD, Congenital heart disease", meaningLow: "Anemia, Iron deficiency, Thalassemia" },
+      { name: "Hematocrit (Hct)", range: "Male: 38.3-48.6% / Female: 35.5-44.9%", meaningHigh: "Dehydration, Polycythemia, Burns", meaningLow: "Anemia, Bleeding, Overhydration" },
+      { name: "Platelets (Plt)", range: "150,000 to 450,000/mcL", meaningHigh: "Essential thrombocythemia, Infection, Inflammation", meaningLow: "Thrombocytopenia, Viral infection, DIC, Splenomegaly" },
+      { name: "Mean Corpuscular Volume (MCV)", range: "80 to 100 fL", meaningHigh: "Macrocytic anemia (B12/Folate deficiency), Liver disease, Alcoholism", meaningLow: "Microcytic anemia (Iron deficiency, Thalassemia)" },
+      { name: "Mean Corpuscular Hemoglobin (MCH)", range: "27 to 33 pg", meaningHigh: "Macrocytic anemia", meaningLow: "Microcytic anemia, Iron deficiency" },
+      { name: "Mean Corpuscular Hemoglobin Concentration (MCHC)", range: "32 to 36 g/dL", meaningHigh: "Hereditary spherocytosis, Severe burns", meaningLow: "Iron deficiency anemia, Thalassemia" },
+      { name: "Red Cell Distribution Width (RDW)", range: "11.5 to 14.5%", meaningHigh: "Iron, B12, or Folate deficiency (anisocytosis)", meaningLow: "Usually not clinically significant" }
     ]
   },
   {
@@ -22,25 +26,105 @@ const labCategories = [
     name: "Basic Metabolic Panel (BMP)",
     description: "Measures glucose, calcium, and electrolytes, as well as kidney function.",
     labs: [
-      { name: "Sodium (Na)", range: "135 to 145 mEq/L", meaningHigh: "Dehydration, Diabetes Insipidus", meaningLow: "Diuretic use, Heart failure, Overhydration" },
-      { name: "Potassium (K)", range: "3.5 to 5.0 mEq/L", meaningHigh: "Kidney disease, ACE inhibitors", meaningLow: "Diuretic use, Diarrhea, Vomiting" },
-      { name: "Chloride (Cl)", range: "96 to 106 mEq/L", meaningHigh: "Dehydration, Metabolic acidosis", meaningLow: "Metabolic alkalosis, Heart failure" },
-      { name: "CO2 (Bicarbonate)", range: "23 to 29 mEq/L", meaningHigh: "COPD, Metabolic alkalosis", meaningLow: "Metabolic acidosis, Kidney disease" },
-      { name: "BUN (Blood Urea Nitrogen)", range: "7 to 20 mg/dL", meaningHigh: "Kidney failure, Dehydration, GI bleeding", meaningLow: "Liver disease, Malnutrition" },
-      { name: "Creatinine", range: "Male: 0.7-1.3 / Female: 0.6-1.1 mg/dL", meaningHigh: "Kidney impairment, Muscle breakdown", meaningLow: "Low muscle mass, Malnutrition" },
-      { name: "Glucose (Fasting)", range: "70 to 99 mg/dL", meaningHigh: "Diabetes, Stress, Pancreatitis", meaningLow: "Insulin overdose, Starvation, Liver disease" },
+      { name: "Sodium (Na)", range: "135 to 145 mEq/L", meaningHigh: "Dehydration, Diabetes Insipidus, Cushing syndrome", meaningLow: "Diuretic use, Heart failure, Overhydration, SIADH" },
+      { name: "Potassium (K)", range: "3.5 to 5.0 mEq/L", meaningHigh: "Kidney disease, ACE inhibitors, Tissue damage (crush injury)", meaningLow: "Diuretic use, Diarrhea, Vomiting, Hyperaldosteronism" },
+      { name: "Chloride (Cl)", range: "96 to 106 mEq/L", meaningHigh: "Dehydration, Metabolic acidosis, Renal tubular acidosis", meaningLow: "Metabolic alkalosis, Heart failure, Prolonged vomiting" },
+      { name: "CO2 (Bicarbonate)", range: "23 to 29 mEq/L", meaningHigh: "COPD, Metabolic alkalosis, Severe vomiting", meaningLow: "Metabolic acidosis, Kidney disease, DKA, Lactic acidosis" },
+      { name: "Blood Urea Nitrogen (BUN)", range: "7 to 20 mg/dL", meaningHigh: "Kidney failure, Dehydration, GI bleeding, High protein diet", meaningLow: "Liver disease, Malnutrition, Overhydration" },
+      { name: "Creatinine (Cr)", range: "Male: 0.7-1.3 / Female: 0.6-1.1 mg/dL", meaningHigh: "Kidney impairment, Muscle breakdown (rhabdomyolysis)", meaningLow: "Low muscle mass, Malnutrition, Pregnancy" },
+      { name: "Glucose (Fasting)", range: "70 to 99 mg/dL", meaningHigh: "Diabetes, Stress, Pancreatitis, Corticosteroid use", meaningLow: "Insulin overdose, Starvation, Liver disease, Insulinoma" },
+      { name: "Calcium (Ca)", range: "8.5 to 10.2 mg/dL", meaningHigh: "Hyperparathyroidism, Malignancy, Vitamin D toxicity", meaningLow: "Hypoparathyroidism, Vitamin D deficiency, Chronic kidney disease" }
+    ]
+  },
+  {
+    id: "renal",
+    name: "Renal Panel",
+    description: "Comprehensive assessment of kidney function and related minerals.",
+    labs: [
+      { name: "Estimated Glomerular Filtration Rate (eGFR)", range: "> 90 mL/min/1.73m2", meaningHigh: "Normal kidney function", meaningLow: "Chronic kidney disease, Acute kidney injury" },
+      { name: "Uric Acid", range: "Male: 3.4-7.0 / Female: 2.4-6.0 mg/dL", meaningHigh: "Gout, Renal failure, Tumor lysis syndrome, Diuretics", meaningLow: "Wilson's disease, SIADH, Fanconi syndrome" },
+      { name: "Phosphorus (PO4)", range: "2.5 to 4.5 mg/dL", meaningHigh: "Renal failure, Hypoparathyroidism, Rhabdomyolysis", meaningLow: "Hyperparathyroidism, Vitamin D deficiency, Refeeding syndrome" },
+      { name: "Magnesium (Mg)", range: "1.7 to 2.2 mg/dL", meaningHigh: "Renal failure, Excessive antacid use", meaningLow: "Alcoholism, Diuretics, Malabsorption, Diarrhea" }
     ]
   },
   {
     id: "lft",
     name: "Liver Function Tests (LFT)",
-    description: "Determines the health of the liver by measuring levels of proteins, liver enzymes, and bilirubin in your blood.",
+    description: "Determines the health of the liver by measuring levels of proteins, liver enzymes, and bilirubin.",
     labs: [
-      { name: "ALT (Alanine Transaminase)", range: "7 to 55 U/L", meaningHigh: "Hepatitis, Liver necrosis, Ischemia", meaningLow: "Normal" },
-      { name: "AST (Aspartate Transaminase)", range: "8 to 48 U/L", meaningHigh: "Hepatitis, Myocardial infarction, Muscle injury", meaningLow: "Normal" },
-      { name: "ALP (Alkaline Phosphatase)", range: "40 to 129 U/L", meaningHigh: "Biliary obstruction, Bone disease (Paget's)", meaningLow: "Malnutrition, Zinc deficiency" },
-      { name: "Total Bilirubin", range: "0.1 to 1.2 mg/dL", meaningHigh: "Jaundice, Hemolysis, Biliary obstruction", meaningLow: "Normal" },
-      { name: "Albumin", range: "3.5 to 5.0 g/dL", meaningHigh: "Dehydration", meaningLow: "Liver disease, Nephrotic syndrome, Malnutrition" },
+      { name: "ALT (Alanine Transaminase)", range: "7 to 55 U/L", meaningHigh: "Hepatitis, Liver necrosis, Ischemia, Drug toxicity", meaningLow: "Normal" },
+      { name: "AST (Aspartate Transaminase)", range: "8 to 48 U/L", meaningHigh: "Hepatitis, Myocardial infarction, Muscle injury, Alcohol abuse", meaningLow: "Normal" },
+      { name: "ALP (Alkaline Phosphatase)", range: "40 to 129 U/L", meaningHigh: "Biliary obstruction, Bone disease (Paget's), Pregnancy", meaningLow: "Malnutrition, Zinc deficiency, Hypophosphatasia" },
+      { name: "Total Bilirubin", range: "0.1 to 1.2 mg/dL", meaningHigh: "Jaundice, Hemolysis, Biliary obstruction, Gilbert's syndrome", meaningLow: "Normal" },
+      { name: "Direct (Conjugated) Bilirubin", range: "< 0.3 mg/dL", meaningHigh: "Biliary obstruction, Dubin-Johnson syndrome", meaningLow: "Normal" },
+      { name: "Albumin", range: "3.5 to 5.0 g/dL", meaningHigh: "Dehydration", meaningLow: "Liver disease, Nephrotic syndrome, Malnutrition, Inflammation" },
+      { name: "Total Protein", range: "6.0 to 8.3 g/dL", meaningHigh: "Multiple myeloma, Chronic inflammation, Dehydration", meaningLow: "Liver disease, Kidney disease, Malnutrition" },
+      { name: "Gamma-Glutamyl Transferase (GGT)", range: "8 to 61 U/L", meaningHigh: "Alcohol abuse, Biliary obstruction, Liver disease", meaningLow: "Normal" }
+    ]
+  },
+  {
+    id: "cardiac",
+    name: "Cardiac Biomarkers",
+    description: "Tests to evaluate heart function, acute myocardial infarction, and heart failure.",
+    labs: [
+      { name: "Troponin I", range: "< 0.04 ng/mL", meaningHigh: "Myocardial infarction, Myocarditis, Severe heart failure", meaningLow: "Normal" },
+      { name: "Troponin T", range: "< 0.01 ng/mL", meaningHigh: "Myocardial infarction, Renal failure, Pulmonary embolism", meaningLow: "Normal" },
+      { name: "CK-MB", range: "0 to 3 ng/mL", meaningHigh: "Myocardial infarction, Skeletal muscle damage", meaningLow: "Normal" },
+      { name: "BNP (B-type Natriuretic Peptide)", range: "< 100 pg/mL", meaningHigh: "Congestive heart failure, Cor pulmonale, Renal failure", meaningLow: "Normal" },
+      { name: "Myoglobin", range: "< 85 ng/mL", meaningHigh: "Myocardial infarction, Rhabdomyolysis, Skeletal muscle trauma", meaningLow: "Normal" }
+    ]
+  },
+  {
+    id: "coagulation",
+    name: "Coagulation Profile",
+    description: "Assesses blood clotting function and monitors anticoagulant therapies.",
+    labs: [
+      { name: "Prothrombin Time (PT)", range: "11.0 to 13.5 seconds", meaningHigh: "Liver disease, Vitamin K deficiency, Warfarin therapy, DIC", meaningLow: "Hypercoagulable state" },
+      { name: "International Normalized Ratio (INR)", range: "0.8 to 1.1 (Target 2.0-3.0 on Warfarin)", meaningHigh: "Warfarin therapy, Liver disease, Vitamin K deficiency", meaningLow: "Risk of clotting" },
+      { name: "Activated Partial Thromboplastin Time (aPTT)", range: "25 to 35 seconds", meaningHigh: "Heparin therapy, Hemophilia, Lupus anticoagulant, DIC", meaningLow: "Extensive cancer, Early DIC" },
+      { name: "D-Dimer", range: "< 0.50 mg/L FEU", meaningHigh: "DVT, Pulmonary Embolism, DIC, Pregnancy, Malignancy", meaningLow: "Normal (Rules out VTE in low-risk patients)" },
+      { name: "Fibrinogen", range: "200 to 400 mg/dL", meaningHigh: "Acute phase reactant, Inflammation, Pregnancy", meaningLow: "DIC, Severe liver disease, Congenital afibrinogenemia" }
+    ]
+  },
+  {
+    id: "abg",
+    name: "Arterial Blood Gas (ABG)",
+    description: "Measures oxygen, carbon dioxide, and acid-base status of the blood.",
+    labs: [
+      { name: "pH", range: "7.35 to 7.45", meaningHigh: "Alkalosis (Metabolic or Respiratory)", meaningLow: "Acidosis (Metabolic or Respiratory)" },
+      { name: "pCO2 (Partial Pressure of Carbon Dioxide)", range: "35 to 45 mmHg", meaningHigh: "Respiratory acidosis (Hypoventilation), Compensatory metabolic alkalosis", meaningLow: "Respiratory alkalosis (Hyperventilation), Compensatory metabolic acidosis" },
+      { name: "pO2 (Partial Pressure of Oxygen)", range: "80 to 100 mmHg", meaningHigh: "Supplemental oxygen therapy", meaningLow: "Hypoxemia (Pulmonary disease, Heart failure)" },
+      { name: "HCO3 (Bicarbonate)", range: "22 to 26 mEq/L", meaningHigh: "Metabolic alkalosis, Compensatory respiratory acidosis", meaningLow: "Metabolic acidosis, Compensatory respiratory alkalosis" },
+      { name: "Base Excess (BE)", range: "-2 to +2 mEq/L", meaningHigh: "Metabolic alkalosis", meaningLow: "Metabolic acidosis" },
+      { name: "SaO2 (Oxygen Saturation)", range: "95 to 100%", meaningHigh: "Hyperoxia", meaningLow: "Hypoxia, Lung disease, Anemia" }
+    ]
+  },
+  {
+    id: "endocrine",
+    name: "Endocrine & Hormones",
+    description: "Evaluates thyroid, adrenal, and reproductive hormone levels.",
+    labs: [
+      { name: "TSH (Thyroid Stimulating Hormone)", range: "0.4 to 4.0 mIU/L", meaningHigh: "Hypothyroidism, TSH-secreting tumor", meaningLow: "Hyperthyroidism, Overtreatment with levothyroxine" },
+      { name: "Free T4 (Thyroxine)", range: "0.9 to 2.3 ng/dL", meaningHigh: "Hyperthyroidism", meaningLow: "Hypothyroidism" },
+      { name: "Free T3 (Triiodothyronine)", range: "2.3 to 4.1 pg/mL", meaningHigh: "Hyperthyroidism", meaningLow: "Hypothyroidism, Non-thyroidal illness syndrome" },
+      { name: "Cortisol (Morning)", range: "5 to 25 mcg/dL", meaningHigh: "Cushing's syndrome, Stress, Pregnancy", meaningLow: "Addison's disease, Pituitary insufficiency" },
+      { name: "Hemoglobin A1c (HbA1c)", range: "< 5.7% (Prediabetes 5.7-6.4%, Diabetes ≥6.5%)", meaningHigh: "Poor blood sugar control, Diabetes mellitus", meaningLow: "Hypoglycemia, Hemolytic anemia" },
+      { name: "Prolactin", range: "Male: 2-18 / Female: 2-29 ng/mL", meaningHigh: "Prolactinoma, Pregnancy, Hypothyroidism, Medications (antipsychotics)", meaningLow: "Pituitary necrosis (Sheehan's syndrome)" },
+      { name: "FSH (Follicle Stimulating Hormone)", range: "Varies by gender/cycle phase", meaningHigh: "Menopause, Primary ovarian failure, Klinefelter syndrome", meaningLow: "Pituitary or Hypothalamic disorder, Pregnancy" }
+    ]
+  },
+  {
+    id: "tumor_autoimmune",
+    name: "Tumor Markers & Autoimmune",
+    description: "Markers for cancer screening/monitoring and indicators of autoimmune diseases.",
+    labs: [
+      { name: "PSA (Prostate-Specific Antigen)", range: "< 4.0 ng/mL", meaningHigh: "Prostate cancer, BPH, Prostatitis", meaningLow: "Normal" },
+      { name: "CEA (Carcinoembryonic Antigen)", range: "< 2.5 ng/mL (Non-smoker) / < 5.0 (Smoker)", meaningHigh: "Colorectal cancer, Pancreatic cancer, Heavy smoking", meaningLow: "Normal" },
+      { name: "CA-125", range: "< 35 U/mL", meaningHigh: "Ovarian cancer, Endometriosis, PID", meaningLow: "Normal" },
+      { name: "CRP (C-Reactive Protein)", range: "< 10 mg/L", meaningHigh: "Acute infection, Inflammation, Tissue injury, Rheumatoid arthritis", meaningLow: "Normal" },
+      { name: "ESR (Erythrocyte Sedimentation Rate)", range: "Male: 0-15 / Female: 0-20 mm/hr", meaningHigh: "Inflammation, Infection, Autoimmune diseases, Multiple myeloma", meaningLow: "Polycythemia, Sickle cell anemia, Congestive heart failure" },
+      { name: "ANA (Antinuclear Antibody)", range: "Negative (Titer < 1:40)", meaningHigh: "SLE (Lupus), Sjogren's syndrome, Scleroderma", meaningLow: "Normal" },
+      { name: "Rheumatoid Factor (RF)", range: "< 15 IU/mL", meaningHigh: "Rheumatoid arthritis, Sjogren's syndrome, Chronic infections", meaningLow: "Normal" }
     ]
   },
   {
@@ -48,10 +132,10 @@ const labCategories = [
     name: "Lipid Panel",
     description: "Measures lipids in your blood, such as cholesterol and triglycerides.",
     labs: [
-      { name: "Total Cholesterol", range: "< 200 mg/dL", meaningHigh: "Hypercholesterolemia, Cardiovascular risk", meaningLow: "Malnutrition, Hyperthyroidism" },
-      { name: "LDL (Bad Cholesterol)", range: "< 100 mg/dL (Optimal)", meaningHigh: "Atherosclerosis, Heart disease risk", meaningLow: "Normal/Optimal" },
-      { name: "HDL (Good Cholesterol)", range: "Male: > 40 / Female: > 50 mg/dL", meaningHigh: "Lower cardiovascular risk", meaningLow: "Higher cardiovascular risk, Metabolic syndrome" },
-      { name: "Triglycerides", range: "< 150 mg/dL", meaningHigh: "Metabolic syndrome, Diabetes, Pancreatitis risk", meaningLow: "Normal" },
+      { name: "Total Cholesterol", range: "< 200 mg/dL", meaningHigh: "Hypercholesterolemia, Cardiovascular risk, Hypothyroidism", meaningLow: "Malnutrition, Hyperthyroidism, Liver disease" },
+      { name: "LDL (Bad Cholesterol)", range: "< 100 mg/dL (Optimal)", meaningHigh: "Atherosclerosis, Heart disease risk, Familial hypercholesterolemia", meaningLow: "Normal/Optimal, Malnutrition" },
+      { name: "HDL (Good Cholesterol)", range: "Male: > 40 / Female: > 50 mg/dL", meaningHigh: "Lower cardiovascular risk, Regular exercise", meaningLow: "Higher cardiovascular risk, Metabolic syndrome, Smoking" },
+      { name: "Triglycerides", range: "< 150 mg/dL", meaningHigh: "Metabolic syndrome, Diabetes, Alcoholism, Pancreatitis risk", meaningLow: "Normal, Low fat diet" }
     ]
   }
 ];

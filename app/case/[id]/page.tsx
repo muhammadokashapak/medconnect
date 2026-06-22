@@ -241,39 +241,46 @@ export default function CaseDetailsPage() {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-10 mb-8">
           {editMode && (
-            <div className="mb-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold text-gray-900">Edit Case Post</h2>
-                <p className="text-sm text-gray-500">Update your case details and save changes.</p>
+            <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+                  <h2 className="text-xl font-bold text-white">Edit Case Post</h2>
+                  <button onClick={() => setEditMode(false)} className="text-white/80 hover:text-white">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </div>
+                <div className="p-6">
+                  <p className="text-sm text-gray-500 mb-6">Update your case details and save changes.</p>
+                  <form onSubmit={handleEditSubmit} className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+                        <input name="title" value={editData.title} onChange={handleEditChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Specialty</label>
+                        <input name="specialty" value={editData.specialty} onChange={handleEditChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                      <textarea name="description" value={editData.description} onChange={handleEditChange} rows={6} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL</label>
+                      <input name="imageUrl" value={editData.imageUrl} onChange={handleEditChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                    </div>
+                    <div className="flex items-center gap-3 py-2">
+                      <input type="checkbox" id="isAnonymous" name="isAnonymous" checked={editData.isAnonymous} onChange={handleEditChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                      <label htmlFor="isAnonymous" className="text-sm font-medium text-gray-900">Post anonymously</label>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                      <button type="button" onClick={() => setEditMode(false)} className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition">Cancel</button>
+                      <button type="submit" disabled={savingPost} className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50">{savingPost ? "Saving..." : "Save Changes"}</button>
+                    </div>
+                  </form>
+                </div>
               </div>
-              <form onSubmit={handleEditSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                    <input name="title" value={editData.title} onChange={handleEditChange} required className="w-full border p-2 rounded focus:ring focus:ring-indigo-200 text-black bg-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Specialty</label>
-                    <input name="specialty" value={editData.specialty} onChange={handleEditChange} required className="w-full border p-2 rounded focus:ring focus:ring-indigo-200 text-black bg-white" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea name="description" value={editData.description} onChange={handleEditChange} rows={5} required className="w-full border p-2 rounded focus:ring focus:ring-indigo-200 text-black bg-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <input name="imageUrl" value={editData.imageUrl} onChange={handleEditChange} className="w-full border p-2 rounded focus:ring focus:ring-indigo-200 text-black bg-white" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" id="isAnonymous" name="isAnonymous" checked={editData.isAnonymous} onChange={handleEditChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                  <label htmlFor="isAnonymous" className="text-sm text-gray-900">Post anonymously</label>
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => setEditMode(false)} className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100 transition">Cancel</button>
-                  <button type="submit" disabled={savingPost} className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-50">{savingPost ? "Saving..." : "Save Changes"}</button>
-                </div>
-              </form>
             </div>
           )}
           <div className="flex items-center mb-6 border-b pb-6">

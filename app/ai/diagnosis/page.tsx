@@ -144,7 +144,8 @@ export default function AIDiagnosis() {
     e.preventDefault();
     setSharingCase(true);
     try {
-      const description = `**Symptoms/Complaint:**\n${symptoms}\n\n**History:**\n${history}\n\n**Vitals:**\n${vitals}\n\n**Labs:**\n${labs}\n\n**AI Diagnosis Suggestion:**\n${result}`;
+      const cleanResult = result.replace(/[*#`]/g, '');
+      const description = `Symptoms/Complaint:\n${symptoms}\n\nHistory:\n${history}\n\nVitals:\n${vitals}\n\nLabs:\n${labs}\n\nAI Diagnosis Suggestion:\n${cleanResult}`;
       
       const res = await fetch("/api/cases", {
         method: "POST",

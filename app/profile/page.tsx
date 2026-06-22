@@ -26,6 +26,7 @@ type DoctorProfileData = {
   isVerified?: boolean;
   verificationStatus?: string;
   linkedinUrl?: string;
+  cmeCertificates?: any[];
 };
 
 const COVER_PRESETS = [
@@ -45,6 +46,10 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editPostData, setEditPostData] = useState({ title: "", specialty: "", description: "", imageUrl: "", isAnonymous: false });
+  const [savingPost, setSavingPost] = useState(false);
 
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showAvatarLightbox, setShowAvatarLightbox] = useState(false);
@@ -74,7 +79,7 @@ export default function ProfilePage() {
 
   const [myCases, setMyCases] = useState<any[]>([]);
   const [myVideos, setMyVideos] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos" | "friends" | "about">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos" | "friends" | "cme" | "about">("posts");
 
   const [friends, setFriends] = useState<any[]>([]);
   const [friendCount, setFriendCount] = useState(0);
@@ -158,6 +163,34 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleEditPostChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? (e.target as HTMLInputElement).checked : false;
+    setEditPostData({ ...editPostData, [name]: type === "checkbox" ? checked : value });
+  };
+
+  const handleEditPostSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingPostId) return;
+    setSavingPost(true);
+    try {
+      const res = await fetch(`/api/cases/${editingPostId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editPostData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to update post");
+      setMyCases(prev => prev.map(c => c.id === editingPostId ? { ...c, ...editPostData } : c));
+      setEditingPostId(null);
+      toast.success("Post updated successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update post");
+    } finally {
+      setSavingPost(false);
     }
   };
 
@@ -432,7 +465,7 @@ export default function ProfilePage() {
 
             {/* Navigation Tabs */}
             <div className="flex gap-2 overflow-x-auto pt-2 scrollbar-none">
-              {(["posts", "videos", "photos", "friends", "about"] as const).map(tab => (
+              {(["posts", "videos", "photos", "friends", "cme", "about"] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => {
@@ -445,7 +478,7 @@ export default function ProfilePage() {
                       : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg"
                   }`}
                 >
-                  {tab === "posts" ? "Clinical Cases" : tab}
+                  {tab === "posts" ? "Clinical Cases" : tab === "cme" ? "CME Certificates" : tab}
                 </button>
               ))}
             </div>
@@ -639,7 +672,16 @@ export default function ProfilePage() {
                         {/* Post Actions Dropdown */}
                         <div className="flex gap-1.5">
                           <button 
-                            onClick={() => router.push(`/create-case?edit=${c.id}`)}
+                            onClick={() => {
+                              setEditingPostId(c.id);
+                              setEditPostData({
+                                title: c.title,
+                                specialty: c.specialty,
+                                description: c.description,
+                                imageUrl: c.imageUrl || "",
+                                isAnonymous: c.isAnonymous || false,
+                              });
+                            }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition text-xs font-bold"
                           >
                             Edit
@@ -837,7 +879,32 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Tab 5: About (Details Card) */}
+        {/* Tab 5: CME Certificates */}
+        {activeTab === "cme" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">CME Certificates</h2>
+            {!doctor?.cmeCertificates || doctor.cmeCertificates.length === 0 ? (
+              <p className="text-center text-gray-500 py-10">No CME certificates earned yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {doctor.cmeCertificates.map(cert => (
+                  <div key={cert.id} className="border border-gray-100 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                    <h3 className="font-bold text-lg text-gray-900 mb-1">{cert.course?.title || cert.customTitle}</h3>
+                    <p className="text-sm text-gray-500 font-medium mb-3">{cert.course?.provider || cert.customProvider}</p>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-xs text-gray-400">Issued: {new Date(cert.issuedAt).toLocaleDateString()}</span>
+                      <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
+                        {cert.course?.credits || cert.customCredits || 0} Credits
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 6: About (Details Card) */}
         {activeTab === "about" && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
@@ -1332,6 +1399,51 @@ export default function ProfilePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Case Post Modal */}
+      {editingPostId && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+              <h2 className="text-xl font-bold text-white">Edit Case Post</h2>
+              <button onClick={() => setEditingPostId(null)} className="text-white/80 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-500 mb-6">Update your case details and save changes.</p>
+              <form onSubmit={handleEditPostSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+                    <input name="title" value={editPostData.title} onChange={handleEditPostChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Specialty</label>
+                    <input name="specialty" value={editPostData.specialty} onChange={handleEditPostChange} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                  <textarea name="description" value={editPostData.description} onChange={handleEditPostChange} rows={6} required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL</label>
+                  <input name="imageUrl" value={editPostData.imageUrl} onChange={handleEditPostChange} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-black bg-white transition" />
+                </div>
+                <div className="flex items-center gap-3 py-2">
+                  <input type="checkbox" id="isAnonymous" name="isAnonymous" checked={editPostData.isAnonymous} onChange={handleEditPostChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                  <label htmlFor="isAnonymous" className="text-sm font-medium text-gray-900">Post anonymously</label>
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                  <button type="button" onClick={() => setEditingPostId(null)} className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition">Cancel</button>
+                  <button type="submit" disabled={savingPost} className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50">{savingPost ? "Saving..." : "Save Changes"}</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

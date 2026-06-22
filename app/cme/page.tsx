@@ -12,6 +12,9 @@ export default function CMEPage() {
   const [claiming, setClaiming] = useState<string | null>(null);
 
   const [printCert, setPrintCert] = useState<any>(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [customForm, setCustomForm] = useState({ title: '', provider: '', credits: '', file: null as File | null });
 
   useEffect(() => {
     fetchData();
@@ -48,6 +51,48 @@ export default function CMEPage() {
       toast.error("Error claiming certificate");
     } finally {
       setClaiming(null);
+    }
+  };
+
+  const handleCustomUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customForm.file || !customForm.title || !customForm.provider) {
+      toast.error("Please fill all required fields and select a file.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileData = new FormData();
+      fileData.append("file", customForm.file);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: fileData });
+      if (!uploadRes.ok) throw new Error("Failed to upload file");
+      const uploadResult = await uploadRes.json();
+
+      const res = await fetch("/api/cme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customTitle: customForm.title,
+          customProvider: customForm.provider,
+          customCredits: customForm.credits,
+          certificateUrl: uploadResult.url
+        })
+      });
+
+      if (res.ok) {
+        toast.success("Custom certificate uploaded successfully!");
+        setShowUploadForm(false);
+        setCustomForm({ title: '', provider: '', credits: '', file: null });
+        fetchData();
+      } else {
+        const d = await res.json();
+        toast.error(d.message || "Failed to save certificate");
+      }
+    } catch (error) {
+      toast.error("Error uploading certificate");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -114,16 +159,28 @@ export default function CMEPage() {
                     {data.userCertificates.map((cert: any) => (
                       <div key={cert.id} className="flex justify-between items-center border p-3 rounded hover:bg-gray-50">
                         <div>
-                           <p className="text-sm font-bold text-gray-900 line-clamp-1">{cert.course.title}</p>
-                           <p className="text-xs text-gray-500">{new Date(cert.issuedAt).toLocaleDateString()}</p>
+                           <p className="text-sm font-bold text-gray-900 line-clamp-1">{cert.course?.title || cert.customTitle}</p>
+                           <p className="text-xs text-gray-500">{new Date(cert.issuedAt).toLocaleDateString()} • {cert.course?.provider || cert.customProvider}</p>
                         </div>
-                        <button 
-                          onClick={() => handlePrint(cert.course)}
-                          className="text-indigo-600 hover:text-indigo-800 p-2"
-                          title="Print Certificate"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        </button>
+                        {cert.certificateUrl ? (
+                          <a 
+                            href={cert.certificateUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-indigo-600 hover:text-indigo-800 p-2"
+                            title="View Certificate"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                          </a>
+                        ) : (
+                          <button 
+                            onClick={() => handlePrint(cert.course)}
+                            className="text-indigo-600 hover:text-indigo-800 p-2"
+                            title="Print Certificate"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -132,9 +189,45 @@ export default function CMEPage() {
             </div>
 
             {/* Course List */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
                <div className="bg-white p-6 rounded-xl shadow border border-gray-100">
-                 <h2 className="text-xl font-bold text-gray-900 mb-6 border-b pb-2">Available Courses</h2>
+                 <div className="flex justify-between items-center mb-6 border-b pb-2">
+                   <h2 className="text-xl font-bold text-gray-900">Available Courses</h2>
+                   <button 
+                     onClick={() => setShowUploadForm(!showUploadForm)}
+                     className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded font-semibold text-sm transition"
+                   >
+                     {showUploadForm ? "Cancel Upload" : "+ Upload Custom Certificate"}
+                   </button>
+                 </div>
+
+                 {showUploadForm && (
+                   <form onSubmit={handleCustomUpload} className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6 space-y-4">
+                     <h3 className="font-bold text-gray-900 mb-2">Upload External Certificate</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">Course Title *</label>
+                         <input type="text" required value={customForm.title} onChange={e => setCustomForm({...customForm, title: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Advanced Cardiac Life Support" />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">Provider *</label>
+                         <input type="text" required value={customForm.provider} onChange={e => setCustomForm({...customForm, provider: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. American Heart Association" />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">Credits (Optional)</label>
+                         <input type="number" min="0" value={customForm.credits} onChange={e => setCustomForm({...customForm, credits: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. 5" />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">Certificate File (Image/PDF) *</label>
+                         <input type="file" required accept="image/*,application/pdf" onChange={e => setCustomForm({...customForm, file: e.target.files ? e.target.files[0] : null})} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                       </div>
+                     </div>
+                     <button type="submit" disabled={uploading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition">
+                       {uploading ? "Uploading..." : "Save Certificate"}
+                     </button>
+                   </form>
+                 )}
+
                  {data.courses.length === 0 ? (
                    <p className="text-gray-500">No courses available at the moment.</p>
                  ) : (

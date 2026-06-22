@@ -198,6 +198,38 @@ export default function FeedPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleView = async (caseId: string) => {
+    try {
+      await fetch("/api/cases/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ casePostId: caseId })
+      });
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const caseId = entry.target.getAttribute("data-case-id");
+            if (caseId) {
+              handleView(caseId);
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    const elements = document.querySelectorAll(".post-card-observer");
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [cases]);
+
   const loadMore = async () => {
     if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
@@ -323,7 +355,12 @@ export default function FeedPage() {
           ) : (
             <div className="space-y-6">
               {cases.map((c) => (
-                <div key={c.id} onClick={() => router.push(`/case/${c.id}`)} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md cursor-pointer transition relative">
+                <div 
+                  key={c.id} 
+                  data-case-id={c.id}
+                  className="post-card-observer bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
+                  onClick={() => router.push(`/case/${c.id}`)}
+                >
                   
 
 

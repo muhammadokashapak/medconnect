@@ -121,7 +121,7 @@ export default function Navbar() {
                 </button>
                 {isMenuOpen && (
                   <div className="absolute right-[-40px] sm:right-0 mt-2 w-[280px] sm:w-80 bg-white rounded-lg shadow-xl border border-gray-100 p-3 sm:p-4 z-50">
-                    <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Menu</h3>
+                    <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-black">Menu</h3>
                     <div className="grid grid-cols-2 gap-2 sm:gap-4">
                       <MenuCard icon="🤖" title="AI Assistant" href="/ai" onClick={closeAll} />
                       <MenuCard icon="📅" title="Appointments" href="/appointments" onClick={closeAll} />

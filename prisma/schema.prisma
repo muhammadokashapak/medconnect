@@ -577,17 +577,19 @@ model CMECourse {
 }
 
 model CMECertificate {
-  id          String   @id @default(cuid())
-  issuedAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  issuedAt       DateTime @default(now())
   certificateUrl String?
 
-  doctorId    String
-  doctor      Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId       String
+  doctor         Doctor   @relation(fields: [doctorId], references: [id])
 
-  courseId    String
-  course      CMECourse @relation(fields: [courseId], references: [id])
+  courseId       String?
+  course         CMECourse? @relation(fields: [courseId], references: [id])
 
-  @@unique([doctorId, courseId])
+  customTitle    String?
+  customProvider String?
+  customCredits  Int?
 }
 
 // ==========================================
