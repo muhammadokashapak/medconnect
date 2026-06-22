@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Share2, Brain, X } from "lucide-react";
 
 export default function AISOAP() {
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,10 @@ export default function AISOAP() {
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareData, setShareData] = useState({ title: "", specialty: "General Practice", isAnonymous: false });
+  const [sharingCase, setSharingCase] = useState(false);
 
   // Fetch patients on mount
   useEffect(() => {
@@ -94,6 +99,34 @@ export default function AISOAP() {
     }
   };
 
+  const handleShareCase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSharingCase(true);
+    try {
+      const cleanResult = result ? result.replace(/[*#`]/g, '') : '';
+      const res = await fetch("/api/cases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: shareData.title,
+          specialty: shareData.specialty,
+          description: cleanResult,
+          isAnonymous: shareData.isAnonymous,
+        })
+      });
+      if (res.ok) {
+        showFeedback("Case shared to Community Feed!");
+        setShowShareModal(false);
+      } else {
+        showFeedback("Failed to share case.");
+      }
+    } catch (err) {
+      showFeedback("Error sharing case.");
+    } finally {
+      setSharingCase(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       {/* Feedback Toast */}
@@ -165,12 +198,64 @@ export default function AISOAP() {
                      {saving ? "Saving..." : "Save to EHR"}
                    </button>
                  </div>
-                 <button onClick={handleCopy} className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50">Copy</button>
+                 <div className="flex gap-2 mt-1">
+                   <button onClick={handleCopy} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded font-bold text-sm hover:bg-gray-50 transition-colors">Copy</button>
+                   <button onClick={() => setShowShareModal(true)} className="flex-1 flex justify-center items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 py-2 rounded font-bold text-sm hover:bg-indigo-100 transition-colors">
+                     <Share2 className="w-4 h-4" /> Share to Feed
+                   </button>
+                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Share Case Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                <Share2 className="w-5 h-5 mr-2 text-indigo-600" /> Share as Public Case
+              </h3>
+              <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleShareCase} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Case Title *</label>
+                <input type="text" required className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" value={shareData.title} onChange={e => setShareData({...shareData, title: e.target.value})} placeholder="e.g. 45M presenting with acute chest pain" />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Specialty Category</label>
+                <select className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" value={shareData.specialty} onChange={e => setShareData({...shareData, specialty: e.target.value})}>
+                  <option value="General Practice">General Practice</option>
+                  <option value="Internal Medicine">Internal Medicine</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Neurology">Neurology</option>
+                  <option value="Pediatrics">Pediatrics</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <input type="checkbox" id="anon" className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300" checked={shareData.isAnonymous} onChange={e => setShareData({...shareData, isAnonymous: e.target.checked})} />
+                <label htmlFor="anon" className="text-sm text-gray-700 font-medium">Post Anonymously</label>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t mt-6">
+                <button type="button" onClick={() => setShowShareModal(false)} className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" disabled={sharingCase} className="flex-1 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  {sharingCase ? <Brain className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />} Publish
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
