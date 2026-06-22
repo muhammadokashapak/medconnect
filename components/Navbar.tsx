@@ -61,7 +61,7 @@ export default function Navbar() {
         ></div>
       )}
 
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm w-full">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm w-full transition-all duration-300">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex justify-between h-14 items-center">
             
@@ -185,10 +185,12 @@ export default function Navbar() {
 
 function NavIcon({ children, href, active, onClick }: { children: React.ReactNode, href: string, active: boolean, onClick?: () => void }) {
   return (
-    <Link href={href} onClick={onClick} className="h-full flex">
-      <div className={`px-10 h-full flex items-center justify-center transition-colors duration-200 border-b-[3px]
-        ${active ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:bg-gray-100 rounded-lg my-1 hover:text-gray-700'}`}>
-        {children}
+    <Link href={href} onClick={onClick} className="h-full flex group">
+      <div className={`px-10 h-full flex items-center justify-center transition-all duration-300 border-b-[3px]
+        ${active ? 'text-indigo-600 border-indigo-600' : 'text-slate-400 border-transparent group-hover:text-indigo-500 rounded-lg my-1 group-hover:bg-indigo-50/50'}`}>
+        <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
+          {children}
+        </div>
       </div>
     </Link>
   );

@@ -299,12 +299,12 @@ export default function FeedPage() {
                 Discuss a clinical case, doctor...
               </button>
             </div>
-            <div className="flex border-t border-gray-100 pt-2 mt-2">
-              <button onClick={() => router.push("/create-case")} className="flex-1 flex justify-center items-center gap-2 text-gray-600 hover:bg-gray-50 py-2 rounded-lg transition font-medium text-sm">
-                <span className="text-green-500 text-lg">📷</span> Photo/Case
+            <div className="flex border-t border-gray-100 pt-3 mt-3 gap-3">
+              <button onClick={() => router.push("/create-case")} className="flex-1 flex justify-center items-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 hover:from-emerald-100 hover:to-teal-100 py-2.5 rounded-xl transition-all font-semibold text-sm shadow-sm hover:shadow active:scale-95">
+                <span className="text-emerald-500 text-lg">📷</span> Photo/Case
               </button>
-              <button onClick={() => router.push("/ai/diagnosis")} className="flex-1 flex justify-center items-center gap-2 text-gray-600 hover:bg-gray-50 py-2 rounded-lg transition font-medium text-sm">
-                <span className="text-blue-500 text-lg">🤖</span> AI Analysis
+              <button onClick={() => router.push("/ai/diagnosis")} className="flex-1 flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 hover:from-indigo-100 hover:to-blue-100 py-2.5 rounded-xl transition-all font-semibold text-sm shadow-sm hover:shadow active:scale-95">
+                <span className="text-indigo-500 text-lg">🤖</span> AI Analysis
               </button>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function FeedPage() {
                 <div 
                   key={c.id} 
                   data-case-id={c.id}
-                  className="post-card-observer bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
+                  className="post-card-observer bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-indigo-900/5 border border-white/50 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer animate-fade-in-up"
                   onClick={() => router.push(`/case/${c.id}`)}
                 >
                   
