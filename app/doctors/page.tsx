@@ -28,7 +28,7 @@ export default function DoctorsDirectoryPage() {
         throw new Error("Failed to load doctors");
       }
       const data = await res.json();
-      setDoctors(data);
+      setDoctors(data.data || data || []);
     } catch (err: any) {
       console.error(err);
     } finally {
