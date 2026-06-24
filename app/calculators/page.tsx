@@ -109,30 +109,46 @@ export default function CalculatorsPage() {
 // ========================
 
 function BMICalculator() {
-  const [unit, setUnit] = useState<"metric" | "imperial">("metric");
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lbs" | "stones">("kg");
+  const [heightUnit, setHeightUnit] = useState<"cm" | "m" | "inches" | "feet">("cm");
+  
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
+  const [heightInches, setHeightInches] = useState(""); // Used when unit is "feet" for the remaining inches
+  
   const [result, setResult] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   const calculate = () => {
-    const w = parseFloat(weight);
+    let w = parseFloat(weight);
     let h = parseFloat(height);
+    let hInches = parseFloat(heightInches) || 0;
     
-    if (!w || !h || w <= 0 || h <= 0) {
+    if (isNaN(w) || isNaN(h) || w <= 0 || h < 0 || (heightUnit !== 'feet' && h <= 0)) {
       setError("Please enter valid positive values for weight and height.");
       setResult(null);
       return;
     }
     setError("");
 
-    if (unit === "metric") {
-      h = h / 100; // cm to m
-      setResult(w / (h * h));
-    } else {
-      // w is lbs, h is inches
-      setResult((w / (h * h)) * 703);
+    // Convert weight to kg
+    let weightKg = w;
+    if (weightUnit === "lbs") weightKg = w * 0.453592;
+    if (weightUnit === "stones") weightKg = w * 6.35029;
+
+    // Convert height to meters
+    let heightM = h;
+    if (heightUnit === "cm") heightM = h / 100;
+    if (heightUnit === "inches") heightM = h * 0.0254;
+    if (heightUnit === "feet") heightM = (h * 0.3048) + (hInches * 0.0254);
+
+    if (heightM <= 0) {
+      setError("Height must be greater than zero.");
+      setResult(null);
+      return;
     }
+
+    setResult(weightKg / (heightM * heightM));
   };
 
   const getBmiCategory = (bmi: number) => {
@@ -146,33 +162,54 @@ function BMICalculator() {
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Body Mass Index (BMI)</h2>
       
-      <div className="flex mb-6 bg-gray-100 p-1 rounded-lg w-max">
-        <button 
-          onClick={() => { setUnit("metric"); setWeight(""); setHeight(""); setResult(null); }}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${unit === "metric" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
-        >
-          Metric (kg/cm)
-        </button>
-        <button 
-          onClick={() => { setUnit("imperial"); setWeight(""); setHeight(""); setResult(null); }}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${unit === "imperial" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
-        >
-          Imperial (lbs/inches)
-        </button>
-      </div>
-
-      <div className="space-y-4 max-w-sm mb-6">
+      <div className="space-y-5 max-w-sm mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Weight ({unit === "metric" ? "kg" : "lbs"})
-          </label>
-          <input type="number" min="0.1" step="any" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" value={weight} onChange={e => setWeight(e.target.value)} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Weight</label>
+          <div className="flex gap-2">
+            <input 
+              type="number" min="0.1" step="any" 
+              className="flex-grow border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+              value={weight} onChange={e => setWeight(e.target.value)} 
+              placeholder={`Enter weight`}
+            />
+            <select 
+              className="w-28 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50"
+              value={weightUnit} onChange={e => setWeightUnit(e.target.value as any)}
+            >
+              <option value="kg">Kilograms (kg)</option>
+              <option value="lbs">Pounds (lbs)</option>
+              <option value="stones">Stones (st)</option>
+            </select>
+          </div>
         </div>
+        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Height ({unit === "metric" ? "cm" : "inches"})
-          </label>
-          <input type="number" min="0.1" step="any" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" value={height} onChange={e => setHeight(e.target.value)} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
+          <div className="flex gap-2">
+            <input 
+              type="number" min="0" step="any" 
+              className="flex-grow border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+              value={height} onChange={e => setHeight(e.target.value)} 
+              placeholder={`Enter height`}
+            />
+            {heightUnit === "feet" && (
+              <input 
+                type="number" min="0" step="any" 
+                className="w-24 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+                value={heightInches} onChange={e => setHeightInches(e.target.value)} 
+                placeholder="Inches"
+              />
+            )}
+            <select 
+              className="w-32 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50"
+              value={heightUnit} onChange={e => setHeightUnit(e.target.value as any)}
+            >
+              <option value="cm">Centimeters (cm)</option>
+              <option value="m">Meters (m)</option>
+              <option value="inches">Inches (in)</option>
+              <option value="feet">Feet & Inches</option>
+            </select>
+          </div>
         </div>
         <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition shadow-sm">Calculate BMI</button>
       </div>
