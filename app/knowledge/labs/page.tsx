@@ -230,26 +230,61 @@ export default function LabValuesPage() {
                   <p className="text-gray-600 mt-1">{category.description}</p>
                 </div>
                 <div className="p-0 overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Lab Test</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Normal Range</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider w-1/4">Elevated Means (↑)</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-blue-500 uppercase tracking-wider w-1/4">Decreased Means (↓)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {category.labs.map((lab, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50 transition">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lab.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 bg-gray-50/30">{lab.range}</td>
-                          <td className="px-6 py-4 text-sm text-red-700">{lab.meaningHigh}</td>
-                          <td className="px-6 py-4 text-sm text-blue-700">{lab.meaningLow}</td>
+                  <div className="hidden md:block">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[25%]">Lab Test</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[25%]">Normal Range</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-red-500 uppercase tracking-wider w-[25%]">Elevated Means (↑)</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-blue-500 uppercase tracking-wider w-[25%]">Decreased Means (↓)</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {category.labs.map((lab, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50 transition">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 align-top">{lab.name}</td>
+                            <td className="px-6 py-4 text-sm font-semibold text-gray-700 bg-gray-50/50 align-top break-words">{lab.range}</td>
+                            <td className="px-6 py-4 text-sm text-red-700 align-top">{lab.meaningHigh}</td>
+                            <td className="px-6 py-4 text-sm text-blue-700 align-top">{lab.meaningLow}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden divide-y divide-gray-200">
+                    {category.labs.map((lab, idx) => (
+                      <div key={idx} className="p-4 bg-white hover:bg-gray-50 transition">
+                        <h3 className="text-base font-bold text-gray-900 mb-1">{lab.name}</h3>
+                        <div className="bg-gray-100 px-3 py-2 rounded-lg inline-block mb-3">
+                          <span className="text-xs text-gray-500 uppercase font-bold block mb-0.5">Normal Range</span>
+                          <span className="text-sm font-semibold text-gray-800">{lab.range}</span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          {lab.meaningHigh && lab.meaningHigh !== "Normal" && (
+                            <div className="bg-red-50 p-3 rounded-lg border border-red-100">
+                              <span className="text-xs text-red-600 font-bold uppercase tracking-wider flex items-center mb-1">
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                Elevated (High)
+                              </span>
+                              <span className="text-sm text-red-800">{lab.meaningHigh}</span>
+                            </div>
+                          )}
+                          {lab.meaningLow && lab.meaningLow !== "Normal" && (
+                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                              <span className="text-xs text-blue-600 font-bold uppercase tracking-wider flex items-center mb-1">
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                Decreased (Low)
+                              </span>
+                              <span className="text-sm text-blue-800">{lab.meaningLow}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

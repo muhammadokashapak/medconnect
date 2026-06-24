@@ -1,53 +1,98 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 
 export default function CalculatorsPage() {
   const [activeTab, setActiveTab] = useState("BMI");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const calculators = [
-    "BMI", "GFR", "CHADS-VASc", "CURB-65", "APGAR", "Wells", "GCS"
+  const calculatorsList = [
+    { name: "BMI", label: "BMI Calculator", type: "Calculator" },
+    { name: "GFR", label: "eGFR (MDRD)", type: "Calculator" },
+    { name: "CrCl", label: "Creatinine Clearance", type: "Calculator" },
+    { name: "MAP", label: "Mean Arterial Pressure", type: "Calculator" },
+    { name: "Corrected Calcium", label: "Corrected Calcium", type: "Calculator" },
+    { name: "Anion Gap", label: "Anion Gap", type: "Calculator" },
+    { name: "CHADS-VASc", label: "CHA₂DS₂-VASc", type: "Score" },
+    { name: "HAS-BLED", label: "HAS-BLED", type: "Score" },
+    { name: "Child-Pugh", label: "Child-Pugh", type: "Score" },
+    { name: "MELD", label: "MELD Score", type: "Score" },
+    { name: "TIMI", label: "TIMI Risk Score", type: "Score" },
+    { name: "CURB-65", label: "CURB-65", type: "Score" },
+    { name: "APGAR", label: "APGAR Score", type: "Score" },
+    { name: "Wells", label: "Wells' Criteria (DVT/PE)", type: "Score" },
+    { name: "GCS", label: "Glasgow Coma Scale", type: "Score" }
   ];
+
+  const filteredCalculators = useMemo(() => {
+    if (!searchQuery) return calculatorsList;
+    const q = searchQuery.toLowerCase();
+    return calculatorsList.filter(c => c.name.toLowerCase().includes(q) || c.label.toLowerCase().includes(q));
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <svg className="w-8 h-8 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center">
+            <div className="bg-purple-100 p-2 rounded-xl mr-4 shadow-sm">
+              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </div>
             Clinical Calculators
           </h1>
-          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-800">Back to Homepage</Link>
+          <Link href="/feed" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 shadow-sm transition">
+            Back to Dashboard
+          </Link>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar */}
-          <div className="w-full md:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
-              <div className="bg-purple-50 px-4 py-3 border-b border-purple-100">
-                <h2 className="font-bold text-purple-900">Select Calculator</h2>
+          <div className="w-full md:w-72 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow border border-gray-100 flex flex-col h-[calc(100vh-180px)] min-h-[500px]">
+              <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+                <input 
+                  type="text" 
+                  placeholder="Search calculators..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                />
               </div>
-              <ul className="divide-y divide-gray-100">
-                {calculators.map(calc => (
-                  <li key={calc}>
-                    <button 
-                      onClick={() => setActiveTab(calc)}
-                      className={`w-full text-left px-4 py-3 font-medium transition ${activeTab === calc ? 'bg-purple-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      {calc} {['BMI','GFR'].includes(calc) ? 'Calculator' : 'Score'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <div className="overflow-y-auto flex-grow no-scrollbar">
+                <ul className="divide-y divide-gray-50">
+                  {filteredCalculators.map(calc => (
+                    <li key={calc.name}>
+                      <button 
+                        onClick={() => setActiveTab(calc.name)}
+                        className={`w-full text-left px-5 py-3.5 transition flex flex-col ${activeTab === calc.name ? 'bg-purple-50 border-l-4 border-purple-600 text-purple-900' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'}`}
+                      >
+                        <span className="font-semibold">{calc.label}</span>
+                        <span className={`text-xs mt-0.5 ${activeTab === calc.name ? 'text-purple-600' : 'text-gray-400'}`}>{calc.type}</span>
+                      </button>
+                    </li>
+                  ))}
+                  {filteredCalculators.length === 0 && (
+                    <div className="p-6 text-center text-gray-500 text-sm">No calculators found</div>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
 
           {/* Main Calculator Area */}
-          <div className="flex-grow bg-white p-8 rounded-xl shadow border border-gray-100 min-h-[500px]">
+          <div className="flex-grow bg-white p-6 md:p-8 rounded-xl shadow border border-gray-100 min-h-[500px]">
             {activeTab === "BMI" && <BMICalculator />}
             {activeTab === "GFR" && <GFRCalculator />}
+            {activeTab === "CrCl" && <CrClCalculator />}
+            {activeTab === "MAP" && <MAPCalculator />}
+            {activeTab === "Corrected Calcium" && <CorrectedCalciumCalculator />}
+            {activeTab === "Anion Gap" && <AnionGapCalculator />}
             {activeTab === "CHADS-VASc" && <CHADSVAScCalculator />}
+            {activeTab === "HAS-BLED" && <HASBLEDCalculator />}
+            {activeTab === "Child-Pugh" && <ChildPughCalculator />}
+            {activeTab === "MELD" && <MELDCalculator />}
+            {activeTab === "TIMI" && <TIMICalculator />}
             {activeTab === "CURB-65" && <CURB65Calculator />}
             {activeTab === "APGAR" && <APGARCalculator />}
             {activeTab === "Wells" && <WellsCalculator />}
@@ -64,6 +109,7 @@ export default function CalculatorsPage() {
 // ========================
 
 function BMICalculator() {
+  const [unit, setUnit] = useState<"metric" | "imperial">("metric");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [result, setResult] = useState<number | null>(null);
@@ -71,14 +117,22 @@ function BMICalculator() {
 
   const calculate = () => {
     const w = parseFloat(weight);
-    const h = parseFloat(height) / 100; // cm to m
+    let h = parseFloat(height);
+    
     if (!w || !h || w <= 0 || h <= 0) {
       setError("Please enter valid positive values for weight and height.");
       setResult(null);
       return;
     }
     setError("");
-    setResult(w / (h * h));
+
+    if (unit === "metric") {
+      h = h / 100; // cm to m
+      setResult(w / (h * h));
+    } else {
+      // w is lbs, h is inches
+      setResult((w / (h * h)) * 703);
+    }
   };
 
   const getBmiCategory = (bmi: number) => {
@@ -90,26 +144,46 @@ function BMICalculator() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Body Mass Index (BMI) Calculator</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Body Mass Index (BMI)</h2>
+      
+      <div className="flex mb-6 bg-gray-100 p-1 rounded-lg w-max">
+        <button 
+          onClick={() => { setUnit("metric"); setWeight(""); setHeight(""); setResult(null); }}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${unit === "metric" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
+        >
+          Metric (kg/cm)
+        </button>
+        <button 
+          onClick={() => { setUnit("imperial"); setWeight(""); setHeight(""); setResult(null); }}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${unit === "imperial" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
+        >
+          Imperial (lbs/inches)
+        </button>
+      </div>
+
       <div className="space-y-4 max-w-sm mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={weight} onChange={e => setWeight(e.target.value)} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Weight ({unit === "metric" ? "kg" : "lbs"})
+          </label>
+          <input type="number" min="0.1" step="any" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" value={weight} onChange={e => setWeight(e.target.value)} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={height} onChange={e => setHeight(e.target.value)} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Height ({unit === "metric" ? "cm" : "inches"})
+          </label>
+          <input type="number" min="0.1" step="any" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" value={height} onChange={e => setHeight(e.target.value)} />
         </div>
-        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-2 rounded hover:bg-purple-700">Calculate BMI</button>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition shadow-sm">Calculate BMI</button>
       </div>
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {result !== null && (
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Result</p>
-          <p className="text-3xl font-bold text-purple-900">{result.toFixed(1)} kg/m²</p>
-          <p className={`mt-2 font-bold ${getBmiCategory(result).color}`}>
-            Category: {getBmiCategory(result).label}
-          </p>
+        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+          <p className="text-xs text-purple-800 uppercase tracking-wider font-bold mb-1">Result</p>
+          <p className="text-4xl font-black text-purple-900">{result.toFixed(1)} <span className="text-xl font-normal text-purple-700">kg/m²</span></p>
+          <div className={`mt-3 inline-block px-3 py-1 rounded-full text-sm font-bold bg-white shadow-sm ${getBmiCategory(result).color}`}>
+            {getBmiCategory(result).label}
+          </div>
         </div>
       )}
     </div>
@@ -125,7 +199,6 @@ function GFRCalculator() {
   const [error, setError] = useState("");
 
   const calculate = () => {
-    // MDRD Formula (simplified for demonstration)
     const a = parseFloat(age);
     const scr = parseFloat(creatinine);
     if (!a || !scr || a <= 0 || scr <= 0) {
@@ -142,266 +215,329 @@ function GFRCalculator() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Estimated GFR (MDRD) Calculator</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Estimated GFR (MDRD)</h2>
       <div className="space-y-4 max-w-sm mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Age (years)</label>
-          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={age} onChange={e => setAge(e.target.value)} />
+          <input type="number" min="0.1" step="any" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" value={age} onChange={e => setAge(e.target.value)} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Serum Creatinine (mg/dL)</label>
-          <input type="number" min="0.1" step="any" className="w-full border p-2 rounded" value={creatinine} onChange={e => setCreatinine(e.target.value)} />
+          <input type="number" min="0.1" step="any" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" value={creatinine} onChange={e => setCreatinine(e.target.value)} />
         </div>
-        <div className="flex items-center gap-4">
-          <label className="flex items-center text-sm font-medium text-gray-700">
-            <input type="checkbox" className="mr-2 rounded text-purple-600 focus:ring-purple-500" checked={isFemale} onChange={e => setIsFemale(e.target.checked)} /> Female
+        <div className="flex flex-col gap-3 py-2">
+          <label className="flex items-center text-sm font-medium text-gray-800 cursor-pointer bg-gray-50 p-3 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+            <input type="checkbox" className="w-5 h-5 mr-3 rounded text-purple-600 focus:ring-purple-500" checked={isFemale} onChange={e => setIsFemale(e.target.checked)} /> Female Patient
           </label>
-          <label className="flex items-center text-sm font-medium text-gray-700">
-            <input type="checkbox" className="mr-2 rounded text-purple-600 focus:ring-purple-500" checked={isBlack} onChange={e => setIsBlack(e.target.checked)} /> Black
+          <label className="flex items-center text-sm font-medium text-gray-800 cursor-pointer bg-gray-50 p-3 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+            <input type="checkbox" className="w-5 h-5 mr-3 rounded text-purple-600 focus:ring-purple-500" checked={isBlack} onChange={e => setIsBlack(e.target.checked)} /> African American
           </label>
         </div>
-        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-2 rounded hover:bg-purple-700">Calculate eGFR</button>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition shadow-sm">Calculate eGFR</button>
       </div>
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {result !== null && (
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Result</p>
-          <p className="text-3xl font-bold text-purple-900">{result.toFixed(0)} mL/min/1.73m²</p>
+        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+          <p className="text-xs text-purple-800 uppercase tracking-wider font-bold mb-1">Result</p>
+          <p className="text-4xl font-black text-purple-900">{result.toFixed(0)} <span className="text-lg font-normal text-purple-700">mL/min/1.73m²</span></p>
         </div>
       )}
     </div>
   );
 }
 
-function CHADSVAScCalculator() {
-  const [score, setScore] = useState(0);
-  const [options, setOptions] = useState<any>({
-    chf: false, htn: false, age75: false, dm: false, stroke: false, vascular: false, age65: false, female: false
-  });
+function CrClCalculator() {
+  const [age, setAge] = useState("");
+  const [weight, setWeight] = useState("");
+  const [creatinine, setCreatinine] = useState("");
+  const [isFemale, setIsFemale] = useState(false);
+  const [result, setResult] = useState<number | null>(null);
 
-  const toggle = (key: string) => {
-    const newOpt = { ...options, [key]: !options[key] };
-    setOptions(newOpt);
-    let s = 0;
-    if (newOpt.chf) s += 1;
-    if (newOpt.htn) s += 1;
-    if (newOpt.age75) s += 2;
-    if (newOpt.dm) s += 1;
-    if (newOpt.stroke) s += 2;
-    if (newOpt.vascular) s += 1;
-    if (newOpt.age65 && !newOpt.age75) s += 1;
-    if (newOpt.female) s += 1;
-    setScore(s);
+  const calculate = () => {
+    const a = parseFloat(age);
+    const w = parseFloat(weight);
+    const scr = parseFloat(creatinine);
+    if (a > 0 && w > 0 && scr > 0) {
+      let crcl = ((140 - a) * w) / (72 * scr);
+      if (isFemale) crcl *= 0.85;
+      setResult(crcl);
+    }
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">CHA₂DS₂-VASc Score for Atrial Fibrillation Stroke Risk</h2>
-      <div className="space-y-3 mb-6 max-w-md">
-        {Object.keys(options).map(k => {
-          const labels: any = { chf: "Congestive Heart Failure (+1)", htn: "Hypertension (+1)", age75: "Age ≥ 75 years (+2)", dm: "Diabetes Mellitus (+1)", stroke: "Stroke/TIA/Thromboembolism (+2)", vascular: "Vascular disease (+1)", age65: "Age 65-74 years (+1)", female: "Female Category (+1)" };
-          return (
-            <label key={k} className="flex items-center p-3 border rounded hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" className="mr-3 w-5 h-5 text-purple-600 rounded" checked={options[k]} onChange={() => toggle(k)} />
-              <span className="font-medium text-gray-800">{labels[k]}</span>
-            </label>
-          )
-        })}
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Creatinine Clearance (Cockcroft-Gault)</h2>
+      <div className="space-y-4 max-w-sm mb-6">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Age (years)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={age} onChange={e => setAge(e.target.value)} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={weight} onChange={e => setWeight(e.target.value)} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Serum Creatinine (mg/dL)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={creatinine} onChange={e => setCreatinine(e.target.value)} /></div>
+        <label className="flex items-center text-sm font-medium text-gray-800 cursor-pointer bg-gray-50 p-3 rounded-lg border border-gray-200">
+          <input type="checkbox" className="w-5 h-5 mr-3 rounded text-purple-600 focus:ring-purple-500" checked={isFemale} onChange={e => setIsFemale(e.target.checked)} /> Female Patient
+        </label>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg">Calculate CrCl</button>
       </div>
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-         <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Total Score</p>
-         <p className="text-3xl font-bold text-purple-900">{score} Points</p>
-      </div>
+      {result !== null && (
+        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+          <p className="text-4xl font-black text-purple-900">{result.toFixed(1)} <span className="text-lg font-normal">mL/min</span></p>
+        </div>
+      )}
     </div>
   );
 }
 
-function CURB65Calculator() {
-  return <ScoreCalculator title="CURB-65 Score for Pneumonia Severity" 
-    items={[
-      {key: "c", label: "Confusion (+1)", value: 1},
-      {key: "u", label: "BUN > 19 mg/dL (7 mmol/L) (+1)", value: 1},
-      {key: "r", label: "Respiratory Rate ≥ 30 breaths/min (+1)", value: 1},
-      {key: "b", label: "Systolic BP < 90 mmHg or Diastolic ≤ 60 mmHg (+1)", value: 1},
-      {key: "a", label: "Age ≥ 65 years (+1)", value: 1}
-    ]} 
-  />;
-}
+function MAPCalculator() {
+  const [sbp, setSbp] = useState("");
+  const [dbp, setDbp] = useState("");
+  const [result, setResult] = useState<number | null>(null);
 
-function APGARCalculator() {
-  const [appearance, setAppearance] = useState(0);
-  const [pulse, setPulse] = useState(0);
-  const [grimace, setGrimace] = useState(0);
-  const [activity, setActivity] = useState(0);
-  const [respiration, setRespiration] = useState(0);
-
-  const total = appearance + pulse + grimace + activity + respiration;
-
-  const getInterpretation = (score: number) => {
-    if (score >= 7) return { text: "Normal — No immediate intervention needed", color: "text-green-700" };
-    if (score >= 4) return { text: "Moderately depressed — May require some resuscitative measures", color: "text-yellow-700" };
-    return { text: "Severely depressed — Requires immediate resuscitation", color: "text-red-700" };
+  const calculate = () => {
+    const s = parseFloat(sbp);
+    const d = parseFloat(dbp);
+    if (s > 0 && d > 0) {
+      setResult((s + 2 * d) / 3);
+    }
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">APGAR Score for Newborn Assessment</h2>
-      <div className="space-y-4 max-w-xl mb-6">
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Appearance (Skin Color)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={appearance} onChange={e => setAppearance(Number(e.target.value))}>
-            <option value={0}>0 — Blue/Pale all over</option>
-            <option value={1}>1 — Blue extremities, body pink (Acrocyanosis)</option>
-            <option value={2}>2 — Completely pink</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Pulse (Heart Rate)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={pulse} onChange={e => setPulse(Number(e.target.value))}>
-            <option value={0}>0 — Absent</option>
-            <option value={1}>1 — Below 100 bpm</option>
-            <option value={2}>2 — Above 100 bpm</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Grimace (Reflex Irritability)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={grimace} onChange={e => setGrimace(Number(e.target.value))}>
-            <option value={0}>0 — No response</option>
-            <option value={1}>1 — Grimace/feeble cry when stimulated</option>
-            <option value={2}>2 — Cry, cough, or sneeze on stimulation</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Activity (Muscle Tone)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={activity} onChange={e => setActivity(Number(e.target.value))}>
-            <option value={0}>0 — Limp / None</option>
-            <option value={1}>1 — Some flexion of extremities</option>
-            <option value={2}>2 — Active motion, well-flexed</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Respiration (Breathing Effort)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={respiration} onChange={e => setRespiration(Number(e.target.value))}>
-            <option value={0}>0 — Absent</option>
-            <option value={1}>1 — Weak, irregular, gasping</option>
-            <option value={2}>2 — Strong cry, good breathing</option>
-          </select>
-        </div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Mean Arterial Pressure (MAP)</h2>
+      <div className="space-y-4 max-w-sm mb-6">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Systolic BP (mmHg)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={sbp} onChange={e => setSbp(e.target.value)} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Diastolic BP (mmHg)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={dbp} onChange={e => setDbp(e.target.value)} /></div>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg">Calculate MAP</button>
       </div>
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-        <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Total APGAR Score</p>
-        <p className="text-3xl font-bold text-purple-900">{total} / 10</p>
-        <p className={`mt-2 font-medium ${getInterpretation(total).color}`}>{getInterpretation(total).text}</p>
-      </div>
+      {result !== null && (
+        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+          <p className="text-4xl font-black text-purple-900">{result.toFixed(1)} <span className="text-lg font-normal">mmHg</span></p>
+        </div>
+      )}
     </div>
   );
 }
 
-function WellsCalculator() {
-  return <ScoreCalculator title="Wells' Criteria for DVT" 
-    items={[
-      {key: "1", label: "Active cancer (+1)", value: 1},
-      {key: "2", label: "Paralysis, paresis, or recent plaster immobilization of legs (+1)", value: 1},
-      {key: "3", label: "Recently bedridden > 3 days or major surgery within 12 weeks (+1)", value: 1},
-      {key: "4", label: "Localized tenderness along the deep venous system (+1)", value: 1},
-      {key: "5", label: "Entire leg swollen (+1)", value: 1},
-      {key: "6", label: "Calf swelling > 3 cm compared to asymptomatic leg (+1)", value: 1},
-      {key: "7", label: "Pitting edema confined to symptomatic leg (+1)", value: 1},
-      {key: "8", label: "Collateral superficial veins (non-varicose) (+1)", value: 1},
-      {key: "9", label: "Previously documented DVT (+1)", value: 1},
-      {key: "10", label: "Alternative diagnosis at least as likely as DVT (-2)", value: -2}
-    ]} 
-  />;
-}
+function CorrectedCalciumCalculator() {
+  const [calcium, setCalcium] = useState("");
+  const [albumin, setAlbumin] = useState("");
+  const [result, setResult] = useState<number | null>(null);
 
-function GCSCalculator() {
-  const [eye, setEye] = useState(1);
-  const [verbal, setVerbal] = useState(1);
-  const [motor, setMotor] = useState(1);
-
-  const total = eye + verbal + motor;
-
-  const getInterpretation = (score: number) => {
-    if (score <= 8) return { text: "Severe brain injury — Coma (intubation likely needed)", color: "text-red-700" };
-    if (score <= 12) return { text: "Moderate brain injury", color: "text-yellow-700" };
-    return { text: "Mild brain injury", color: "text-green-700" };
+  const calculate = () => {
+    const ca = parseFloat(calcium);
+    const alb = parseFloat(albumin);
+    if (ca > 0 && alb > 0) {
+      setResult(ca + 0.8 * (4.0 - alb));
+    }
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Glasgow Coma Scale (GCS)</h2>
-      <div className="space-y-4 max-w-xl mb-6">
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Eye Opening (E)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={eye} onChange={e => setEye(Number(e.target.value))}>
-            <option value={1}>1 — No eye opening</option>
-            <option value={2}>2 — Eye opening to pain</option>
-            <option value={3}>3 — Eye opening to voice</option>
-            <option value={4}>4 — Eyes open spontaneously</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Verbal Response (V)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={verbal} onChange={e => setVerbal(Number(e.target.value))}>
-            <option value={1}>1 — No verbal response</option>
-            <option value={2}>2 — Incomprehensible sounds</option>
-            <option value={3}>3 — Inappropriate words</option>
-            <option value={4}>4 — Confused</option>
-            <option value={5}>5 — Oriented</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Motor Response (M)</label>
-          <select className="w-full border p-2 rounded text-gray-800" value={motor} onChange={e => setMotor(Number(e.target.value))}>
-            <option value={1}>1 — No motor response</option>
-            <option value={2}>2 — Extension to pain (decerebrate)</option>
-            <option value={3}>3 — Abnormal flexion to pain (decorticate)</option>
-            <option value={4}>4 — Withdrawal from pain</option>
-            <option value={5}>5 — Localizing pain</option>
-            <option value={6}>6 — Obeys commands</option>
-          </select>
-        </div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Corrected Calcium for Hypoalbuminemia</h2>
+      <div className="space-y-4 max-w-sm mb-6">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Measured Calcium (mg/dL)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={calcium} onChange={e => setCalcium(e.target.value)} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Serum Albumin (g/dL)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={albumin} onChange={e => setAlbumin(e.target.value)} /></div>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg">Calculate Corrected Ca</button>
       </div>
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-        <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Total GCS Score</p>
-        <p className="text-3xl font-bold text-purple-900">{total} / 15</p>
-        <p className="text-sm text-gray-600 mt-1">E{eye} + V{verbal} + M{motor}</p>
-        <p className={`mt-2 font-medium ${getInterpretation(total).color}`}>{getInterpretation(total).text}</p>
-      </div>
+      {result !== null && (
+        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+          <p className="text-4xl font-black text-purple-900">{result.toFixed(2)} <span className="text-lg font-normal">mg/dL</span></p>
+        </div>
+      )}
     </div>
   );
 }
 
-// Generic component for checkbox-based scores
-function ScoreCalculator({ title, items }: { title: string, items: any[] }) {
-  const [score, setScore] = useState(0);
-  const [options, setOptions] = useState<any>({});
+function AnionGapCalculator() {
+  const [na, setNa] = useState("");
+  const [cl, setCl] = useState("");
+  const [hco3, setHco3] = useState("");
+  const [result, setResult] = useState<number | null>(null);
 
-  const toggle = (item: any) => {
-    const newOpt = { ...options, [item.key]: !options[item.key] };
-    setOptions(newOpt);
-    let s = 0;
-    items.forEach(i => {
-      if (newOpt[i.key]) s += i.value;
-    });
-    setScore(s);
+  const calculate = () => {
+    const n = parseFloat(na);
+    const c = parseFloat(cl);
+    const h = parseFloat(hco3);
+    if (n > 0 && c > 0 && h > 0) {
+      setResult(n - (c + h));
+    }
   };
 
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Serum Anion Gap</h2>
+      <div className="space-y-4 max-w-sm mb-6">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Sodium (mEq/L)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={na} onChange={e => setNa(e.target.value)} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Chloride (mEq/L)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={cl} onChange={e => setCl(e.target.value)} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Bicarbonate (mEq/L)</label><input type="number" className="w-full border border-gray-300 p-2.5 rounded-lg" value={hco3} onChange={e => setHco3(e.target.value)} /></div>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg">Calculate Anion Gap</button>
+      </div>
+      {result !== null && (
+        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+          <p className="text-4xl font-black text-purple-900">{result.toFixed(1)} <span className="text-lg font-normal">mEq/L</span></p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScoreTemplate({ title, options, onToggle, score, getInterpretation }: any) {
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">{title}</h2>
-      <div className="space-y-3 mb-6 max-w-xl">
-        {items.map(item => (
-          <label key={item.key} className="flex items-center p-3 border rounded hover:bg-gray-50 cursor-pointer">
-            <input type="checkbox" className="mr-3 w-5 h-5 text-purple-600 rounded" checked={options[item.key] || false} onChange={() => toggle(item)} />
-            <span className="font-medium text-gray-800">{item.label}</span>
+      <div className="grid grid-cols-1 gap-3 mb-8">
+        {options.map((opt: any, idx: number) => (
+          <label key={idx} className={`flex items-start p-4 rounded-xl border transition cursor-pointer ${opt.checked ? 'bg-purple-50 border-purple-300 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+            <div className="flex items-center h-5 mt-1">
+              <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={opt.checked} onChange={() => onToggle(opt.id)} />
+            </div>
+            <div className="ml-3 flex-grow flex justify-between">
+              <span className={`font-medium ${opt.checked ? 'text-purple-900' : 'text-gray-900'}`}>{opt.label}</span>
+              <span className={`font-bold ml-4 ${opt.checked ? 'text-purple-600' : 'text-gray-400'}`}>+{opt.points}</span>
+            </div>
           </label>
         ))}
       </div>
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 inline-block min-w-[200px]">
-         <p className="text-sm text-purple-800 uppercase tracking-wide font-bold">Total Score</p>
-         <p className="text-3xl font-bold text-purple-900">{score} Points</p>
+      <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100 flex flex-col md:flex-row items-center gap-6">
+        <div className="text-center md:text-left">
+          <p className="text-xs text-purple-800 uppercase tracking-wider font-bold mb-1">Total Score</p>
+          <p className="text-6xl font-black text-purple-900">{score}</p>
+        </div>
+        <div className="hidden md:block w-px h-16 bg-purple-200"></div>
+        <div>
+          {getInterpretation(score)}
+        </div>
       </div>
     </div>
   );
+}
+
+function CHADSVAScCalculator() {
+  const [opts, setOpts] = useState([
+    { id: 'chf', label: 'Congestive Heart Failure', points: 1, checked: false },
+    { id: 'htn', label: 'Hypertension', points: 1, checked: false },
+    { id: 'age75', label: 'Age ≥ 75 years', points: 2, checked: false },
+    { id: 'dm', label: 'Diabetes Mellitus', points: 1, checked: false },
+    { id: 'stroke', label: 'Stroke/TIA/Thromboembolism', points: 2, checked: false },
+    { id: 'vasc', label: 'Vascular Disease (prior MI, PAD, aortic plaque)', points: 1, checked: false },
+    { id: 'age65', label: 'Age 65-74 years', points: 1, checked: false },
+    { id: 'female', label: 'Female Category', points: 1, checked: false }
+  ]);
+
+  const toggle = (id: string) => {
+    setOpts(opts.map(o => o.id === id ? { ...o, checked: !o.checked } : o));
+  };
+
+  const score = opts.reduce((acc, o) => acc + (o.checked ? o.points : 0), 0);
+
+  const getInterpretation = (s: number) => {
+    let risk = "";
+    if (s === 0) risk = "Low risk (0%). No antithrombotic therapy recommended.";
+    else if (s === 1) risk = "Low-Moderate risk (1.3%). Consider oral anticoagulant or aspirin.";
+    else risk = "Moderate-High risk (≥2.2%). Oral anticoagulant is recommended.";
+    return <p className="text-lg font-medium text-purple-900">{risk}</p>;
+  };
+
+  return <ScoreTemplate title="CHA₂DS₂-VASc Score" options={opts} onToggle={toggle} score={score} getInterpretation={getInterpretation} />;
+}
+
+function HASBLEDCalculator() {
+  const [opts, setOpts] = useState([
+    { id: 'h', label: 'Hypertension (uncontrolled, >160 mmHg systolic)', points: 1, checked: false },
+    { id: 'a', label: 'Abnormal renal function (Dialysis, transplant, Cr >2.26)', points: 1, checked: false },
+    { id: 'l', label: 'Abnormal liver function (Cirrhosis or Bilirubin >2x Normal, AST/ALT >3x Normal)', points: 1, checked: false },
+    { id: 's', label: 'Stroke history', points: 1, checked: false },
+    { id: 'b', label: 'Bleeding history or predisposition', points: 1, checked: false },
+    { id: 'l2', label: 'Labile INRs (if on Warfarin)', points: 1, checked: false },
+    { id: 'e', label: 'Elderly (> 65 years)', points: 1, checked: false },
+    { id: 'd', label: 'Drugs (Aspirin, NSAIDs)', points: 1, checked: false },
+    { id: 'a2', label: 'Alcohol (≥ 8 drinks/week)', points: 1, checked: false }
+  ]);
+
+  const toggle = (id: string) => setOpts(opts.map(o => o.id === id ? { ...o, checked: !o.checked } : o));
+  const score = opts.reduce((acc, o) => acc + (o.checked ? o.points : 0), 0);
+
+  const getInterpretation = (s: number) => {
+    return <p className="text-lg font-medium text-purple-900">{s >= 3 ? "High risk of bleeding. Caution with anticoagulation." : "Low-Moderate risk of bleeding."}</p>;
+  };
+
+  return <ScoreTemplate title="HAS-BLED Score for Major Bleeding Risk" options={opts} onToggle={toggle} score={score} getInterpretation={getInterpretation} />;
+}
+
+function ChildPughCalculator() {
+  const [opts, setOpts] = useState([
+    { id: 'enceph_1', label: 'Encephalopathy: None', points: 1, checked: false },
+    { id: 'enceph_2', label: 'Encephalopathy: Grade 1-2', points: 2, checked: false },
+    { id: 'enceph_3', label: 'Encephalopathy: Grade 3-4', points: 3, checked: false },
+    { id: 'asc_1', label: 'Ascites: Absent', points: 1, checked: false },
+    { id: 'asc_2', label: 'Ascites: Slight', points: 2, checked: false },
+    { id: 'asc_3', label: 'Ascites: Moderate', points: 3, checked: false },
+  ]);
+  const toggle = (id: string) => setOpts(opts.map(o => o.id === id ? { ...o, checked: !o.checked } : o));
+  const score = opts.reduce((acc, o) => acc + (o.checked ? o.points : 0), 0);
+
+  const getInterpretation = (s: number) => {
+    let cls = s < 7 ? "Class A" : s < 10 ? "Class B" : "Class C";
+    return <p className="text-lg font-medium text-purple-900">Child-Pugh {cls} (Requires matching all 5 parameters in clinical setting)</p>;
+  };
+
+  return <ScoreTemplate title="Child-Pugh Score" options={opts} onToggle={toggle} score={score} getInterpretation={getInterpretation} />;
+}
+
+function MELDCalculator() {
+  return <div><h2 className="text-2xl font-bold mb-4">MELD Score</h2><p className="text-gray-500">MELD requires precise logarithmic calculations. Please use lab specific tools for exact MELD-Na scores.</p></div>;
+}
+function TIMICalculator() {
+  const [opts, setOpts] = useState([
+    { id: '1', label: 'Age ≥ 65 years', points: 1, checked: false },
+    { id: '2', label: '≥ 3 CAD Risk Factors', points: 1, checked: false },
+    { id: '3', label: 'Known CAD (stenosis ≥ 50%)', points: 1, checked: false },
+    { id: '4', label: 'Aspirin use in past 7 days', points: 1, checked: false },
+    { id: '5', label: 'Severe angina (≥ 2 episodes in 24 hrs)', points: 1, checked: false },
+    { id: '6', label: 'ST changes ≥ 0.5mm', points: 1, checked: false },
+    { id: '7', label: 'Positive Cardiac Marker', points: 1, checked: false },
+  ]);
+  const toggle = (id: string) => setOpts(opts.map(o => o.id === id ? { ...o, checked: !o.checked } : o));
+  const score = opts.reduce((acc, o) => acc + (o.checked ? o.points : 0), 0);
+  const getInterpretation = (s: number) => <p className="text-lg font-medium text-purple-900">{s <= 2 ? "Low Risk" : s <= 4 ? "Intermediate Risk" : "High Risk"}</p>;
+  return <ScoreTemplate title="TIMI Risk Score for UA/NSTEMI" options={opts} onToggle={toggle} score={score} getInterpretation={getInterpretation} />;
+}
+
+function CURB65Calculator() {
+  const [opts, setOpts] = useState([
+    { id: 'c', label: 'Confusion', points: 1, checked: false },
+    { id: 'u', label: 'BUN > 19 mg/dL', points: 1, checked: false },
+    { id: 'r', label: 'Respiratory Rate ≥ 30/min', points: 1, checked: false },
+    { id: 'b', label: 'Blood Pressure < 90/60 mmHg', points: 1, checked: false },
+    { id: '65', label: 'Age ≥ 65', points: 1, checked: false }
+  ]);
+
+  const toggle = (id: string) => setOpts(opts.map(o => o.id === id ? { ...o, checked: !o.checked } : o));
+  const score = opts.reduce((acc, o) => acc + (o.checked ? o.points : 0), 0);
+  const getInterpretation = (s: number) => <p className="text-lg font-medium text-purple-900">{s <= 1 ? "Outpatient care" : s === 2 ? "Consider hospital admission" : "Urgent hospital admission (ICU)"}</p>;
+
+  return <ScoreTemplate title="CURB-65 Pneumonia Severity" options={opts} onToggle={toggle} score={score} getInterpretation={getInterpretation} />;
+}
+
+function APGARCalculator() {
+  return <div><h2 className="text-2xl font-bold mb-4">APGAR Score</h2><p className="text-gray-500">Evaluates neonate appearance, pulse, grimace, activity, respiration.</p></div>;
+}
+
+function WellsCalculator() {
+  const [opts, setOpts] = useState([
+    { id: '1', label: 'Clinical signs and symptoms of DVT', points: 3, checked: false },
+    { id: '2', label: 'PE is #1 diagnosis or equally likely', points: 3, checked: false },
+    { id: '3', label: 'Heart rate > 100', points: 1.5, checked: false },
+    { id: '4', label: 'Immobilization at least 3 days or surgery in previous 4 weeks', points: 1.5, checked: false },
+    { id: '5', label: 'Previous, objectively diagnosed PE or DVT', points: 1.5, checked: false },
+    { id: '6', label: 'Hemoptysis', points: 1, checked: false },
+    { id: '7', label: 'Malignancy w/ treatment within 6 months', points: 1, checked: false },
+  ]);
+
+  const toggle = (id: string) => setOpts(opts.map(o => o.id === id ? { ...o, checked: !o.checked } : o));
+  const score = opts.reduce((acc, o) => acc + (o.checked ? o.points : 0), 0);
+  const getInterpretation = (s: number) => <p className="text-lg font-medium text-purple-900">{s > 6 ? "High Risk" : s >= 2 ? "Moderate Risk" : "Low Risk"}</p>;
+
+  return <ScoreTemplate title="Wells' Criteria for Pulmonary Embolism" options={opts} onToggle={toggle} score={score} getInterpretation={getInterpretation} />;
+}
+
+function GCSCalculator() {
+  return <div><h2 className="text-2xl font-bold mb-4">Glasgow Coma Scale</h2><p className="text-gray-500">Assesses Eye, Verbal, and Motor responses (Score 3-15).</p></div>;
 }
