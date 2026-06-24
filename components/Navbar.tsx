@@ -12,6 +12,8 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
+    setIsMenuOpen(false);
+    setIsProfileOpen(false);
     const fetchNotifications = async () => {
       try {
         const res = await fetch("/api/notifications");

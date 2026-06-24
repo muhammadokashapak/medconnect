@@ -3,6 +3,7 @@
 
 import { MouseEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from 'swr';
 
 type DoctorPreview = {
   id: string;
@@ -142,44 +143,36 @@ export default function FeedPage() {
   const [friendsSet, setFriendsSet] = useState<Set<string>>(new Set());
   const [pendingFriendsSet, setPendingFriendsSet] = useState<Set<string>>(new Set());
 
+  const fetcher = (url: string) => fetch(url).then(r => r.json());
+  
+  // Note: For simplicity and speed, we will keep the custom pagination for `cases` but SWR-ize the rest.
+  const { data: trendingData } = useSWR("/api/trending", fetcher);
+  const { data: savedData } = useSWR("/api/save-case", fetcher);
+  const { data: profileData } = useSWR("/api/profile", fetcher);
+  const { data: friendsData } = useSWR("/api/friends", fetcher);
+  const { data: followData } = useSWR("/api/follow", fetcher);
+
+  useEffect(() => {
+    if (trendingData) setTrending(trendingData);
+    if (profileData) setCurrentUser(profileData);
+    if (friendsData) {
+      setFriendsSet(new Set(friendsData.friends || []));
+      setPendingFriendsSet(new Set(friendsData.pending || []));
+    }
+    if (followData && Array.isArray(followData.following)) {
+      setFollowingSet(new Set(followData.following.map((f: any) => f.followingId)));
+    }
+    if (savedData && Array.isArray(savedData)) {
+      setSavedCaseIds(new Set(savedData.map((s: any) => s.casePostId)));
+    }
+  }, [trendingData, profileData, friendsData, followData, savedData]);
+
   const fetchData = async () => {
     try {
-      const [casesRes, trendingRes, savedRes, profileRes, friendsRes] = await Promise.all([
-        fetch("/api/cases?page=1&limit=10", { cache: 'no-store' }),
-        fetch("/api/trending", { cache: 'no-store' }),
-        fetch("/api/save-case", { cache: 'no-store' }),
-        fetch("/api/profile", { cache: 'no-store' }),
-        fetch("/api/friends", { cache: 'no-store' }),
-      ]);
-
+      const casesRes = await fetch("/api/cases?page=1&limit=10");
       const casesJson = await casesRes.json();
-      const casesData = casesJson.data || casesJson;
-      const meta = casesJson.meta || {};
-      
-      const trendingData = (await trendingRes.json()) as TrendingCase[];
-      const savedData = (await savedRes.json()) as SavedCase[];
-      
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        setCurrentUser(profileData);
-      }
-
-      if (friendsRes.ok) {
-        const fData = await friendsRes.json();
-        setFriendsSet(new Set(fData.friends || []));
-        setPendingFriendsSet(new Set(fData.pending || []));
-      }
-
-      setCases(casesData);
-      setTrending(trendingData);
-      setHasMore(meta.hasMore || false);
-      
-      const savedIds = new Set<string>();
-      if (Array.isArray(savedData)) {
-        savedData.forEach((s) => savedIds.add(s.casePostId));
-      }
-      setSavedCaseIds(savedIds);
-
+      setCases(casesJson.data || casesJson);
+      setHasMore(casesJson.meta?.hasMore || false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
@@ -189,13 +182,7 @@ export default function FeedPage() {
   };
 
   useEffect(() => {
-    async function initFeed() {
-      await fetchData();
-      await fetchFollowings();
-    }
-
-    void initFeed();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchData();
   }, []);
 
   const handleView = async (caseId: string) => {

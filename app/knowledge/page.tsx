@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import useSWR from 'swr';
 
 export default function KnowledgeHubPage() {
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [aiSearchQuery, setAiSearchQuery] = useState("");
 
@@ -17,16 +16,17 @@ export default function KnowledgeHubPage() {
     "Psychiatry", "Emergency Medicine"
   ];
 
+  const fetcher = (url: string) => fetch(url).then(res => {
+    if (!res.ok) throw new Error("Unauthorized");
+    return res.json();
+  });
+
+  const { data, error } = useSWR("/api/knowledge", fetcher);
+  const loading = !data && !error;
+
   useEffect(() => {
-    fetch("/api/knowledge")
-      .then(res => {
-        if (!res.ok) throw new Error("Unauthorized");
-        return res.json();
-      })
-      .then(setData)
-      .catch(() => router.push("/login"))
-      .finally(() => setLoading(false));
-  }, []);
+    if (error) router.push("/login");
+  }, [error, router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

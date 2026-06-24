@@ -19,6 +19,7 @@ import BottomNav from "@/components/BottomNav";
 import ToastProvider from "@/components/ToastProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GlobalCallProvider from "@/components/GlobalCallProvider";
+import GoogleAuthProvider from "@/components/GoogleAuthProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
