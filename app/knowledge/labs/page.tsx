@@ -146,10 +146,21 @@ const diseaseMappings = [
   { id: "infection", name: "Infection / Sepsis", labs: ["White Blood Cells (WBC)", "Platelets (Plt)", "CRP (C-Reactive Protein)", "ESR (Erythrocyte Sedimentation Rate)", "Procalcitonin", "Lactate"] },
   { id: "kidney", name: "Kidney Health (CKD/AKI)", labs: ["Blood Urea Nitrogen (BUN)", "Creatinine (Cr)", "Estimated Glomerular Filtration Rate (eGFR)", "Potassium (K)", "Sodium (Na)", "Phosphorus (PO4)", "Calcium (Ca)"] },
   { id: "liver", name: "Liver Disease / Cirrhosis", labs: ["ALT (Alanine Transaminase)", "AST (Aspartate Transaminase)", "ALP (Alkaline Phosphatase)", "Total Bilirubin", "Direct (Conjugated) Bilirubin", "Albumin", "Total Protein", "Gamma-Glutamyl Transferase (GGT)", "Prothrombin Time (PT)", "Platelets (Plt)"] },
-  { id: "heart_attack", name: "Heart Attack (MI) / Failure", labs: ["Troponin I", "Troponin T", "CK-MB", "Myoglobin", "BNP (B-type Natriuretic Peptide)", "Potassium (K)"] },
+  { id: "heart_attack", name: "Heart Attack (MI)", labs: ["Troponin I", "Troponin T", "CK-MB", "Myoglobin", "BNP (B-type Natriuretic Peptide)", "Potassium (K)"] },
+  { id: "heart_failure", name: "Heart Failure", labs: ["BNP (B-type Natriuretic Peptide)", "Sodium (Na)", "Potassium (K)", "Creatinine (Cr)", "Estimated Glomerular Filtration Rate (eGFR)"] },
   { id: "diabetes", name: "Diabetes Mellitus", labs: ["Glucose (Fasting)", "Hemoglobin A1c (HbA1c)", "Creatinine (Cr)", "Estimated Glomerular Filtration Rate (eGFR)", "Total Cholesterol", "LDL (Bad Cholesterol)", "Triglycerides"] },
   { id: "thyroid", name: "Thyroid Disorders", labs: ["TSH (Thyroid Stimulating Hormone)", "Free T4 (Thyroxine)", "Free T3 (Triiodothyronine)"] },
-  { id: "bleeding", name: "Bleeding Disorders / Coagulation", labs: ["Platelets (Plt)", "Prothrombin Time (PT)", "International Normalized Ratio (INR)", "Activated Partial Thromboplastin Time (aPTT)", "D-Dimer", "Fibrinogen"] },
+  { id: "bleeding", name: "Bleeding / Coagulation", labs: ["Platelets (Plt)", "Prothrombin Time (PT)", "International Normalized Ratio (INR)", "Activated Partial Thromboplastin Time (aPTT)", "D-Dimer", "Fibrinogen"] },
+  { id: "respiratory", name: "COPD / Respiratory Failure", labs: ["pH", "pCO2 (Partial Pressure of Carbon Dioxide)", "pO2 (Partial Pressure of Oxygen)", "HCO3 (Bicarbonate)", "SaO2 (Oxygen Saturation)"] },
+  { id: "dehydration", name: "Dehydration / Hypovolemia", labs: ["Blood Urea Nitrogen (BUN)", "Creatinine (Cr)", "Sodium (Na)", "Hematocrit (Hct)", "Albumin", "Total Protein"] },
+  { id: "bone", name: "Bone Disease / Osteoporosis", labs: ["Calcium (Ca)", "Phosphorus (PO4)", "ALP (Alkaline Phosphatase)", "Vitamin D"] },
+  { id: "dvt", name: "DVT / Pulmonary Embolism", labs: ["D-Dimer", "Prothrombin Time (PT)", "International Normalized Ratio (INR)", "Activated Partial Thromboplastin Time (aPTT)", "pO2 (Partial Pressure of Oxygen)"] },
+  { id: "autoimmune", name: "Autoimmune / Lupus", labs: ["ANA (Antinuclear Antibody)", "Rheumatoid Factor (RF)", "CRP (C-Reactive Protein)", "ESR (Erythrocyte Sedimentation Rate)", "Estimated Glomerular Filtration Rate (eGFR)"] },
+  { id: "gout", name: "Gout / Hyperuricemia", labs: ["Uric Acid", "Creatinine (Cr)", "Estimated Glomerular Filtration Rate (eGFR)"] },
+  { id: "prostate", name: "Prostate Issues (BPH)", labs: ["PSA (Prostate-Specific Antigen)", "Creatinine (Cr)", "Estimated Glomerular Filtration Rate (eGFR)", "Blood Urea Nitrogen (BUN)"] },
+  { id: "ovarian", name: "Ovarian Cancer Risk", labs: ["CA-125", "CRP (C-Reactive Protein)", "ESR (Erythrocyte Sedimentation Rate)"] },
+  { id: "colon", name: "Colon Cancer Risk", labs: ["CEA (Carcinoembryonic Antigen)", "Hemoglobin (Hgb)", "Hematocrit (Hct)"] },
+  { id: "malnutrition", name: "Malnutrition", labs: ["Albumin", "Total Protein", "Calcium (Ca)", "Phosphorus (PO4)", "Magnesium (Mg)", "Total Cholesterol"] }
 ];
 
 export default function LabValuesPage() {
@@ -210,7 +221,7 @@ export default function LabValuesPage() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Search Lab Values</label>
               <div className="relative">
@@ -244,31 +255,17 @@ export default function LabValuesPage() {
                 <option value="lipids">Lipid Panel</option>
               </select>
             </div>
-          </div>
-
-          <div className="mt-6 pt-5 border-t border-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-bold text-gray-800">Filter by Clinical Condition / Disease:</label>
-              {selectedDisease !== "all" && (
-                <button onClick={() => setSelectedDisease("all")} className="text-xs text-blue-600 font-medium hover:text-blue-800">
-                  Clear Filter
-                </button>
-              )}
-            </div>
-            <div className="flex overflow-x-auto pb-2 gap-2 no-scrollbar">
-              {diseaseMappings.map(disease => (
-                <button
-                  key={disease.id}
-                  onClick={() => { setSelectedDisease(disease.id); setSelectedCategory("all"); }}
-                  className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition shadow-sm border ${
-                    selectedDisease === disease.id
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
-                  }`}
-                >
-                  {disease.name}
-                </button>
-              ))}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Clinical Condition / Disease</label>
+              <select
+                value={selectedDisease}
+                onChange={(e) => { setSelectedDisease(e.target.value); setSelectedCategory("all"); }}
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              >
+                {diseaseMappings.map(disease => (
+                  <option key={disease.id} value={disease.id}>{disease.name}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
