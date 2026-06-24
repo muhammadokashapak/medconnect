@@ -69,18 +69,18 @@ export default function GuidelinesPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-20">
-        <div className="bg-white p-2 rounded-2xl shadow-xl border border-gray-100 mb-6 flex flex-col gap-2 relative z-20">
-          <div className="flex-grow flex items-center bg-gray-50 rounded-xl px-4 py-1">
-            <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <div className="bg-white p-3 rounded-2xl shadow-2xl shadow-indigo-100/40 border border-indigo-50 mb-8 flex flex-col gap-2 relative z-20">
+          <div className="flex-grow flex items-center bg-gray-50/80 hover:bg-gray-50 transition-colors rounded-xl px-5 py-2 border border-gray-100 focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-50">
+            <svg className="w-6 h-6 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <input 
               type="text" 
               placeholder="Search by keyword, disease, or protocol..." 
-              className="w-full bg-transparent border-none py-3 focus:ring-0 text-gray-800 placeholder-gray-400"
+              className="w-full bg-transparent border-none py-3 focus:ring-0 text-gray-800 placeholder-gray-400 font-medium text-lg outline-none"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any)}
             />
-            <button onClick={handleSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm ml-2">
+            <button onClick={handleSearch} className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 ml-3">
               Search
             </button>
           </div>
@@ -111,7 +111,7 @@ export default function GuidelinesPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {guidelines.length === 0 ? (
               <div className="col-span-full text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
                 <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
@@ -122,24 +122,25 @@ export default function GuidelinesPage() {
               </div>
             ) : (
               guidelines.map(g => (
-                <Link href={`/guidelines/${g.id}`} key={g.id} className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <Link href={`/guidelines/${g.id}`} key={g.id} className="group bg-white p-6 rounded-2xl shadow-md shadow-gray-200/50 border border-gray-100 flex flex-col justify-between hover:shadow-2xl hover:shadow-indigo-200/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                   <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">
+                    <div className="flex justify-between items-start mb-5">
+                      <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border border-indigo-100 shadow-sm">
                         {g.specialty}
                       </span>
-                      <span className="text-gray-400 text-xs font-medium bg-gray-50 px-2 py-1 rounded-md">v{g.version}</span>
+                      <span className="text-gray-500 text-xs font-bold bg-gray-100 px-2.5 py-1 rounded-md">v{g.version}</span>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors">{g.title}</h2>
+                    <h2 className="text-xl font-extrabold text-gray-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors">{g.title}</h2>
                     <p className="text-gray-500 text-[15px] mb-6 line-clamp-3 leading-relaxed">{g.description}</p>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto">
-                    <p className="text-[13px] text-gray-500 flex items-center font-medium">
-                      <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                      {g.doctor ? `Verified by Dr. ${g.doctor.fullName}` : "MedConnect Verified"}
+                  <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
+                    <p className="text-[13px] text-indigo-600 flex items-center font-bold">
+                      <svg className="w-4 h-4 mr-1.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                      Verified Protocol
                     </p>
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+                    <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 transition-colors shadow-sm">
                       <svg className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
                   </div>
