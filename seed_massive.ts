@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 
-// Re-using the logic from the route
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 const fields = [
   {
     name: "Cardiology",
@@ -45,14 +46,98 @@ const fields = [
   }
 ];
 
+function generateDetailedMarkdown(topic: string, org: string, specialty: string, year: number) {
+  return `
+# Executive Summary
+The updated ${year} **${org} Clinical Practice Guidelines for ${topic}** provide a comprehensive framework for the diagnosis, evaluation, and evidence-based management of patients. The goal is to optimize clinical outcomes, reduce morbidity and mortality, and standardize therapeutic approaches across healthcare settings.
+
+These recommendations represent a consensus of expert panels based on rigorous systematic reviews of recent randomized controlled trials and cohort studies.
+
+---
+
+### 1. Etiology and Pathophysiology
+The underlying mechanisms driving **${topic}** are multifactorial. Clinical manifestation depends largely on the progression of the disease and individual patient risk factors.
+
+*   **Primary Drivers:** Genetic predisposition, environmental factors, and age-related physiological changes.
+*   **Pathological Cascade:** Progression is often marked by inflammatory markers, cellular degradation, or acute systemic failure depending on the chronicity of the presentation.
+*   **Risk Factors:** Advanced age, family history, sedentary lifestyle, and concomitant comorbidities.
+
+> **Clinical Pearl:** Early identification of these pathophysiological markers can significantly alter the trajectory of the disease, allowing for targeted preemptive interventions.
+
+---
+
+### 2. Diagnostic Workup and Criteria
+Accurate diagnosis relies on a combination of clinical history, physical examination, and objective investigative modalities. The ${org} recommends the following structured diagnostic approach:
+
+#### 2.1 Standard Laboratory Investigations
+| Test Category | Specific Marker / Assay | Clinical Utility |
+| :--- | :--- | :--- |
+| **First-Line Labs** | CBC, CMP, CRP/ESR | Baseline metabolic and inflammatory assessment |
+| **Disease-Specific** | Autoantibodies, Biomarkers | Confirmatory testing for ${topic} |
+| **Monitoring** | Renal & Hepatic Function | Clearance evaluation before starting aggressive pharmacotherapy |
+
+#### 2.2 Imaging and Procedural Diagnostics
+Depending on severity, consider:
+*   **Ultrasound/X-Ray:** For initial, non-invasive screening.
+*   **CT/MRI (with or without contrast):** If structural anomalies or severe pathological progression is suspected.
+*   **Biopsy / Endoscopy / Specialized Scans:** Indicated only in refractory cases or when gold-standard confirmation is strictly necessary.
+
+#### 2.3 Diagnostic Criteria (Major and Minor)
+Diagnosis requires **at least TWO major criteria** OR **ONE major and TWO minor criteria**.
+*   **Major Criteria:** Definitive imaging evidence, specific histological findings, or pathognomonic clinical signs.
+*   **Minor Criteria:** Non-specific systemic symptoms, mild laboratory derangements, or borderline physiological changes.
+
+---
+
+### 3. Treatment Algorithm and Management
+Management of **${topic}** follows a tiered approach based on disease severity (Mild, Moderate, Severe).
+
+#### 3.1 Non-Pharmacological Interventions
+Always initiate lifestyle and non-pharmacological interventions as the foundation of therapy:
+*   Dietary modifications and medical nutrition therapy.
+*   Supervised physical rehabilitation or activity pacing.
+*   Cessation of smoking, alcohol limitation, and strict adherence to hygiene/preventative protocols.
+
+#### 3.2 Pharmacotherapy (First-Line and Alternative)
+The cornerstone of medical management. All dosages must be adjusted for renal/hepatic impairment.
+
+1.  **First-Line Agents:** 
+    *   *Drug Class A:* Start at lowest effective dose and titrate every 2-4 weeks.
+    *   *Mechanism:* Directly antagonizes the primary pathophysiological driver.
+    *   *Contraindications:* Severe renal impairment, pregnancy (Category D/X).
+2.  **Second-Line / Adjunct Therapy:** 
+    *   *Drug Class B:* Add if targets are not achieved within 3 months.
+    *   *Mechanism:* Synergistic effect with first-line agents.
+3.  **Rescue / Acute Management:** 
+    *   For acute exacerbations of ${topic}, consider rapid-acting intravenous therapies, systemic corticosteroids, or immediate surgical consultation.
+
+> **WARNING:** Avoid polypharmacy where drug-drug interactions (e.g., CYP450 inhibitors) may increase the risk of toxicity. Always consult the latest interaction database.
+
+---
+
+### 4. Patient Follow-up and Prognosis
+Close monitoring is required to ensure therapeutic efficacy and to mitigate adverse events.
+
+*   **Initial Follow-up:** 2 to 4 weeks post-initiation of therapy.
+*   **Long-term Monitoring:** Every 3 to 6 months. Include repeat of baseline labs and quality-of-life assessments.
+*   **Referral Triggers:** Immediate referral to a ${specialty} sub-specialist is warranted if the patient develops refractory symptoms, severe adverse drug reactions, or rapid clinical deterioration.
+
+---
+
+### 5. References and Evidence Base
+1. ${org} Task Force on ${topic}. ( ${year} ). *Clinical Practice Guidelines for the Management of ${topic}*. Journal of ${specialty} Medicine.
+2. National Institutes of Health. ( ${year-1} ). *Systematic Review and Meta-Analysis of Therapeutic Outcomes*.
+3. World Health Organization (WHO) protocols on global standardization of care.
+`;
+}
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
   
-  const adapter = new PrismaPg({ connectionString: url });
-  const prisma = new PrismaClient({ adapter });
+  const prisma = new PrismaClient();
 
-  console.log("Seeding massive guidelines...");
+  console.log("Seeding comprehensive detailed guidelines...");
   let idCounter = 1;
   const guidelinesToInsert = [];
   
@@ -70,13 +155,9 @@ async function main() {
       if(field.name === "Gastroenterology") org = "AGA/ACG";
       
       const year = 2020 + Math.floor(Math.random() * 5);
-      const description = `Comprehensive evidence-based recommendations for the diagnosis, management, and treatment of ${topic}.`;
-      const keyPoints = [
-        `First-line therapy recommendations and dosage adjustments for ${topic}.`,
-        `Diagnostic criteria and required laboratory/imaging investigations.`,
-        `Risk stratification and prognosis evaluation.`,
-        `When to refer to a specialist and surgical indications.`
-      ];
+      const description = `The updated ${year} ${org} Clinical Practice Guidelines for ${topic} providing a comprehensive framework for evaluation, diagnosis, and evidence-based management.`;
+      
+      const detailedContent = generateDetailedMarkdown(topic, org, field.name, year);
       
       guidelinesToInsert.push({
         id: `gl_${idCounter++}`,
@@ -84,11 +165,12 @@ async function main() {
         specialty: field.name,
         version: year.toString(),
         description: description,
-        content: keyPoints.join('\n\n')
+        content: detailedContent
       });
     }
   }
 
+  // Delete all existing to avoid duplicate conflicts
   await prisma.savedGuideline.deleteMany();
   await prisma.guideline.deleteMany();
   
@@ -96,7 +178,7 @@ async function main() {
     data: guidelinesToInsert
   });
 
-  console.log("Seeded " + guidelinesToInsert.length + " guidelines successfully.");
+  console.log("Seeded " + guidelinesToInsert.length + " HIGHLY DETAILED guidelines successfully.");
   await prisma.$disconnect();
 }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-import { guidelines } from "../route";
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_medconnect_123!";
 
@@ -29,10 +29,6 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     let guideline: any = await prisma.guideline.findUnique({
       where: { id }
     });
-
-    if (!guideline) {
-      guideline = guidelines.find(g => g.id === id);
-    }
 
     if (!guideline) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
