@@ -114,7 +114,8 @@ export default function KnowledgeHubPage() {
 
         {/* Powerful Clinical Tools Grid */}
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Clinical Tools</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-12">
+          <ToolCard icon="🩺" title="Diagnostic Workups" desc="Disease-specific pathways" href="/knowledge/workups" color="red" />
           <ToolCard icon="💊" title="Drug Interaction Checker" desc="Check multi-drug safety" href="/drug-interaction" color="green" />
           <ToolCard icon="🧮" title="Medical Calculators" desc="GFR, BMI, Scores" href="/calculators" color="purple" />
           <ToolCard icon="📋" title="Clinical Guidelines" desc="AHA, ADA, WHO" href="/guidelines" color="blue" />

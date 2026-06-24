@@ -239,7 +239,7 @@ export default function LabValuesPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Organ System / Panel</label>
               <select
                 value={selectedCategory}
-                onChange={(e) => { setSelectedCategory(e.target.value); setSelectedDisease("all"); }}
+                onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               >
                 <option value="all">All Panels</option>
@@ -259,7 +259,7 @@ export default function LabValuesPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Clinical Condition / Disease</label>
               <select
                 value={selectedDisease}
-                onChange={(e) => { setSelectedDisease(e.target.value); setSelectedCategory("all"); }}
+                onChange={(e) => setSelectedDisease(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               >
                 {diseaseMappings.map(disease => (
