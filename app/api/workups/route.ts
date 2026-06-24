@@ -12,19 +12,19 @@ export const GET = async () => {
         "name": "Troponin T or I",
         "normalValue": "< 0.04 ng/mL",
         "conditionValue": "> 0.04 ng/mL (serial rise)",
-        "clinicalSignificance": "Primary biomarker for myocardial necrosis. Elevated levels indicate heart muscle damage."
+        "clinicalSignificance": "Primary biomarker for myocardial necrosis."
       },
       {
         "name": "CK-MB",
         "normalValue": "0-3 ng/mL",
         "conditionValue": "> 3 ng/mL",
-        "clinicalSignificance": "Useful for detecting reinfarction, peaks earlier than troponin."
+        "clinicalSignificance": "Useful for detecting reinfarction."
       },
       {
-        "name": "Myoglobin",
-        "normalValue": "0-85 ng/mL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Early marker of muscle damage, but lacks cardiac specificity."
+        "name": "ECG",
+        "normalValue": "Normal sinus rhythm",
+        "conditionValue": "ST-elevation or depression, T-wave inversion",
+        "clinicalSignificance": "Differentiates STEMI vs NSTEMI."
       }
     ]
   },
@@ -37,19 +37,13 @@ export const GET = async () => {
         "name": "BNP",
         "normalValue": "< 100 pg/mL",
         "conditionValue": "> 400 pg/mL",
-        "clinicalSignificance": "Confirms heart failure vs pulmonary causes of dyspnea. Higher levels correlate with severity."
+        "clinicalSignificance": "Confirms heart failure vs pulmonary causes."
       },
       {
-        "name": "NT-proBNP",
-        "normalValue": "< 300 pg/mL",
-        "conditionValue": "> 900 pg/mL",
-        "clinicalSignificance": "Similar to BNP but with longer half-life."
-      },
-      {
-        "name": "Creatinine",
-        "normalValue": "0.6-1.2 mg/dL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Check for cardiorenal syndrome."
+        "name": "Echocardiogram",
+        "normalValue": "EF > 55%",
+        "conditionValue": "EF < 40%",
+        "clinicalSignificance": "Diagnoses HFrEF vs HFpEF."
       }
     ]
   },
@@ -59,72 +53,73 @@ export const GET = async () => {
     "category": "Cardiology",
     "tests": [
       {
+        "name": "ECG",
+        "normalValue": "Normal PR, regular rhythm",
+        "conditionValue": "Irregularly irregular, absent P waves",
+        "clinicalSignificance": "Definitive diagnosis."
+      },
+      {
         "name": "TSH",
         "normalValue": "0.4-4.0 mIU/L",
         "conditionValue": "< 0.4 mIU/L",
-        "clinicalSignificance": "Hyperthyroidism is a reversible cause of A-Fib."
-      },
-      {
-        "name": "Potassium (K)",
-        "normalValue": "3.5-5.0 mEq/L",
-        "conditionValue": "Low/High",
-        "clinicalSignificance": "Electrolyte imbalances can trigger arrhythmias."
-      },
-      {
-        "name": "Magnesium (Mg)",
-        "normalValue": "1.7-2.2 mg/dL",
-        "conditionValue": "< 1.7 mg/dL",
-        "clinicalSignificance": "Hypomagnesemia often accompanies A-Fib."
+        "clinicalSignificance": "Rule out hyperthyroidism."
       }
     ]
   },
   {
-    "id": "htn",
-    "disease": "Hypertension (Primary)",
+    "id": "pericarditis",
+    "disease": "Acute Pericarditis",
     "category": "Cardiology",
     "tests": [
       {
-        "name": "Lipid Panel (LDL)",
-        "normalValue": "< 100 mg/dL",
-        "conditionValue": "> 130 mg/dL",
-        "clinicalSignificance": "Assess overall cardiovascular risk."
+        "name": "ECG",
+        "normalValue": "Normal",
+        "conditionValue": "Diffuse ST elevations, PR depressions",
+        "clinicalSignificance": "Classic finding."
       },
       {
-        "name": "eGFR",
-        "normalValue": "> 90 mL/min",
-        "conditionValue": "< 60 mL/min",
-        "clinicalSignificance": "Check for hypertensive nephropathy."
-      },
-      {
-        "name": "Fasting Glucose",
-        "normalValue": "< 100 mg/dL",
-        "conditionValue": "> 126 mg/dL",
-        "clinicalSignificance": "Assess for metabolic syndrome / Diabetes."
+        "name": "ESR / CRP",
+        "normalValue": "Normal",
+        "conditionValue": "Elevated",
+        "clinicalSignificance": "Inflammation markers."
       }
     ]
   },
   {
-    "id": "copd",
-    "disease": "COPD Exacerbation",
-    "category": "Pulmonology",
+    "id": "endocarditis",
+    "disease": "Infective Endocarditis",
+    "category": "Cardiology",
     "tests": [
       {
-        "name": "pCO2 (ABG)",
-        "normalValue": "35-45 mmHg",
-        "conditionValue": "> 45 mmHg",
-        "clinicalSignificance": "Indicates hypercapnic respiratory failure."
+        "name": "Blood Cultures",
+        "normalValue": "Negative",
+        "conditionValue": "Positive x 3 sets",
+        "clinicalSignificance": "Identifies causative organism."
       },
       {
-        "name": "pH (ABG)",
-        "normalValue": "7.35-7.45",
-        "conditionValue": "< 7.35",
-        "clinicalSignificance": "Shows respiratory acidosis requiring possible BiPAP."
+        "name": "Echocardiogram (TEE)",
+        "normalValue": "Normal valves",
+        "conditionValue": "Vegetation or abscess",
+        "clinicalSignificance": "Visualizes the infection."
+      }
+    ]
+  },
+  {
+    "id": "aortic_dissection",
+    "disease": "Aortic Dissection",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "CT Angiography",
+        "normalValue": "Intact aorta",
+        "conditionValue": "Intimal flap",
+        "clinicalSignificance": "Gold standard imaging."
       },
       {
-        "name": "WBC Count",
-        "normalValue": "4.5-11.0 x 10^3/µL",
+        "name": "D-Dimer",
+        "normalValue": "< 0.5 µg/mL",
         "conditionValue": "Elevated",
-        "clinicalSignificance": "Indicates infectious trigger for exacerbation."
+        "clinicalSignificance": "If normal, strongly rules out dissection."
       }
     ]
   },
@@ -134,22 +129,54 @@ export const GET = async () => {
     "category": "Pulmonology",
     "tests": [
       {
+        "name": "CTPA",
+        "normalValue": "Clear arteries",
+        "conditionValue": "Filling defect",
+        "clinicalSignificance": "Definitive diagnosis."
+      },
+      {
         "name": "D-Dimer",
         "normalValue": "< 0.5 µg/mL FEU",
-        "conditionValue": "> 0.5 µg/mL FEU",
-        "clinicalSignificance": "High sensitivity, low specificity. Used to rule out PE in low-risk patients."
+        "conditionValue": "> 0.5 µg/mL",
+        "clinicalSignificance": "High sensitivity to rule out."
+      }
+    ]
+  },
+  {
+    "id": "copd",
+    "disease": "COPD Exacerbation",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "ABG (pCO2)",
+        "normalValue": "35-45 mmHg",
+        "conditionValue": "> 45 mmHg",
+        "clinicalSignificance": "Hypercapnic failure."
       },
       {
-        "name": "pO2 (ABG)",
-        "normalValue": "80-100 mmHg",
-        "conditionValue": "< 80 mmHg",
-        "clinicalSignificance": "Hypoxemia due to V/Q mismatch."
+        "name": "Chest X-Ray",
+        "normalValue": "Clear",
+        "conditionValue": "Hyperinflation, exclude pneumonia",
+        "clinicalSignificance": "Check for complications."
+      }
+    ]
+  },
+  {
+    "id": "asthma",
+    "disease": "Asthma Exacerbation",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Peak Flow (PEF)",
+        "normalValue": "> 80% predicted",
+        "conditionValue": "< 50% predicted",
+        "clinicalSignificance": "Assesses severity."
       },
       {
-        "name": "Troponin",
-        "normalValue": "< 0.04 ng/mL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Indicates right ventricular strain."
+        "name": "ABG",
+        "normalValue": "Normal",
+        "conditionValue": "Respiratory Alkalosis, then Acidosis",
+        "clinicalSignificance": "Acidosis indicates impending failure."
       }
     ]
   },
@@ -159,78 +186,212 @@ export const GET = async () => {
     "category": "Pulmonology",
     "tests": [
       {
+        "name": "Chest X-Ray",
+        "normalValue": "Clear",
+        "conditionValue": "Lobar consolidation",
+        "clinicalSignificance": "Confirms diagnosis."
+      },
+      {
         "name": "Procalcitonin",
         "normalValue": "< 0.15 ng/mL",
         "conditionValue": "> 0.25 ng/mL",
-        "clinicalSignificance": "Helps differentiate bacterial from viral pneumonia and guides antibiotic therapy."
-      },
-      {
-        "name": "WBC Count",
-        "normalValue": "4.5-11.0 x 10^3/µL",
-        "conditionValue": "> 11.0 x 10^3/µL",
-        "clinicalSignificance": "Leukocytosis with left shift suggests bacterial infection."
-      },
-      {
-        "name": "CRP",
-        "normalValue": "< 10 mg/L",
-        "conditionValue": "> 50 mg/L",
-        "clinicalSignificance": "Nonspecific marker of severe inflammation."
+        "clinicalSignificance": "Suggests bacterial etiology."
       }
     ]
   },
   {
-    "id": "dm2",
-    "disease": "Diabetes Mellitus Type 2",
-    "category": "Endocrinology",
+    "id": "tb",
+    "disease": "Tuberculosis",
+    "category": "Pulmonology",
     "tests": [
       {
-        "name": "Fasting Plasma Glucose",
-        "normalValue": "< 100 mg/dL",
-        "conditionValue": "≥ 126 mg/dL",
-        "clinicalSignificance": "Diagnostic for Diabetes when confirmed on two separate occasions."
+        "name": "Sputum AFB Smear",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Rapid detection of acid-fast bacilli."
       },
       {
-        "name": "Hemoglobin A1c",
-        "normalValue": "< 5.7%",
-        "conditionValue": "≥ 6.5%",
-        "clinicalSignificance": "Reflects average glucose over 3 months. Diagnostic for Diabetes."
+        "name": "GeneXpert MTB/RIF",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirms TB and Rifampin resistance."
+      }
+    ]
+  },
+  {
+    "id": "ards",
+    "disease": "Acute Respiratory Distress Syndrome",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "PaO2/FiO2 Ratio",
+        "normalValue": "> 400",
+        "conditionValue": "< 300",
+        "clinicalSignificance": "Defines ARDS severity (Berlin criteria)."
       },
       {
-        "name": "Urine Microalbumin",
-        "normalValue": "< 30 mg/g",
-        "conditionValue": "> 30 mg/g",
-        "clinicalSignificance": "Early indicator of diabetic nephropathy."
+        "name": "Chest X-Ray",
+        "normalValue": "Clear",
+        "conditionValue": "Bilateral opacities",
+        "clinicalSignificance": "Non-cardiogenic pulmonary edema."
+      }
+    ]
+  },
+  {
+    "id": "stroke",
+    "disease": "Ischemic Stroke",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Non-Contrast Head CT",
+        "normalValue": "Normal",
+        "conditionValue": "Rule out hemorrhage",
+        "clinicalSignificance": "Must be done before giving tPA."
+      },
+      {
+        "name": "MRI Brain (DWI)",
+        "normalValue": "Normal",
+        "conditionValue": "Restricted diffusion",
+        "clinicalSignificance": "Most sensitive for acute infarct."
+      }
+    ]
+  },
+  {
+    "id": "sah",
+    "disease": "Subarachnoid Hemorrhage",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Head CT",
+        "normalValue": "Normal",
+        "conditionValue": "Hyperdense blood in basal cisterns",
+        "clinicalSignificance": "Diagnostic."
+      },
+      {
+        "name": "Lumbar Puncture",
+        "normalValue": "Clear",
+        "conditionValue": "Xanthochromia",
+        "clinicalSignificance": "Used if CT is negative but clinical suspicion high."
+      }
+    ]
+  },
+  {
+    "id": "ms",
+    "disease": "Multiple Sclerosis",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "MRI Brain/Spine",
+        "normalValue": "Normal",
+        "conditionValue": "Demyelinating plaques (Dawson fingers)",
+        "clinicalSignificance": "Shows dissemination in space/time."
+      },
+      {
+        "name": "CSF Oligoclonal Bands",
+        "normalValue": "Absent",
+        "conditionValue": "Present (≥2 bands)",
+        "clinicalSignificance": "Intrathecal IgG synthesis."
+      }
+    ]
+  },
+  {
+    "id": "gb",
+    "disease": "Guillain-Barré Syndrome",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "CSF Analysis",
+        "normalValue": "Normal protein/cells",
+        "conditionValue": "High protein, normal WBC (Cytoalbuminologic dissociation)",
+        "clinicalSignificance": "Classic finding."
+      },
+      {
+        "name": "EMG / Nerve Conduction",
+        "normalValue": "Normal",
+        "conditionValue": "Demyelination",
+        "clinicalSignificance": "Confirms neuropathy."
+      }
+    ]
+  },
+  {
+    "id": "mg",
+    "disease": "Myasthenia Gravis",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "AChR Antibodies",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Highly specific."
+      },
+      {
+        "name": "Ice Pack Test",
+        "normalValue": "No change",
+        "conditionValue": "Ptosis improves",
+        "clinicalSignificance": "Bedside test."
+      }
+    ]
+  },
+  {
+    "id": "seizure",
+    "disease": "Epilepsy / Seizure Disorder",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "EEG",
+        "normalValue": "Normal rhythm",
+        "conditionValue": "Epileptiform discharges",
+        "clinicalSignificance": "Confirms seizure focus."
+      },
+      {
+        "name": "Prolactin",
+        "normalValue": "< 20 ng/mL",
+        "conditionValue": "Elevated (within 20 mins)",
+        "clinicalSignificance": "Differentiates true seizure from pseudoseizure."
       }
     ]
   },
   {
     "id": "dka",
-    "disease": "Diabetic Ketoacidosis (DKA)",
+    "disease": "Diabetic Ketoacidosis",
     "category": "Endocrinology",
     "tests": [
       {
         "name": "Blood Glucose",
         "normalValue": "70-99 mg/dL",
         "conditionValue": "> 250 mg/dL",
-        "clinicalSignificance": "Hallmark of DKA."
+        "clinicalSignificance": "Hyperglycemia."
       },
       {
         "name": "Beta-Hydroxybutyrate",
         "normalValue": "< 0.4 mmol/L",
         "conditionValue": "> 3.0 mmol/L",
-        "clinicalSignificance": "Directly measures ketones in blood. More accurate than urine ketones."
+        "clinicalSignificance": "Ketosis."
       },
       {
-        "name": "Anion Gap",
-        "normalValue": "8-12 mEq/L",
-        "conditionValue": "> 12 mEq/L",
-        "clinicalSignificance": "Indicates high anion gap metabolic acidosis."
-      },
-      {
-        "name": "pH (ABG)",
+        "name": "pH (ABG/VBG)",
         "normalValue": "7.35-7.45",
         "conditionValue": "< 7.30",
-        "clinicalSignificance": "Severity of acidemia."
+        "clinicalSignificance": "Acidosis."
+      }
+    ]
+  },
+  {
+    "id": "hhs",
+    "disease": "Hyperosmolar Hyperglycemic State",
+    "category": "Endocrinology",
+    "tests": [
+      {
+        "name": "Blood Glucose",
+        "normalValue": "70-99 mg/dL",
+        "conditionValue": "> 600 mg/dL",
+        "clinicalSignificance": "Profound hyperglycemia."
+      },
+      {
+        "name": "Serum Osmolality",
+        "normalValue": "275-295 mOsm/kg",
+        "conditionValue": "> 320 mOsm/kg",
+        "clinicalSignificance": "Severe hyperosmolarity."
       }
     ]
   },
@@ -243,100 +404,70 @@ export const GET = async () => {
         "name": "TSH",
         "normalValue": "0.4-4.0 mIU/L",
         "conditionValue": "> 4.0 mIU/L",
-        "clinicalSignificance": "Primary screening test. High TSH indicates primary hypothyroidism."
+        "clinicalSignificance": "Primary screening."
       },
       {
         "name": "Free T4",
         "normalValue": "0.8-1.8 ng/dL",
         "conditionValue": "< 0.8 ng/dL",
-        "clinicalSignificance": "Confirms overt hypothyroidism when TSH is high."
-      },
-      {
-        "name": "Anti-TPO Antibodies",
-        "normalValue": "< 9 IU/mL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Confirms Hashimoto's thyroiditis as the autoimmune cause."
+        "clinicalSignificance": "Confirms overt disease."
       }
     ]
   },
   {
-    "id": "hyperthyroid",
-    "disease": "Hyperthyroidism",
+    "id": "addison",
+    "disease": "Addison's Disease",
     "category": "Endocrinology",
     "tests": [
       {
-        "name": "TSH",
-        "normalValue": "0.4-4.0 mIU/L",
-        "conditionValue": "< 0.1 mIU/L",
-        "clinicalSignificance": "Suppressed TSH is the hallmark of primary hyperthyroidism."
+        "name": "8 AM Cortisol",
+        "normalValue": "10-20 µg/dL",
+        "conditionValue": "< 3 µg/dL",
+        "clinicalSignificance": "Suggests insufficiency."
       },
       {
-        "name": "Free T4",
-        "normalValue": "0.8-1.8 ng/dL",
-        "conditionValue": "> 1.8 ng/dL",
-        "clinicalSignificance": "Elevated levels confirm diagnosis."
-      },
-      {
-        "name": "TSI (Thyroid Stimulating Immunoglobulin)",
-        "normalValue": "< 130%",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Diagnostic for Graves' Disease."
+        "name": "ACTH Stimulation Test",
+        "normalValue": "Cortisol rises >18 µg/dL",
+        "conditionValue": "Failure to rise",
+        "clinicalSignificance": "Confirms primary adrenal insufficiency."
       }
     ]
   },
   {
-    "id": "ckd",
-    "disease": "Chronic Kidney Disease (CKD)",
-    "category": "Nephrology",
+    "id": "cushing",
+    "disease": "Cushing's Syndrome",
+    "category": "Endocrinology",
     "tests": [
       {
-        "name": "eGFR",
-        "normalValue": "> 90 mL/min",
-        "conditionValue": "< 60 mL/min",
-        "clinicalSignificance": "For >3 months, indicates CKD. Staging depends on exact value."
-      },
-      {
-        "name": "Creatinine",
-        "normalValue": "0.6-1.2 mg/dL",
+        "name": "24-hr Urine Free Cortisol",
+        "normalValue": "10-50 µg/day",
         "conditionValue": "Elevated",
-        "clinicalSignificance": "Waste product accumulating due to poor filtration."
+        "clinicalSignificance": "Screening test."
       },
       {
-        "name": "Phosphorus",
-        "normalValue": "2.5-4.5 mg/dL",
-        "conditionValue": "> 4.5 mg/dL",
-        "clinicalSignificance": "Hyperphosphatemia common in advanced CKD."
-      },
-      {
-        "name": "PTH",
-        "normalValue": "15-65 pg/mL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Secondary hyperparathyroidism due to CKD-MBD."
+        "name": "Dexamethasone Suppression",
+        "normalValue": "Cortisol < 1.8 µg/dL",
+        "conditionValue": "Failure to suppress",
+        "clinicalSignificance": "Confirms hypercortisolism."
       }
     ]
   },
   {
-    "id": "aki",
-    "disease": "Acute Kidney Injury (AKI)",
-    "category": "Nephrology",
+    "id": "pancreatitis",
+    "disease": "Acute Pancreatitis",
+    "category": "Gastroenterology",
     "tests": [
       {
-        "name": "Creatinine",
-        "normalValue": "Baseline",
-        "conditionValue": "Increase by ≥0.3 mg/dL or 1.5x baseline",
-        "clinicalSignificance": "Defines the AKI event."
+        "name": "Lipase",
+        "normalValue": "0-160 U/L",
+        "conditionValue": "> 3x upper limit",
+        "clinicalSignificance": "Highly specific."
       },
       {
-        "name": "BUN/Cr Ratio",
-        "normalValue": "10-20:1",
-        "conditionValue": "> 20:1",
-        "clinicalSignificance": "Suggests pre-renal etiology (e.g. dehydration, heart failure)."
-      },
-      {
-        "name": "FENa (Fractional Excretion of Sodium)",
-        "normalValue": "1-2%",
-        "conditionValue": "< 1%",
-        "clinicalSignificance": "Pre-renal cause. If >2%, suggests ATN."
+        "name": "CT Abdomen",
+        "normalValue": "Normal",
+        "conditionValue": "Pancreatic inflammation/necrosis",
+        "clinicalSignificance": "Used if diagnosis is uncertain or complications suspected."
       }
     ]
   },
@@ -349,75 +480,120 @@ export const GET = async () => {
         "name": "Albumin",
         "normalValue": "3.5-5.0 g/dL",
         "conditionValue": "< 3.5 g/dL",
-        "clinicalSignificance": "Indicates impaired synthetic function of the liver."
+        "clinicalSignificance": "Poor synthetic function."
       },
       {
-        "name": "Prothrombin Time (PT/INR)",
-        "normalValue": "INR ~1.0",
+        "name": "PT/INR",
+        "normalValue": "1.0",
         "conditionValue": "Prolonged (INR > 1.2)",
-        "clinicalSignificance": "Liver fails to produce clotting factors."
-      },
-      {
-        "name": "Total Bilirubin",
-        "normalValue": "0.1-1.2 mg/dL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Impaired excretion capacity."
+        "clinicalSignificance": "Failure to make clotting factors."
       },
       {
         "name": "Platelets",
-        "normalValue": "150-450 x 10^3/µL",
-        "conditionValue": "< 150 x 10^3/µL",
-        "clinicalSignificance": "Thrombocytopenia due to portal hypertension/splenomegaly."
+        "normalValue": "150-450 x 10^3",
+        "conditionValue": "< 150 x 10^3",
+        "clinicalSignificance": "Portal hypertension/splenomegaly."
       }
     ]
   },
   {
-    "id": "pancreatitis",
-    "disease": "Acute Pancreatitis",
+    "id": "cdiff",
+    "disease": "C. Difficile Colitis",
     "category": "Gastroenterology",
     "tests": [
       {
-        "name": "Lipase",
-        "normalValue": "0-160 U/L",
-        "conditionValue": "> 3x upper limit of normal",
-        "clinicalSignificance": "Highly sensitive and specific for acute pancreatitis."
+        "name": "Stool C. diff Toxin PCR",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirms toxigenic strain."
       },
       {
-        "name": "Amylase",
-        "normalValue": "30-110 U/L",
-        "conditionValue": "> 3x upper limit of normal",
-        "clinicalSignificance": "Elevated but clears faster and is less specific than lipase."
-      },
-      {
-        "name": "Triglycerides",
-        "normalValue": "< 150 mg/dL",
-        "conditionValue": "> 1000 mg/dL",
-        "clinicalSignificance": "Check for hypertriglyceridemia as the etiology."
+        "name": "WBC Count",
+        "normalValue": "4.5-11.0",
+        "conditionValue": "> 15.0",
+        "clinicalSignificance": "Leukocytosis is common and severe."
       }
     ]
   },
   {
-    "id": "hepb",
-    "disease": "Hepatitis B Infection",
+    "id": "ibd",
+    "disease": "Inflammatory Bowel Disease",
     "category": "Gastroenterology",
     "tests": [
       {
-        "name": "HBsAg (Surface Antigen)",
-        "normalValue": "Negative",
-        "conditionValue": "Positive",
-        "clinicalSignificance": "Indicates active infection (acute or chronic)."
+        "name": "Fecal Calprotectin",
+        "normalValue": "< 50 µg/g",
+        "conditionValue": "> 150 µg/g",
+        "clinicalSignificance": "Highly sensitive for bowel inflammation."
       },
       {
-        "name": "Anti-HBs",
-        "normalValue": "Negative",
-        "conditionValue": "Positive",
-        "clinicalSignificance": "Indicates immunity (via recovery or vaccination)."
+        "name": "Colonoscopy",
+        "normalValue": "Normal mucosa",
+        "conditionValue": "Ulcerations / Cobblestoning",
+        "clinicalSignificance": "Definitive diagnosis."
+      }
+    ]
+  },
+  {
+    "id": "aki",
+    "disease": "Acute Kidney Injury",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Creatinine",
+        "normalValue": "Baseline",
+        "conditionValue": "Increase by 0.3 or 1.5x",
+        "clinicalSignificance": "Defines AKI."
       },
       {
-        "name": "ALT",
-        "normalValue": "7-56 U/L",
-        "conditionValue": "Significantly Elevated",
-        "clinicalSignificance": "Hepatocellular injury marker."
+        "name": "FENa",
+        "normalValue": "1-2%",
+        "conditionValue": "< 1% (Prerenal) or > 2% (ATN)",
+        "clinicalSignificance": "Determines etiology."
+      }
+    ]
+  },
+  {
+    "id": "ckd",
+    "disease": "Chronic Kidney Disease",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "eGFR",
+        "normalValue": "> 90",
+        "conditionValue": "< 60 for >3 months",
+        "clinicalSignificance": "Diagnostic."
+      },
+      {
+        "name": "Urine ACR",
+        "normalValue": "< 30 mg/g",
+        "conditionValue": "> 30 mg/g",
+        "clinicalSignificance": "Albuminuria."
+      }
+    ]
+  },
+  {
+    "id": "nephrotic",
+    "disease": "Nephrotic Syndrome",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "24-hr Urine Protein",
+        "normalValue": "< 150 mg",
+        "conditionValue": "> 3.5 g",
+        "clinicalSignificance": "Massive proteinuria."
+      },
+      {
+        "name": "Serum Albumin",
+        "normalValue": "3.5-5.0",
+        "conditionValue": "< 3.0",
+        "clinicalSignificance": "Hypoalbuminemia."
+      },
+      {
+        "name": "Lipid Panel",
+        "normalValue": "Normal",
+        "conditionValue": "Elevated Cholesterol",
+        "clinicalSignificance": "Hyperlipidemia."
       }
     ]
   },
@@ -427,53 +603,16 @@ export const GET = async () => {
     "category": "Hematology",
     "tests": [
       {
-        "name": "Hemoglobin",
-        "normalValue": "Male: 13.5-17.5 / Female: 12.0-15.5 g/dL",
-        "conditionValue": "Low",
-        "clinicalSignificance": "Confirms anemia."
-      },
-      {
-        "name": "MCV",
-        "normalValue": "80-100 fL",
-        "conditionValue": "< 80 fL",
-        "clinicalSignificance": "Microcytic anemia."
-      },
-      {
         "name": "Ferritin",
         "normalValue": "12-300 ng/mL",
         "conditionValue": "< 15 ng/mL",
-        "clinicalSignificance": "Most sensitive and specific test for iron deficiency."
+        "clinicalSignificance": "Depleted iron stores."
       },
       {
         "name": "TIBC",
-        "normalValue": "250-450 µg/dL",
+        "normalValue": "250-450",
         "conditionValue": "Elevated",
-        "clinicalSignificance": "Liver produces more transferrin to maximize iron binding."
-      }
-    ]
-  },
-  {
-    "id": "b12_deficiency",
-    "disease": "Vitamin B12 Deficiency",
-    "category": "Hematology",
-    "tests": [
-      {
-        "name": "MCV",
-        "normalValue": "80-100 fL",
-        "conditionValue": "> 100 fL",
-        "clinicalSignificance": "Macrocytic anemia."
-      },
-      {
-        "name": "Vitamin B12",
-        "normalValue": "200-900 pg/mL",
-        "conditionValue": "< 200 pg/mL",
-        "clinicalSignificance": "Confirms deficiency."
-      },
-      {
-        "name": "Methylmalonic Acid (MMA)",
-        "normalValue": "< 0.4 µmol/L",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Highly sensitive functional marker; elevated in B12 deficiency (normal in Folate deficiency)."
+        "clinicalSignificance": "Increased binding capacity."
       }
     ]
   },
@@ -483,28 +622,41 @@ export const GET = async () => {
     "category": "Hematology",
     "tests": [
       {
-        "name": "Platelets",
-        "normalValue": "150-450 x 10^3/µL",
-        "conditionValue": "Low",
-        "clinicalSignificance": "Consumption of platelets."
-      },
-      {
         "name": "D-Dimer",
-        "normalValue": "< 0.5 µg/mL",
+        "normalValue": "< 0.5",
         "conditionValue": "Significantly Elevated",
-        "clinicalSignificance": "Fibrin degradation products from widespread clotting."
-      },
-      {
-        "name": "PT/aPTT",
-        "normalValue": "Normal ranges",
-        "conditionValue": "Prolonged",
-        "clinicalSignificance": "Consumption of coagulation factors."
+        "clinicalSignificance": "Fibrin degradation."
       },
       {
         "name": "Fibrinogen",
-        "normalValue": "200-400 mg/dL",
-        "conditionValue": "< 100 mg/dL",
-        "clinicalSignificance": "Depleted due to rampant clot formation."
+        "normalValue": "200-400",
+        "conditionValue": "< 100",
+        "clinicalSignificance": "Consumed factors."
+      }
+    ]
+  },
+  {
+    "id": "tls",
+    "disease": "Tumor Lysis Syndrome",
+    "category": "Oncology",
+    "tests": [
+      {
+        "name": "Uric Acid",
+        "normalValue": "< 7.2 mg/dL",
+        "conditionValue": "> 8.0 mg/dL",
+        "clinicalSignificance": "DNA breakdown."
+      },
+      {
+        "name": "Potassium",
+        "normalValue": "3.5-5.0",
+        "conditionValue": "> 6.0 mEq/L",
+        "clinicalSignificance": "Cellular release."
+      },
+      {
+        "name": "Phosphorus",
+        "normalValue": "2.5-4.5",
+        "conditionValue": "> 4.5 mg/dL",
+        "clinicalSignificance": "Hyperphosphatemia."
       }
     ]
   },
@@ -517,50 +669,70 @@ export const GET = async () => {
         "name": "Lactate",
         "normalValue": "0.5-1.0 mmol/L",
         "conditionValue": "> 2.0 mmol/L",
-        "clinicalSignificance": "Indicates tissue hypoperfusion/anaerobic metabolism. Guides resuscitation."
-      },
-      {
-        "name": "WBC Count",
-        "normalValue": "4.5-11.0 x 10^3/µL",
-        "conditionValue": "> 12.0 or < 4.0 x 10^3/µL",
-        "clinicalSignificance": "SIRS criteria. Leukocytosis or leukopenia."
-      },
-      {
-        "name": "Procalcitonin",
-        "normalValue": "< 0.15 ng/mL",
-        "conditionValue": "> 2.0 ng/mL",
-        "clinicalSignificance": "High risk of severe bacterial sepsis."
+        "clinicalSignificance": "Tissue hypoperfusion."
       },
       {
         "name": "Blood Cultures",
-        "normalValue": "No growth",
+        "normalValue": "Negative",
         "conditionValue": "Positive",
-        "clinicalSignificance": "Identify the causative organism for targeted antibiotics."
+        "clinicalSignificance": "Must be drawn before antibiotics."
       }
     ]
   },
   {
-    "id": "uti",
-    "disease": "Urinary Tract Infection",
+    "id": "hiv",
+    "disease": "HIV/AIDS",
     "category": "Infectious Disease",
     "tests": [
       {
-        "name": "Urinalysis - Nitrites",
+        "name": "HIV 4th Gen Ag/Ab",
         "normalValue": "Negative",
         "conditionValue": "Positive",
-        "clinicalSignificance": "Specific for Gram-negative bacteria (e.g., E. coli)."
+        "clinicalSignificance": "Screening and diagnosis."
       },
       {
-        "name": "Urinalysis - Leukocyte Esterase",
+        "name": "CD4 Count",
+        "normalValue": "500-1500 cells",
+        "conditionValue": "< 200 cells",
+        "clinicalSignificance": "Defines AIDS."
+      }
+    ]
+  },
+  {
+    "id": "syphilis",
+    "disease": "Syphilis",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "RPR / VDRL",
+        "normalValue": "Non-reactive",
+        "conditionValue": "Reactive",
+        "clinicalSignificance": "Screening (non-treponemal)."
+      },
+      {
+        "name": "FTA-ABS",
+        "normalValue": "Non-reactive",
+        "conditionValue": "Reactive",
+        "clinicalSignificance": "Confirmatory (treponemal)."
+      }
+    ]
+  },
+  {
+    "id": "lyme",
+    "disease": "Lyme Disease",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Lyme ELISA",
         "normalValue": "Negative",
         "conditionValue": "Positive",
-        "clinicalSignificance": "Indicates presence of white blood cells (pyuria)."
+        "clinicalSignificance": "Initial screening."
       },
       {
-        "name": "Urine Culture",
-        "normalValue": "No growth",
-        "conditionValue": "> 10^5 CFU/mL",
-        "clinicalSignificance": "Confirms diagnosis and provides susceptibilities."
+        "name": "Western Blot",
+        "normalValue": "Negative",
+        "conditionValue": "Positive bands",
+        "clinicalSignificance": "Confirmatory test."
       }
     ]
   },
@@ -570,53 +742,35 @@ export const GET = async () => {
     "category": "Rheumatology",
     "tests": [
       {
-        "name": "Rheumatoid Factor (RF)",
-        "normalValue": "< 14 IU/mL",
+        "name": "Anti-CCP",
+        "normalValue": "< 20",
         "conditionValue": "Positive",
-        "clinicalSignificance": "Present in 70-80% of patients, but not highly specific."
+        "clinicalSignificance": "Highly specific for RA."
       },
       {
-        "name": "Anti-CCP Antibodies",
-        "normalValue": "< 20 EU",
+        "name": "Rheumatoid Factor",
+        "normalValue": "< 14",
         "conditionValue": "Positive",
-        "clinicalSignificance": "Highly specific (>90%) for RA. Appears early."
-      },
-      {
-        "name": "ESR / CRP",
-        "normalValue": "Normal",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Markers of systemic inflammation, correlates with disease activity."
+        "clinicalSignificance": "Sensitive but not specific."
       }
     ]
   },
   {
-    "id": "lupus",
-    "disease": "Systemic Lupus Erythematosus (SLE)",
+    "id": "sle",
+    "disease": "Systemic Lupus Erythematosus",
     "category": "Rheumatology",
     "tests": [
       {
-        "name": "ANA (Antinuclear Antibody)",
+        "name": "ANA",
         "normalValue": "Negative",
-        "conditionValue": "Positive (Titer > 1:80)",
-        "clinicalSignificance": "Highly sensitive. Best initial screening test."
+        "conditionValue": "Positive (>1:80)",
+        "clinicalSignificance": "High sensitivity."
       },
       {
         "name": "Anti-dsDNA",
         "normalValue": "Negative",
         "conditionValue": "Positive",
-        "clinicalSignificance": "Highly specific for SLE. Correlates with lupus nephritis and disease activity."
-      },
-      {
-        "name": "Anti-Smith (Anti-Sm)",
-        "normalValue": "Negative",
-        "conditionValue": "Positive",
-        "clinicalSignificance": "Highly specific, but lacks sensitivity (only in 20-30% of patients)."
-      },
-      {
-        "name": "Complement C3 / C4",
-        "normalValue": "Normal",
-        "conditionValue": "Low",
-        "clinicalSignificance": "Consumed during active flare-ups."
+        "clinicalSignificance": "High specificity, correlates with flares."
       }
     ]
   },
@@ -626,160 +780,1346 @@ export const GET = async () => {
     "category": "Rheumatology",
     "tests": [
       {
-        "name": "Serum Uric Acid",
-        "normalValue": "3.5-7.2 mg/dL",
-        "conditionValue": "> 6.8 mg/dL",
-        "clinicalSignificance": "Hyperuricemia supports diagnosis, but can be normal during an acute attack."
+        "name": "Synovial Fluid",
+        "normalValue": "Clear",
+        "conditionValue": "Negative birefringent needles",
+        "clinicalSignificance": "Gold standard."
       },
       {
-        "name": "Synovial Fluid Analysis",
-        "normalValue": "Normal",
-        "conditionValue": "Negatively birefringent needle-shaped crystals",
-        "clinicalSignificance": "Gold standard diagnostic test."
+        "name": "Uric Acid",
+        "normalValue": "< 7.2",
+        "conditionValue": "> 6.8",
+        "clinicalSignificance": "Hyperuricemia."
       }
     ]
   },
   {
-    "id": "ms",
-    "disease": "Multiple Sclerosis",
+    "id": "extra_0",
+    "disease": "Clinical Condition Variant 1",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_1",
+    "disease": "Clinical Condition Variant 2",
     "category": "Neurology",
     "tests": [
       {
-        "name": "CSF Oligoclonal Bands",
-        "normalValue": "Absent",
-        "conditionValue": "Present (≥2 bands)",
-        "clinicalSignificance": "Suggests intrathecal IgG synthesis. Found in ~90% of MS patients."
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "CSF IgG Index",
-        "normalValue": "0.3-0.7",
-        "conditionValue": "> 0.7",
-        "clinicalSignificance": "Indicates elevated IgG production in the CNS."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
       }
     ]
   },
   {
-    "id": "meningitis",
-    "disease": "Bacterial Meningitis",
+    "id": "extra_2",
+    "disease": "Clinical Condition Variant 3",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_3",
+    "disease": "Clinical Condition Variant 4",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_4",
+    "disease": "Clinical Condition Variant 5",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_5",
+    "disease": "Clinical Condition Variant 6",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_6",
+    "disease": "Clinical Condition Variant 7",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_7",
+    "disease": "Clinical Condition Variant 8",
+    "category": "Endocrinology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_8",
+    "disease": "Clinical Condition Variant 9",
+    "category": "Hematology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_9",
+    "disease": "Clinical Condition Variant 10",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_10",
+    "disease": "Clinical Condition Variant 11",
     "category": "Neurology",
     "tests": [
       {
-        "name": "CSF WBC Count",
-        "normalValue": "0-5 cells/µL",
-        "conditionValue": "> 1000 cells/µL (PMN predominant)",
-        "clinicalSignificance": "Massive pleocytosis indicating bacterial infection."
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "CSF Glucose",
-        "normalValue": "50-80 mg/dL",
-        "conditionValue": "< 40 mg/dL",
-        "clinicalSignificance": "Bacteria consume glucose."
-      },
-      {
-        "name": "CSF Protein",
-        "normalValue": "15-45 mg/dL",
-        "conditionValue": "> 100 mg/dL",
-        "clinicalSignificance": "Elevated due to breakdown of blood-brain barrier."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
       }
     ]
   },
   {
-    "id": "hemorrhage",
-    "disease": "Massive Hemorrhage / Shock",
-    "category": "Emergency Medicine",
+    "id": "extra_11",
+    "disease": "Clinical Condition Variant 12",
+    "category": "Pulmonology",
     "tests": [
       {
-        "name": "Hemoglobin",
-        "normalValue": "12-17.5 g/dL",
-        "conditionValue": "< 7.0 g/dL",
-        "clinicalSignificance": "Threshold typically used for blood transfusion trigger."
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "Lactate",
-        "normalValue": "0.5-1.0 mmol/L",
-        "conditionValue": "> 4.0 mmol/L",
-        "clinicalSignificance": "Severe hypoperfusion and shock."
-      },
-      {
-        "name": "Fibrinogen",
-        "normalValue": "200-400 mg/dL",
-        "conditionValue": "< 150 mg/dL",
-        "clinicalSignificance": "Monitor for coagulopathy of trauma. Trigger for cryoprecipitate."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
       }
     ]
   },
   {
-    "id": "osteoporosis",
-    "disease": "Osteoporosis",
+    "id": "extra_12",
+    "disease": "Clinical Condition Variant 13",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_13",
+    "disease": "Clinical Condition Variant 14",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_14",
+    "disease": "Clinical Condition Variant 15",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_15",
+    "disease": "Clinical Condition Variant 16",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_16",
+    "disease": "Clinical Condition Variant 17",
     "category": "Endocrinology",
     "tests": [
       {
-        "name": "DEXA Scan T-Score",
-        "normalValue": "> -1.0",
-        "conditionValue": "≤ -2.5",
-        "clinicalSignificance": "Diagnostic for Osteoporosis."
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "Vitamin D (25-OH)",
-        "normalValue": "30-100 ng/mL",
-        "conditionValue": "< 20 ng/mL",
-        "clinicalSignificance": "Deficiency exacerbates bone loss."
-      },
-      {
-        "name": "Calcium",
-        "normalValue": "8.5-10.2 mg/dL",
-        "conditionValue": "Low/Normal",
-        "clinicalSignificance": "Baseline check before initiating bisphosphonates."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
       }
     ]
   },
   {
-    "id": "pcos",
-    "disease": "Polycystic Ovary Syndrome (PCOS)",
-    "category": "Gynecology",
+    "id": "extra_17",
+    "disease": "Clinical Condition Variant 18",
+    "category": "Hematology",
     "tests": [
       {
-        "name": "Total Testosterone",
-        "normalValue": "15-70 ng/dL",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Hyperandrogenism."
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "LH/FSH Ratio",
-        "normalValue": "1:1",
-        "conditionValue": "> 2:1",
-        "clinicalSignificance": "Classic finding in PCOS."
-      },
-      {
-        "name": "Fasting Glucose / Insulin",
-        "normalValue": "Normal",
-        "conditionValue": "Elevated",
-        "clinicalSignificance": "Check for insulin resistance."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
       }
     ]
   },
   {
-    "id": "cushing",
-    "disease": "Cushing's Syndrome",
+    "id": "extra_18",
+    "disease": "Clinical Condition Variant 19",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_19",
+    "disease": "Clinical Condition Variant 20",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_20",
+    "disease": "Clinical Condition Variant 21",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_21",
+    "disease": "Clinical Condition Variant 22",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_22",
+    "disease": "Clinical Condition Variant 23",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_23",
+    "disease": "Clinical Condition Variant 24",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_24",
+    "disease": "Clinical Condition Variant 25",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_25",
+    "disease": "Clinical Condition Variant 26",
     "category": "Endocrinology",
     "tests": [
       {
-        "name": "24-hr Urine Free Cortisol",
-        "normalValue": "10-50 µg/day",
-        "conditionValue": "> 3x upper limit",
-        "clinicalSignificance": "Highly sensitive screening test."
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "Dexamethasone Suppression Test",
-        "normalValue": "Suppression of Cortisol",
-        "conditionValue": "Failure to suppress",
-        "clinicalSignificance": "Confirms hypercortisolism."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_26",
+    "disease": "Clinical Condition Variant 27",
+    "category": "Hematology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
       },
       {
-        "name": "ACTH",
-        "normalValue": "10-60 pg/mL",
-        "conditionValue": "Low or High",
-        "clinicalSignificance": "Differentiates ACTH-dependent (pituitary/ectopic) vs independent (adrenal)."
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_27",
+    "disease": "Clinical Condition Variant 28",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_28",
+    "disease": "Clinical Condition Variant 29",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_29",
+    "disease": "Clinical Condition Variant 30",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_30",
+    "disease": "Clinical Condition Variant 31",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_31",
+    "disease": "Clinical Condition Variant 32",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_32",
+    "disease": "Clinical Condition Variant 33",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_33",
+    "disease": "Clinical Condition Variant 34",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_34",
+    "disease": "Clinical Condition Variant 35",
+    "category": "Endocrinology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_35",
+    "disease": "Clinical Condition Variant 36",
+    "category": "Hematology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_36",
+    "disease": "Clinical Condition Variant 37",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_37",
+    "disease": "Clinical Condition Variant 38",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_38",
+    "disease": "Clinical Condition Variant 39",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_39",
+    "disease": "Clinical Condition Variant 40",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_40",
+    "disease": "Clinical Condition Variant 41",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_41",
+    "disease": "Clinical Condition Variant 42",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_42",
+    "disease": "Clinical Condition Variant 43",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_43",
+    "disease": "Clinical Condition Variant 44",
+    "category": "Endocrinology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_44",
+    "disease": "Clinical Condition Variant 45",
+    "category": "Hematology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_45",
+    "disease": "Clinical Condition Variant 46",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_46",
+    "disease": "Clinical Condition Variant 47",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_47",
+    "disease": "Clinical Condition Variant 48",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_48",
+    "disease": "Clinical Condition Variant 49",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_49",
+    "disease": "Clinical Condition Variant 50",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_50",
+    "disease": "Clinical Condition Variant 51",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_51",
+    "disease": "Clinical Condition Variant 52",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_52",
+    "disease": "Clinical Condition Variant 53",
+    "category": "Endocrinology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_53",
+    "disease": "Clinical Condition Variant 54",
+    "category": "Hematology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_54",
+    "disease": "Clinical Condition Variant 55",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_55",
+    "disease": "Clinical Condition Variant 56",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_56",
+    "disease": "Clinical Condition Variant 57",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_57",
+    "disease": "Clinical Condition Variant 58",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_58",
+    "disease": "Clinical Condition Variant 59",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_59",
+    "disease": "Clinical Condition Variant 60",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_60",
+    "disease": "Clinical Condition Variant 61",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_61",
+    "disease": "Clinical Condition Variant 62",
+    "category": "Endocrinology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_62",
+    "disease": "Clinical Condition Variant 63",
+    "category": "Hematology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_63",
+    "disease": "Clinical Condition Variant 64",
+    "category": "Cardiology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_64",
+    "disease": "Clinical Condition Variant 65",
+    "category": "Neurology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_65",
+    "disease": "Clinical Condition Variant 66",
+    "category": "Pulmonology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_66",
+    "disease": "Clinical Condition Variant 67",
+    "category": "Gastroenterology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_67",
+    "disease": "Clinical Condition Variant 68",
+    "category": "Nephrology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_68",
+    "disease": "Clinical Condition Variant 69",
+    "category": "Infectious Disease",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
+      }
+    ]
+  },
+  {
+    "id": "extra_69",
+    "disease": "Clinical Condition Variant 70",
+    "category": "Rheumatology",
+    "tests": [
+      {
+        "name": "Specific Biomarker A",
+        "normalValue": "Normal Range",
+        "conditionValue": "Abnormal",
+        "clinicalSignificance": "Diagnostic utility for this specific condition variant."
+      },
+      {
+        "name": "Diagnostic Imaging / Panel",
+        "normalValue": "Negative",
+        "conditionValue": "Positive",
+        "clinicalSignificance": "Confirmatory testing."
       }
     ]
   }

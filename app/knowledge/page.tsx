@@ -220,12 +220,13 @@ export default function KnowledgeHubPage() {
   );
 }
 
-function ToolCard({ icon, title, desc, href, color }: { icon: string, title: string, desc: string, href: string, color: 'blue'|'green'|'purple'|'yellow' }) {
+function ToolCard({ icon, title, desc, href, color }: { icon: string, title: string, desc: string, href: string, color: 'blue'|'green'|'purple'|'yellow'|'red' }) {
   const colorMap = {
     blue: "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 hover:border-blue-300",
     green: "bg-green-50 text-green-600 border-green-100 hover:bg-green-100 hover:border-green-300",
     purple: "bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-100 hover:border-purple-300",
     yellow: "bg-yellow-50 text-yellow-600 border-yellow-100 hover:bg-yellow-100 hover:border-yellow-300",
+    red: "bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:border-red-300",
   };
 
   return (
