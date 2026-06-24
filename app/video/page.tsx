@@ -157,15 +157,11 @@ export default function VideoFeed() {
                   <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Brief details about the video..."></textarea>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Video URL or Upload File *</label>
-                  <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} disabled={!!file} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none mb-3" placeholder="YouTube, Vimeo, or direct .mp4 link" />
-                  <div className="flex items-center space-x-3">
-                    <span className="text-gray-400">OR</span>
-                    <input type="file" accept="video/*" onChange={handleFileChange} disabled={!!videoUrl} className="text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition" />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">Note: To save database storage, you can provide an external video link (e.g., YouTube URL) or upload a short clip.</p>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Video URL *</label>
+                  <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none mb-3" placeholder="YouTube, Vimeo, or direct video link" />
+                  <p className="text-xs text-gray-400 mt-2">Note: Direct video uploads from gallery are disabled. Please paste an external video link.</p>
                 </div>
-                <button type="submit" disabled={uploading || !title || (!videoUrl && !file)} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition mt-4">
+                <button type="submit" disabled={uploading || !title || !videoUrl} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition mt-4">
                   {uploading ? "Uploading..." : "Publish Video"}
                 </button>
               </form>
