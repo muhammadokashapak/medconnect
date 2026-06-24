@@ -26,7 +26,13 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     const id = params?.id;
     if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 });
 
-    const guideline = guidelines.find(g => g.id === id);
+    let guideline: any = await prisma.guideline.findUnique({
+      where: { id }
+    });
+
+    if (!guideline) {
+      guideline = guidelines.find(g => g.id === id);
+    }
 
     if (!guideline) return NextResponse.json({ message: "Not found" }, { status: 404 });
 

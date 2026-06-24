@@ -85,7 +85,7 @@ export default function VideoFeed() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
           <button onClick={() => router.push("/feed")} className="text-white hover:text-white flex items-center font-bold bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl transition shadow-lg border border-blue-500">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to MedConnect
