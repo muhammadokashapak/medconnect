@@ -3,7 +3,7 @@ import { hash } from 'bcryptjs';
 
 async function main() {
   const email = 'adminokasha@gmail.com';
-  const hashedPassword = await hash('12341234', 10);
+  const hashedPassword = await hash('asd1212', 10);
 
   const existingAdmin = await prisma.doctor.findUnique({
     where: { email }
