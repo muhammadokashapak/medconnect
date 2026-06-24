@@ -89,9 +89,23 @@ export default function GuidelineDetailPage() {
           </div>
 
           {/* Document Content */}
-          <div className="p-8 md:p-12">
-            <div className="prose prose-lg max-w-none prose-headings:text-indigo-900 prose-headings:font-bold prose-a:text-indigo-600 prose-li:marker:text-indigo-400">
-              <div className="markdown-body [&>h3]:text-2xl [&>h3]:border-b [&>h3]:border-gray-100 [&>h3]:pb-2 [&>h3]:mb-6 [&>h3]:mt-10 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>p]:mb-6 text-gray-800 leading-relaxed">
+          <div className="p-8 md:p-12 bg-white">
+            <div className="prose prose-lg max-w-none 
+              prose-headings:font-extrabold prose-headings:text-indigo-950
+              prose-h1:text-4xl prose-h1:mb-8 prose-h1:border-b-2 prose-h1:border-indigo-100 prose-h1:pb-4
+              prose-h3:text-2xl prose-h3:mt-10 prose-h3:mb-6 prose-h3:text-indigo-800 prose-h3:flex prose-h3:items-center
+              prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-6
+              prose-a:text-indigo-600 prose-a:font-semibold hover:prose-a:text-indigo-800
+              prose-ul:list-disc prose-ul:pl-6 prose-li:marker:text-indigo-500 prose-li:text-gray-700 prose-li:mb-2
+              prose-ol:list-decimal prose-ol:pl-6
+              prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:bg-indigo-50/80 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-xl prose-blockquote:text-indigo-900 prose-blockquote:font-medium prose-blockquote:shadow-sm prose-blockquote:not-italic
+              prose-table:w-full prose-table:border-collapse prose-table:my-8 prose-table:shadow-sm prose-table:rounded-xl prose-table:overflow-hidden
+              prose-th:bg-indigo-50 prose-th:text-indigo-900 prose-th:font-bold prose-th:text-left prose-th:p-4 prose-th:border-b-2 prose-th:border-indigo-100
+              prose-td:p-4 prose-td:border-b prose-td:border-gray-100 prose-tr:hover:bg-gray-50/50 transition-colors
+              prose-strong:text-indigo-900 prose-strong:font-bold
+              prose-em:text-gray-800 prose-em:italic
+            ">
+              <div className="markdown-body">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {guideline.content}
                 </ReactMarkdown>
