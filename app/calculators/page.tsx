@@ -46,42 +46,30 @@ export default function CalculatorsPage() {
           </Link>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar */}
-          <div className="w-full md:w-72 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow border border-gray-100 flex flex-col h-[calc(100vh-180px)] min-h-[500px]">
-              <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                <input 
-                  type="text" 
-                  placeholder="Search calculators..." 
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                />
-              </div>
-              <div className="overflow-y-auto flex-grow no-scrollbar">
-                <ul className="divide-y divide-gray-50">
-                  {filteredCalculators.map(calc => (
-                    <li key={calc.name}>
-                      <button 
-                        onClick={() => setActiveTab(calc.name)}
-                        className={`w-full text-left px-5 py-3.5 transition flex flex-col ${activeTab === calc.name ? 'bg-purple-50 border-l-4 border-purple-600 text-purple-900' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'}`}
-                      >
-                        <span className="font-semibold">{calc.label}</span>
-                        <span className={`text-xs mt-0.5 ${activeTab === calc.name ? 'text-purple-600' : 'text-gray-400'}`}>{calc.type}</span>
-                      </button>
-                    </li>
-                  ))}
-                  {filteredCalculators.length === 0 && (
-                    <div className="p-6 text-center text-gray-500 text-sm">No calculators found</div>
-                  )}
-                </ul>
+        <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
+          {/* Dropdown Selector */}
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 w-full">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Choose your Calculator / Score</label>
+            <div className="relative w-full">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value)}
+                className="w-full appearance-none bg-gray-50 border border-gray-300 text-gray-900 py-3 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-medium"
+              >
+                {calculatorsList.map(calc => (
+                  <option key={calc.name} value={calc.name}>
+                    {calc.label} ({calc.type})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
           </div>
 
           {/* Main Calculator Area */}
-          <div className="flex-grow bg-white p-6 md:p-8 rounded-xl shadow border border-gray-100 min-h-[500px]">
+          <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
             {activeTab === "BMI" && <BMICalculator />}
             {activeTab === "GFR" && <GFRCalculator />}
             {activeTab === "CrCl" && <CrClCalculator />}
@@ -162,56 +150,56 @@ function BMICalculator() {
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Body Mass Index (BMI)</h2>
       
-      <div className="space-y-5 max-w-sm mb-6">
+      <div className="space-y-5 w-full mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Weight</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input 
               type="number" min="0.1" step="any" 
-              className="flex-grow border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+              className="flex-grow border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none w-full" 
               value={weight} onChange={e => setWeight(e.target.value)} 
               placeholder={`Enter weight`}
             />
             <select 
-              className="w-28 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50"
+              className="w-full sm:w-32 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50 shrink-0"
               value={weightUnit} onChange={e => setWeightUnit(e.target.value as any)}
             >
-              <option value="kg">Kilograms (kg)</option>
-              <option value="lbs">Pounds (lbs)</option>
-              <option value="stones">Stones (st)</option>
+              <option value="kg">kg</option>
+              <option value="lbs">lbs</option>
+              <option value="stones">stones</option>
             </select>
           </div>
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input 
               type="number" min="0" step="any" 
-              className="flex-grow border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+              className="flex-grow border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none w-full" 
               value={height} onChange={e => setHeight(e.target.value)} 
               placeholder={`Enter height`}
             />
             {heightUnit === "feet" && (
               <input 
                 type="number" min="0" step="any" 
-                className="w-24 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+                className="w-full sm:w-24 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none shrink-0" 
                 value={heightInches} onChange={e => setHeightInches(e.target.value)} 
                 placeholder="Inches"
               />
             )}
             <select 
-              className="w-32 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50"
+              className="w-full sm:w-36 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50 shrink-0"
               value={heightUnit} onChange={e => setHeightUnit(e.target.value as any)}
             >
-              <option value="cm">Centimeters (cm)</option>
-              <option value="m">Meters (m)</option>
-              <option value="inches">Inches (in)</option>
-              <option value="feet">Feet & Inches</option>
+              <option value="cm">cm</option>
+              <option value="m">m</option>
+              <option value="inches">in</option>
+              <option value="feet">ft & in</option>
             </select>
           </div>
         </div>
-        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition shadow-sm">Calculate BMI</button>
+        <button onClick={calculate} className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition shadow-sm mt-4">Calculate BMI</button>
       </div>
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {result !== null && (
