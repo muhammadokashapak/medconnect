@@ -146,11 +146,12 @@ export default function FeedPage() {
   const fetcher = (url: string) => fetch(url).then(r => r.json());
   
   // Note: For simplicity and speed, we will keep the custom pagination for `cases` but SWR-ize the rest.
-  const { data: trendingData } = useSWR("/api/trending", fetcher);
-  const { data: savedData } = useSWR("/api/save-case", fetcher);
-  const { data: profileData } = useSWR("/api/profile", fetcher);
-  const { data: friendsData } = useSWR("/api/friends", fetcher);
-  const { data: followData } = useSWR("/api/follow", fetcher);
+  const swrConfig = { revalidateOnFocus: false, revalidateIfStale: false, dedupingInterval: 60000 };
+  const { data: trendingData } = useSWR("/api/trending", fetcher, swrConfig);
+  const { data: savedData } = useSWR("/api/save-case", fetcher, swrConfig);
+  const { data: profileData } = useSWR("/api/profile", fetcher, swrConfig);
+  const { data: friendsData } = useSWR("/api/friends", fetcher, swrConfig);
+  const { data: followData } = useSWR("/api/follow", fetcher, swrConfig);
 
   useEffect(() => {
     if (trendingData) setTrending(trendingData);

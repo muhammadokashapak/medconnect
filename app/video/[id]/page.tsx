@@ -51,10 +51,10 @@ export default function VideoCallRoom() {
       <div className="absolute top-4 left-4 z-10">
         <button 
           onClick={() => router.push('/consultations')}
-          className="bg-black/50 hover:bg-black/80 text-white px-4 py-2 rounded-lg backdrop-blur-sm transition flex items-center gap-2 font-medium"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg border border-blue-500 transition flex items-center gap-2 font-bold"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          Leave Meeting
+          Back to MedConnect
         </button>
       </div>
 

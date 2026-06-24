@@ -21,7 +21,7 @@ export default function KnowledgeHubPage() {
     return res.json();
   });
 
-  const { data, error } = useSWR("/api/knowledge", fetcher);
+  const { data, error } = useSWR("/api/knowledge", fetcher, { revalidateOnFocus: false, revalidateIfStale: false, dedupingInterval: 60000 });
   const loading = !data && !error;
 
   useEffect(() => {

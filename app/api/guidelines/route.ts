@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const guidelines = [
+export const guidelines = [
   {
     "id": "gl_1",
     "title": "AHA/ACC Guidelines for Hypertension",

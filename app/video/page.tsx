@@ -86,11 +86,11 @@ export default function VideoFeed() {
     <div className="min-h-screen bg-gray-900 py-10 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8 text-white">
-          <button onClick={() => router.push("/feed")} className="text-indigo-400 hover:text-indigo-300 flex items-center font-medium bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition shadow-sm border border-gray-700">
+          <button onClick={() => router.push("/feed")} className="text-white hover:text-white flex items-center font-bold bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl transition shadow-lg border border-blue-500">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to MedConnect
           </button>
-          <button onClick={() => setShowUploadModal(true)} className="bg-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
+          <button onClick={() => setShowUploadModal(true)} className="bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg border border-green-500 hover:bg-green-700 transition">
             + Upload Video
           </button>
         </div>
