@@ -189,16 +189,23 @@ export default function KnowledgeHubPage() {
               </h2>
               {data?.recentlyViewed?.length > 0 ? (
                 <ul className="space-y-4">
-                  {data.recentlyViewed.map((view: any, idx: number) => (
+                  {data.recentlyViewed.map((view: any, idx: number) => {
+                    const href = view.resourceType === 'DRUG' ? `/drugs/${view.resourceId}` :
+                                 view.resourceType === 'GUIDELINE' ? `/guidelines/${view.resourceId}` :
+                                 view.resourceType === 'RESEARCH' ? `/research` :
+                                 `/case/${view.resourceId}`;
+                    return (
                     <li key={view.id || idx} className="flex items-start group">
-                      <div className="bg-gray-100 rounded p-2 mr-3 group-hover:bg-blue-50 transition">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide group-hover:text-blue-600 transition">{view.resourceType.substring(0,3)}</span>
-                      </div>
-                      <div>
-                        <p className="text-gray-800 font-medium text-sm line-clamp-2 group-hover:text-blue-600 transition">{view.resourceTitle}</p>
-                      </div>
+                      <Link href={href} className="flex items-start w-full">
+                        <div className="bg-gray-100 rounded p-2 mr-3 group-hover:bg-blue-50 transition flex-shrink-0">
+                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide group-hover:text-blue-600 transition">{view.resourceType.substring(0,3)}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-800 font-medium text-sm line-clamp-2 group-hover:text-blue-600 transition">{view.resourceTitle}</p>
+                        </div>
+                      </Link>
                     </li>
-                  ))}
+                  )})}
                 </ul>
               ) : (
                 <p className="text-sm text-gray-500 italic text-center py-4">No recent activity.</p>

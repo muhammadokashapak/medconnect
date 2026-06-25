@@ -112,20 +112,27 @@ export default function LearningDashboardPage() {
               <p className="text-sm text-gray-500">No recent activity.</p>
             ) : (
               <ul className="space-y-4">
-                {data?.recentViews?.map((view: any) => (
-                  <li key={view.id} className="flex items-start">
-                    <div className={`mt-1 w-2 h-2 rounded-full mr-3 flex-shrink-0 ${
-                      view.resourceType === 'DRUG' ? 'bg-green-500' :
-                      view.resourceType === 'GUIDELINE' ? 'bg-blue-500' :
-                      view.resourceType === 'RESEARCH' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}></div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">{view.resourceType}</p>
-                      <p className="text-gray-800 font-medium">{view.resourceTitle}</p>
-                      <p className="text-xs text-gray-400 mt-1">{new Date(view.viewedAt).toLocaleString()}</p>
-                    </div>
+                {data?.recentViews?.map((view: any) => {
+                  const href = view.resourceType === 'DRUG' ? `/drugs/${view.resourceId}` :
+                               view.resourceType === 'GUIDELINE' ? `/guidelines/${view.resourceId}` :
+                               view.resourceType === 'RESEARCH' ? `/research` :
+                               `/case/${view.resourceId}`;
+                  return (
+                  <li key={view.id} className="flex items-start group">
+                    <Link href={href} className="flex items-start w-full">
+                      <div className={`mt-1 w-2 h-2 rounded-full mr-3 flex-shrink-0 ${
+                        view.resourceType === 'DRUG' ? 'bg-green-500' :
+                        view.resourceType === 'GUIDELINE' ? 'bg-blue-500' :
+                        view.resourceType === 'RESEARCH' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}></div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">{view.resourceType}</p>
+                        <p className="text-gray-800 font-medium group-hover:text-blue-600 transition-colors">{view.resourceTitle}</p>
+                        <p className="text-xs text-gray-400 mt-1">{new Date(view.viewedAt).toLocaleString()}</p>
+                      </div>
+                    </Link>
                   </li>
-                ))}
+                )})}
               </ul>
             )}
           </div>
