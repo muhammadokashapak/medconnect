@@ -166,17 +166,19 @@ const diseaseMappings = [
 export default function LabValuesPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDisease, setSelectedDisease] = useState("all");
+  const [selectedFilter, setSelectedFilter] = useState("all");
 
   const filteredCategories = labCategories.map(cat => {
+    const isCategory = labCategories.some(c => c.id === selectedFilter);
+    const isDisease = diseaseMappings.some(d => d.id === selectedFilter);
+
     // 1. Filter by category
-    if (selectedCategory !== "all" && cat.id !== selectedCategory) return null;
+    if (selectedFilter !== "all" && isCategory && cat.id !== selectedFilter) return null;
     
     // 2. Filter by disease
     let diseaseLabs = cat.labs;
-    if (selectedDisease !== "all") {
-      const condition = diseaseMappings.find(d => d.id === selectedDisease);
+    if (selectedFilter !== "all" && isDisease) {
+      const condition = diseaseMappings.find(d => d.id === selectedFilter);
       if (condition && condition.labs) {
         diseaseLabs = cat.labs.filter(lab => condition.labs.includes(lab.name));
       }
@@ -222,7 +224,7 @@ export default function LabValuesPage() {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Search Lab Values</label>
               <div className="relative">
                 <input
@@ -235,36 +237,31 @@ export default function LabValuesPage() {
                 <svg className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Organ System / Panel</label>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Panel or Condition</label>
               <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               >
-                <option value="all">All Panels</option>
-                <option value="cbc">Complete Blood Count (CBC)</option>
-                <option value="bmp">Basic Metabolic Panel (BMP)</option>
-                <option value="lft">Liver Function Tests (LFT)</option>
-                <option value="renal">Renal Panel</option>
-                <option value="cardiac">Cardiac Biomarkers</option>
-                <option value="coagulation">Coagulation Profile</option>
-                <option value="abg">Arterial Blood Gas (ABG)</option>
-                <option value="endocrine">Endocrine & Hormones</option>
-                <option value="tumor_autoimmune">Tumor Markers & Autoimmune</option>
-                <option value="lipids">Lipid Panel</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Clinical Condition / Disease</label>
-              <select
-                value={selectedDisease}
-                onChange={(e) => setSelectedDisease(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-              >
-                {diseaseMappings.map(disease => (
-                  <option key={disease.id} value={disease.id}>{disease.name}</option>
-                ))}
+                <option value="all">All Labs</option>
+                <optgroup label="Organ Systems & Panels">
+                  <option value="cbc">Complete Blood Count (CBC)</option>
+                  <option value="bmp">Basic Metabolic Panel (BMP)</option>
+                  <option value="lft">Liver Function Tests (LFT)</option>
+                  <option value="renal">Renal Panel</option>
+                  <option value="cardiac">Cardiac Biomarkers</option>
+                  <option value="coagulation">Coagulation Profile</option>
+                  <option value="abg">Arterial Blood Gas (ABG)</option>
+                  <option value="endocrine">Endocrine & Hormones</option>
+                  <option value="tumor_autoimmune">Tumor Markers & Autoimmune</option>
+                  <option value="lipids">Lipid Panel</option>
+                </optgroup>
+                <optgroup label="Clinical Conditions">
+                  {diseaseMappings.filter(d => d.id !== 'all').map(disease => (
+                    <option key={disease.id} value={disease.id}>{disease.name}</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
           </div>

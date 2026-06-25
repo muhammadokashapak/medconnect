@@ -23,31 +23,29 @@ async function generateWithGemini(topic: string, specialty: string, org: string)
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `
-  You are an expert medical professional writing a highly detailed, evidence-based Clinical Practice Guideline for ${topic}.
+  You are an expert medical professional writing a brief, highly concise, evidence-based Clinical Practice Guideline for ${topic}.
   Organization: ${org}. Specialty: ${specialty}.
   
-  Write a comprehensive medical document in Markdown format (at least 400 words). Do NOT wrap the entire response in triple backticks. Just output raw markdown.
+  Write a concise medical document in Markdown format (maximum 200-250 words). Do NOT wrap the entire response in triple backticks. Just output raw markdown.
+  CRITICAL: DO NOT USE ANY TABLES. Tables are strictly forbidden. Use bullet points instead.
   
   Must include the following sections with EXACT these markdown headings:
   # Executive Summary
-  (Brief intro)
+  (Brief 1-2 sentence intro)
   
   ### 1. Etiology and Pathophysiology
-  (Detailed causes)
+  (Brief causes in bullet points)
   
-  ### 2. Diagnostic Workup and Criteria
-  (Include a detailed Markdown table of required labs/imaging)
+  ### 2. Diagnostic Workup
+  (List of required labs/imaging in simple bullet points. NO TABLES.)
   
-  ### 3. Treatment Algorithm and Management
-  (Include specific drug classes, realistic first-line and second-line therapies, and realistic dosages for ${topic}. Use blockquotes for warnings or clinical pearls.)
+  ### 3. Treatment Algorithm
+  (Include realistic first-line therapies and dosages for ${topic}. Keep it very brief. Use blockquotes for warnings or clinical pearls.)
   
-  ### 4. Patient Follow-up and Prognosis
-  (Monitoring timelines)
+  ### 4. Patient Follow-up
+  (Brief monitoring timeline)
   
-  ### 5. References and Evidence Base
-  (List 2-3 realistic mock references for ${org})
-  
-  Make it look extremely professional, using bullet points, bold text, blockquotes (> Clinical Pearl: ...), and well-formatted tables.
+  Make it look extremely clean and airy. Use short paragraphs and lots of bullet points.
   `;
 
   const result = await model.generateContent(prompt);
