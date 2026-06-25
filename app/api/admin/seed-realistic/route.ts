@@ -3,16 +3,65 @@ import { prisma } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const topConditions = [
+  // Cardiology
   { topic: "Hypertension", specialty: "Cardiology", org: "AHA/ACC" },
+  { topic: "Heart Failure", specialty: "Cardiology", org: "AHA/ACC" },
+  { topic: "Atrial Fibrillation", specialty: "Cardiology", org: "AHA/ACC" },
+  { topic: "STEMI", specialty: "Cardiology", org: "AHA/ACC" },
+  { topic: "NSTEMI", specialty: "Cardiology", org: "AHA/ACC" },
+  // Endocrinology
   { topic: "Type 2 Diabetes", specialty: "Endocrinology", org: "ADA" },
+  { topic: "Type 1 Diabetes", specialty: "Endocrinology", org: "ADA" },
+  { topic: "Hypothyroidism", specialty: "Endocrinology", org: "ATA" },
+  { topic: "Hyperthyroidism", specialty: "Endocrinology", org: "ATA" },
+  { topic: "Osteoporosis", specialty: "Endocrinology", org: "AACE" },
+  // Pulmonology
   { topic: "Asthma", specialty: "Pulmonology", org: "GINA" },
+  { topic: "COPD", specialty: "Pulmonology", org: "GOLD" },
+  { topic: "Community-Acquired Pneumonia", specialty: "Pulmonology", org: "ATS/IDSA" },
+  { topic: "Pulmonary Embolism", specialty: "Pulmonology", org: "CHEST" },
+  // Neurology
   { topic: "Ischemic Stroke", specialty: "Neurology", org: "AHA/ASA" },
+  { topic: "Migraine", specialty: "Neurology", org: "AHS" },
+  { topic: "Epilepsy", specialty: "Neurology", org: "AAN" },
+  { topic: "Parkinson's Disease", specialty: "Neurology", org: "MDS" },
+  // Gastroenterology
   { topic: "GERD", specialty: "Gastroenterology", org: "ACG" },
+  { topic: "Peptic Ulcer Disease", specialty: "Gastroenterology", org: "ACG" },
+  { topic: "Crohn's Disease", specialty: "Gastroenterology", org: "ACG" },
+  { topic: "Ulcerative Colitis", specialty: "Gastroenterology", org: "ACG" },
+  { topic: "Cirrhosis", specialty: "Gastroenterology", org: "AASLD" },
+  // Nephrology
   { topic: "Chronic Kidney Disease", specialty: "Nephrology", org: "KDIGO" },
+  { topic: "Acute Kidney Injury", specialty: "Nephrology", org: "KDIGO" },
+  // Oncology
   { topic: "Breast Cancer", specialty: "Oncology", org: "NCCN" },
+  { topic: "Lung Cancer (NSCLC)", specialty: "Oncology", org: "NCCN" },
+  { topic: "Colorectal Cancer", specialty: "Oncology", org: "NCCN" },
+  { topic: "Prostate Cancer", specialty: "Oncology", org: "NCCN" },
+  // Pediatrics
   { topic: "Otitis Media", specialty: "Pediatrics", org: "AAP" },
+  { topic: "Pediatric Asthma", specialty: "Pediatrics", org: "AAP/GINA" },
+  { topic: "ADHD", specialty: "Pediatrics", org: "AAP" },
+  { topic: "Febrile Seizures", specialty: "Pediatrics", org: "AAP" },
+  // Obstetrics/Gynecology
   { topic: "Preeclampsia", specialty: "Obstetrics/Gynecology", org: "ACOG" },
-  { topic: "Sepsis", specialty: "Infectious Diseases", org: "Surviving Sepsis Campaign" }
+  { topic: "Gestational Diabetes", specialty: "Obstetrics/Gynecology", org: "ACOG" },
+  { topic: "Endometriosis", specialty: "Obstetrics/Gynecology", org: "ACOG" },
+  { topic: "PCOS", specialty: "Obstetrics/Gynecology", org: "ACOG" },
+  // Infectious Diseases
+  { topic: "Sepsis", specialty: "Infectious Diseases", org: "Surviving Sepsis Campaign" },
+  { topic: "HIV/AIDS", specialty: "Infectious Diseases", org: "DHHS" },
+  { topic: "Tuberculosis", specialty: "Infectious Diseases", org: "CDC/ATS" },
+  { topic: "Urinary Tract Infection", specialty: "Infectious Diseases", org: "IDSA" },
+  // Rheumatology
+  { topic: "Rheumatoid Arthritis", specialty: "Rheumatology", org: "ACR" },
+  { topic: "Systemic Lupus Erythematosus", specialty: "Rheumatology", org: "ACR" },
+  { topic: "Gout", specialty: "Rheumatology", org: "ACR" },
+  // Psychiatry
+  { topic: "Major Depressive Disorder", specialty: "Psychiatry", org: "APA" },
+  { topic: "Generalized Anxiety Disorder", specialty: "Psychiatry", org: "APA" },
+  { topic: "Schizophrenia", specialty: "Psychiatry", org: "APA" }
 ];
 
 async function generateWithGemini(topic: string, specialty: string, org: string): Promise<string> {
