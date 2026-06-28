@@ -25,13 +25,9 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617; /* Slate-950 */
-    --foreground: #f8fafc; /* Slate-50 */
-  }
-}
-
+/* Dark mode disabled globally because app components do not support it yet. 
+   This prevents white text on white backgrounds on mobile devices.
+*/
 *, *::before, *::after {
   box-sizing: border-box;
 }
