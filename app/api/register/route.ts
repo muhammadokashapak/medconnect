@@ -1,5 +1,6 @@
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 import { registerRateLimiter } from "@/lib/rate-limit";
 import { validateLicenseNumber } from "@/lib/license-validation";
 
@@ -87,8 +88,8 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpCode = crypto.randomBytes(32).toString('hex');
+    const otpExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour for email link
 
     let doctor;
 
@@ -141,20 +142,25 @@ export async function POST(req: Request) {
       },
     });
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const verifyLink = `${appUrl}/verify-email?token=${otpCode}&email=${encodeURIComponent(email)}`;
+
     const mailOptions = {
       from: '"MedConnect" <muhammad.okasha2146@gmail.com>',
       to: email,
-      subject: "Your MedConnect Verification Code",
-      text: `Your MedConnect verification code is: ${otpCode}. It will expire in 10 minutes.`,
+      subject: "Verify your MedConnect Account",
+      text: `Please verify your MedConnect account by clicking this link: ${verifyLink}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-w-md; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
           <h2 style="color: #4F46E5;">MedConnect</h2>
           <p>Hi Dr. ${fullName},</p>
-          <p>Thank you for registering. Please use the following 6-digit code to verify your email address:</p>
-          <div style="font-size: 24px; font-weight: bold; padding: 10px; background-color: #f3f4f6; text-align: center; letter-spacing: 5px; border-radius: 4px;">
-            ${otpCode}
+          <p>Thank you for registering. Please click the button below to verify your email address and activate your account:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verifyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email Address</a>
           </div>
-          <p>This code will expire in 10 minutes.</p>
+          <p style="font-size: 14px; color: #666;">If the button doesn't work, copy and paste this link into your browser:</p>
+          <p style="font-size: 12px; color: #666; word-break: break-all;">${verifyLink}</p>
+          <p>This link will expire in 1 hour.</p>
         </div>
       `,
     };
@@ -166,11 +172,11 @@ export async function POST(req: Request) {
     // Also send SMS if phone number is available
     if (phoneNumber) {
       const { sendSMS } = require("@/lib/sms");
-      await sendSMS(phoneNumber, `Your MedConnect verification code is: ${otpCode}`);
+      await sendSMS(phoneNumber, `MedConnect Verification link sent to your email.`);
     }
 
     return Response.json({
-      message: "Doctor registered. OTP sent.",
+      message: "Doctor registered. Verification link sent.",
       email: doctor.email,
     });
 

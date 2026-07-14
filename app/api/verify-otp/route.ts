@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     if (email) email = email.trim().toLowerCase();
 
     if (!email || !otp) {
-      return NextResponse.json({ message: "Email and OTP are required" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid request" }, { status: 400 });
     }
 
     const doctor = await prisma.doctor.findUnique({
@@ -20,14 +20,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Account not found" }, { status: 404 });
     }
 
-    // Check if OTP matches
+    // Check if Token matches
     if (doctor.otpCode !== otp) {
-      return NextResponse.json({ message: "Invalid OTP code" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid or expired verification link" }, { status: 400 });
     }
 
-    // Check if OTP has expired
+    // Check if Token has expired
     if (!doctor.otpExpiry || doctor.otpExpiry < new Date()) {
-      return NextResponse.json({ message: "OTP has expired. Please register again or request a new code." }, { status: 400 });
+      return NextResponse.json({ message: "Verification link has expired. Please register again or request a new link." }, { status: 400 });
     }
 
     // OTP is valid, mark as verified and clear OTP

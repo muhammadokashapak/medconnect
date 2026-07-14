@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const { email, code, newPassword } = body;
 
     if (!email || !code || !newPassword) {
-      return NextResponse.json({ message: "Email, code, and new password are required" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid request" }, { status: 400 });
     }
 
     const doctor = await prisma.doctor.findUnique({
@@ -20,11 +20,11 @@ export async function POST(req: Request) {
     }
 
     if (doctor.resetToken !== code) {
-      return NextResponse.json({ message: "Invalid or incorrect reset code" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid or incorrect reset link" }, { status: 400 });
     }
 
     if (!doctor.resetTokenExpiry || doctor.resetTokenExpiry < new Date()) {
-      return NextResponse.json({ message: "Reset code has expired. Please request a new one." }, { status: 400 });
+      return NextResponse.json({ message: "Reset link has expired. Please request a new one." }, { status: 400 });
     }
 
     // Hash the new password

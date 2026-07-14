@@ -11,18 +11,7 @@ function RegisterContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // Resend OTP cooldown
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [resendCooldown]);
 
   useEffect(() => {
     if (searchParams.get("error") === "account_not_found") {
@@ -85,8 +74,7 @@ function RegisterContent() {
         return;
       }
 
-      // Show OTP screen
-      setShowOtp(true);
+      setSuccess(true);
       setLoading(false);
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -94,78 +82,39 @@ function RegisterContent() {
     }
   };
 
-  const handleOtpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/verify-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: formData.email, otp: otpCode }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "OTP Verification failed");
-        setLoading(false);
-        return;
-      }
-
-      setSuccess(true);
-      
-      // Auto redirect to login after verification
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
-
-    } catch (err) {
-      setError("An error occurred during verification.");
-      setLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    if (resendCooldown > 0) return;
-    setError("");
-    setResendCooldown(60);
-    try {
-      await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-    } catch {
-      setError("Failed to resend OTP.");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">MedConnect</h1>
-        <p className="text-gray-600 mb-6">{showOtp ? "Email Verification" : "Doctor Registration"}</p>
+        <p className="text-gray-600 mb-6">Doctor Registration</p>
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700 font-medium">
-              ✓ Email Verified! Redirecting to login...
+        {success ? (
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Check your email!</h2>
+            <p className="text-gray-600 mb-6">
+              We've sent a verification link to <span className="font-semibold">{formData.email}</span>. 
+              Please check your inbox and click the link to activate your account.
             </p>
+            <p className="text-sm text-gray-500 mb-6">
+              If you don't see it, check your spam or junk folder.
+            </p>
+            <Link href="/login" className="inline-block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+              Return to Login
+            </Link>
           </div>
-        )}
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 font-medium">{error.includes("Account not found") ? "⚠️" : "✗"} {error}</p>
-          </div>
-        )}
-
-        {!showOtp ? (
-          <form onSubmit={handleRegisterSubmit} className="space-y-4">
+        ) : (
+          <>
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 font-medium">{error.includes("Account not found") ? "⚠️" : "✗"} {error}</p>
+              </div>
+            )}
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
             {/* Full Name */}
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -302,65 +251,7 @@ function RegisterContent() {
               </Link>
             </p>
           </form>
-        ) : (
-          <form onSubmit={handleOtpSubmit} className="space-y-4">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <p className="text-gray-700">We've sent a 6-digit code to</p>
-              <p className="font-bold text-indigo-700">{formData.email}</p>
-            </div>
-
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1 text-center">
-                Enter Verification Code
-              </label>
-              <input
-                id="otp"
-                type="text"
-                maxLength={6}
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="123456"
-                required
-                className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-black placeholder-gray-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || otpCode.length !== 6}
-              className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-            >
-              {loading ? "Verifying..." : "Verify & Login"}
-            </button>
-
-            {/* Resend OTP */}
-            <div className="text-center mt-3">
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={resendCooldown > 0}
-                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium disabled:text-gray-400 disabled:cursor-not-allowed transition"
-              >
-                {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : "Resend OTP"}
-              </button>
-            </div>
-            
-            <button
-              type="button"
-              onClick={() => {
-                setShowOtp(false);
-                setOtpCode("");
-              }}
-              className="w-full mt-3 bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg transition duration-200"
-            >
-              Back
-            </button>
-          </form>
+          </>
         )}
       </div>
     </div>
